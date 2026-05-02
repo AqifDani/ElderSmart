@@ -2808,10 +2808,69 @@ body.auth-split-page {
         font-size: 20px !important;
     }
 
-    /* Status Badges */
-    .status-badge,
-    .badge {
-        font-size: 10px;
-        padding: 3px 6px;
-    }
-}   
+/* --- MODERN ELDER HEALTH CARDS --- */
+.elder-health-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.elder-health-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
+    border-color: var(--primary);
+}
+
+.health-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(74, 99, 81, 0.2);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status-pill.safe    { background: #dcfce7; color: #166534; }
+.status-pill.stable  { background: #fef9c3; color: #854d0e; }
+.status-pill.warning { background: #fee2e2; color: #991b1b; }
+
+.health-bar-container {
+    width: 80px; height: 6px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.health-bar-fill {
+    height: 100%; border-radius: 10px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score-text {
+    font-size: 18px; font-weight: 800; color: var(--text-main);
+    line-height: 1;
+}
+.score-label {
+    font-size: 9px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-top: 2px;
+}

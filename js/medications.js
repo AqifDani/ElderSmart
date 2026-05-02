@@ -55,55 +55,126 @@ function renderInventory() {
     if (!list) return;
 
     const meds = currentMeds;
-    
-    list.innerHTML = "";
+    const isCaregiver = !document.getElementById("addMedBtn").classList.contains("hidden");
 
+    // --- Update Stats Row ---
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const todayDow = new Date().getDay();
+    let dueToday = 0, lowStock = 0;
+    meds.forEach(med => {
+        const isDaily = med.frequency !== 'specific';
+        const isOnDay = med.frequency === 'specific' && med.days && med.days.includes(String(todayDow));
+        if (isDaily || isOnDay) dueToday++;
+        if (med.stock !== undefined && med.stock < 5) lowStock++;
+    });
+    const el = (id) => document.getElementById(id);
+    if (el('statTotalMeds')) el('statTotalMeds').innerText = meds.length;
+    if (el('statDueToday'))  el('statDueToday').innerText  = dueToday;
+    if (el('statLowStock'))  el('statLowStock').innerText  = lowStock;
+    if (el('medsCabinetCount')) el('medsCabinetCount').innerText = `${meds.length} medications`;
+    if (el('statLowStockCard') && lowStock > 0) el('statLowStockCard').style.borderLeft = '4px solid var(--warning)';
+
+    // --- Render Cards ---
+    list.innerHTML = "";
     if (meds.length === 0) {
-        list.innerHTML = "<p class='text-muted'>No medications found.</p>";
+        list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#9ca3af;">
+            <i class="fas fa-pills" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+            <p style="font-size:15px; font-weight:600;">No medications in the cabinet yet.</p>
+        </div>`;
         return;
     }
 
-    // Clone array before sorting to avoid mutating global state constantly
     const sortedMeds = [...meds].sort((a, b) => a.time.localeCompare(b.time));
 
-    sortedMeds.forEach(med => {
-        // Find user role from DOM or global if needed, but since it's a global view we can check the Add Med btn
-        const isCaregiver = !document.getElementById("addMedBtn").classList.contains("hidden");
-        let actions = "";
-        if (isCaregiver) {
-                actions = `
-                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; display:flex; gap:10px;">
-                        <button onclick="openMedModal('${med.id}')" class="text-link text-sm w-full">Edit</button>
-                        <button onclick="deleteMed('${med.id}')" class="text-danger text-sm w-full">Delete</button>
-                    </div>`;
-            }
+    // Pill icon colors cycle
+    const pillColors = [
+        { bg: '#e0f2fe', color: '#0369a1' },
+        { bg: '#dcfce7', color: '#166534' },
+        { bg: '#fef9c3', color: '#854d0e' },
+        { bg: '#fce7f3', color: '#9d174d' },
+        { bg: '#ede9fe', color: '#5b21b6' },
+    ];
 
-            let stockHtml = "";
-            if (med.stock !== undefined) {
-                if (med.stock < 5) stockHtml = `<span class="badge badge-stock-low">⚠ Low: ${med.stock}</span>`;
-                else stockHtml = `<span class="badge badge-stock-ok">Stock: ${med.stock}</span>`;
-            }
+    sortedMeds.forEach((med, i) => {
+        const c = pillColors[i % pillColors.length];
+        const freqDisplay = med.frequency === 'specific'
+            ? `On: ${formatDays(med.days)}`
+            : `Every Day`;
 
-            const freqDisplay = med.frequency === 'specific'
-                ? `<span class="text-xs text-muted">On: ${formatDays(med.days)}</span>`
-                : `<span class="text-xs text-muted">Every Day</span>`;
+        const stockPercent = med.stock ? Math.min((med.stock / 30) * 100, 100) : 0;
+        const isLow = med.stock !== undefined && med.stock < 5;
+        const stockBarColor = isLow ? '#ef4444' : '#22c55e';
+        const stockLabel = med.stock !== undefined ? `${med.stock} pills remaining` : 'Stock not tracked';
 
-            // ✅ CLEANER HTML STRUCTURE using new CSS classes
-            list.innerHTML += `
-                <div class="card card-primary">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 style="margin:0;">${med.name} <span class="text-sm text-muted">(${med.dosage})</span></h3>
-                        <div class="text-right">
-                            <div class="text-primary font-bold">${formatTime(med.time)}</div>
-                            ${stockHtml}
-                        </div>
+        const actionsHtml = isCaregiver ? `
+            <div style="display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top: 1px solid #f1f5f9;">
+                <button onclick="openMedModal('${med.id}')" style="
+                    flex:1; padding:8px; border-radius:10px; font-size:12px; font-weight:700;
+                    border: 1.5px solid #d1d5db; background: white; color: #374151; cursor:pointer;
+                    transition: all 0.2s;
+                " onmouseenter="this.style.background='#f9fafb'" onmouseleave="this.style.background='white'">
+                    <i class="fas fa-edit" style="margin-right:4px;"></i> Edit
+                </button>
+                <button onclick="deleteMed('${med.id}')" style="
+                    flex:1; padding:8px; border-radius:10px; font-size:12px; font-weight:700;
+                    border: 1.5px solid #fecaca; background: #fff1f2; color: #dc2626; cursor:pointer;
+                    transition: all 0.2s;
+                " onmouseenter="this.style.background='#fee2e2'" onmouseleave="this.style.background='#fff1f2'">
+                    <i class="fas fa-trash" style="margin-right:4px;"></i> Remove
+                </button>
+            </div>` : '';
+
+        list.innerHTML += `
+            <div style="
+                background: white; border-radius: 20px; padding: 20px;
+                border: 1.5px solid #f1f5f9;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+                transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+                position: relative; overflow: hidden;
+            " onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.08)';"
+               onmouseleave="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.04)';">
+                
+                <!-- Pill Icon + Name Row -->
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
+                    <div style="
+                        width:48px; height:48px; flex-shrink:0;
+                        background:${c.bg}; color:${c.color};
+                        border-radius:14px; display:flex; align-items:center; justify-content:center;
+                        font-size:22px;
+                    "><i class="fas fa-capsules"></i></div>
+                    <div style="flex:1;">
+                        <h3 style="font-weight:800; font-size:15px; color:#1f2937; margin:0 0 2px;">${med.name}</h3>
+                        <span style="font-size:12px; font-weight:600; color:${c.color}; background:${c.bg}; padding:2px 8px; border-radius:20px;">${med.dosage}</span>
                     </div>
-                    <div class="text-sm text-muted">
-                        👤 ${med.elderName} • 💊 Take ${med.perDose || 1}<br>
-                        ${freqDisplay}
+                    <div style="text-align:right; flex-shrink:0;">
+                        <div style="font-size:15px; font-weight:800; color:#1f2937;">${formatTime(med.time)}</div>
+                        <div style="font-size:11px; color:#9ca3af; font-weight:600;">${freqDisplay}</div>
                     </div>
-                    ${actions}
-                </div>`;
+                </div>
+
+                <!-- Elder -->
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+                    <div style="width:24px; height:24px; border-radius:8px; background:${c.bg}; color:${c.color}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;">
+                        ${med.elderName ? med.elderName[0].toUpperCase() : '?'}
+                    </div>
+                    <span style="font-size:13px; color:#4b5563; font-weight:600;">${med.elderName || 'Unknown Elder'}</span>
+                    <span style="margin-left:auto; font-size:12px; color:#6b7280;">💊 Take ${med.perDose || 1}</span>
+                </div>
+
+                <!-- Stock Bar -->
+                ${med.stock !== undefined ? `
+                <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span style="font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.3px;">Stock Level</span>
+                        <span style="font-size:11px; font-weight:800; color:${isLow ? '#ef4444' : '#166534'};">${stockLabel}</span>
+                    </div>
+                    <div style="background:#f1f5f9; height:6px; border-radius:10px; overflow:hidden;">
+                        <div style="height:100%; width:${stockPercent}%; background:${stockBarColor}; border-radius:10px; transition:width 0.8s ease;"></div>
+                    </div>
+                </div>` : ''}
+
+                ${actionsHtml}
+            </div>`;
     });
 }
 

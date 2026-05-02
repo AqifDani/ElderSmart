@@ -61,8 +61,8 @@ async function loadDashboardStats() {
         // 4. Default: Show Next Immediate Appointment
         updateNextApptWidget(futureAppts);
 
-        // 5. Render Health Chart
-        renderCompositionChart(healthRecords);
+        // 5. Render Health List (Per Elder)
+        renderElderHealthList(healthRecords, elders);
 
     } catch (error) {
         console.error("Dashboard Error:", error);
@@ -201,64 +201,99 @@ function updateMiniAlerts(count) {
     }
 }
 
-function renderCompositionChart(records) {
-    const ctx = document.getElementById('compositionChart');
-    if (!ctx) return;
-
-    let safeCount = 0;
-    let warningCount = 0;
-
-    if (records.length === 0) { safeCount = 0; warningCount = 1; } 
-    else {
-        records.forEach(rec => {
-            if (rec.bp && rec.bp.includes('/')) {
-                const [sys, dia] = rec.bp.split('/').map(Number);
-                if (sys > 140 || dia > 90) warningCount++; else safeCount++;
-            } else { safeCount++; }
-        });
+function renderElderHealthList(records, elders) {
+    const container = document.getElementById("elderHealthList");
+    if (!container) return;
+    
+    if (elders.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#9ca3af; font-size:13px; padding:16px;">No elder profiles found.</p>`;
+        return;
     }
 
-    if (safeCount === 0 && warningCount === 0) safeCount = 1;
+    const STATUS = {
+        safe:    { label: 'Safe',      bg: '#f0fdf4', dot: '#22c55e', text: '#16a34a', bar: 'linear-gradient(90deg,#4ade80,#22c55e)' },
+        stable:  { label: 'Stable',    bg: '#fefce8', dot: '#eab308', text: '#ca8a04', bar: 'linear-gradient(90deg,#fde047,#eab308)' },
+        warning: { label: 'Attention', bg: '#fff1f2', dot: '#ef4444', text: '#dc2626', bar: 'linear-gradient(90deg,#fca5a5,#ef4444)' },
+    };
 
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Normal', 'Attention'],
-            datasets: [{
-                data: [safeCount, warningCount],
-                backgroundColor: ['#166534', '#ef4444'],
-                borderWidth: 0, hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '75%',
-            plugins: { legend: { display: false }, tooltip: { enabled: true } }
-        },
-        plugins: [{
-            id: 'centerText',
-            beforeDraw: function(chart) {
-                if (records.length === 0) return;
-                const width = chart.width, height = chart.height, ctx = chart.ctx;
-                ctx.restore();
-                const total = safeCount + warningCount;
-                const percent = Math.round((safeCount / total) * 100);
-                
-                const fontSize = (height / 114).toFixed(2);
-                ctx.font = "bold " + fontSize + "em sans-serif";
-                ctx.textBaseline = "middle";
-                ctx.fillStyle = "#166534";
-                
-                const text = percent + "%", textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2.2;
-                ctx.fillText(text, textX, textY);
-                
-                ctx.font = "normal " + (fontSize*0.4).toFixed(2) + "em sans-serif";
-                ctx.fillStyle = "#6b7280";
-                const subtext = "Safe", subtextX = Math.round((width - ctx.measureText(subtext).width) / 2), subtextY = height / 1.75;
-                ctx.fillText(subtext, subtextX, subtextY);
-                ctx.save();
-            }
-        }]
+    let html = "";
+
+    elders.forEach((elder, idx) => {
+        // Match by elderId (new records) OR elderName (legacy records)
+        const elderRecords = records.filter(r => 
+            r.elderId === elder.id || 
+            (r.elderName && r.elderName.toLowerCase() === elder.name.toLowerCase())
+        );
+        let safeCount = elderRecords.length === 0 ? 1 : 0;
+        let warningCount = 0;
+
+        elderRecords.forEach(rec => {
+            if (rec.bp && rec.bp.includes('/')) {
+                const [sys, dia] = rec.bp.split('/').map(Number);
+                (sys > 140 || dia > 90) ? warningCount++ : safeCount++;
+            } else { safeCount++; }
+        });
+
+        const total = safeCount + warningCount;
+        const percent = Math.round((safeCount / total) * 100);
+        const key = percent < 70 ? 'warning' : percent < 90 ? 'stable' : 'safe';
+        const s = STATUS[key];
+        const initials = elder.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const dataCount = elderRecords.length > 0 ? `${elderRecords.length} records` : 'No records yet';
+
+        html += `
+        <div onclick="window.location.href='health_records.html?elderId=${elder.id}'" style="
+            background: white;
+            border-radius: 18px;
+            padding: 16px 18px;
+            cursor: pointer;
+            border: 1.5px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        " onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.08)'; this.style.borderColor='${s.dot}';" 
+           onmouseleave="this.style.transform=''; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; this.style.borderColor='#f1f5f9';">
+            
+            <!-- Subtle left accent -->
+            <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:${s.bar}; border-radius:4px 0 0 4px;"></div>
+
+            <div style="display:flex; align-items:center; gap:14px; padding-left:6px;">
+                <!-- Avatar -->
+                <div style="
+                    width:46px; height:46px; flex-shrink:0;
+                    background: ${s.bg};
+                    border: 2px solid ${s.dot}30;
+                    border-radius:14px;
+                    display:flex; align-items:center; justify-content:center;
+                    font-weight:800; font-size:15px; color:${s.text};
+                ">${initials}</div>
+
+                <!-- Info -->
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <span style="font-weight:700; font-size:14px; color:#1f2937; white-space:nowrap;">${elder.name}</span>
+                        <span style="font-weight:800; font-size:18px; color:#1f2937; line-height:1;">${percent}%</span>
+                    </div>
+                    <!-- Progress bar -->
+                    <div style="background:#f1f5f9; height:6px; border-radius:10px; overflow:hidden; margin-bottom:7px;">
+                        <div style="height:100%; width:${percent}%; background:${s.bar}; border-radius:10px; transition:width 1s ease;"></div>
+                    </div>
+                    <!-- Bottom row -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="
+                            background:${s.bg}; color:${s.text};
+                            font-size:10px; font-weight:800; text-transform:uppercase;
+                            padding:2px 9px; border-radius:20px; letter-spacing:0.4px;
+                        ">${s.label}</span>
+                        <span style="font-size:11px; color:#9ca3af; font-weight:500;">${dataCount}</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
     });
+
+    container.innerHTML = html;
 }
 async function runSafetyChecks() {
     const user = firebase.auth().currentUser;

@@ -24,44 +24,78 @@
 
             <header class="dashboard-header">
                 <div>
-                    <h1>Medication Tracker</h1>
-                    <p class="subtitle text-muted">Family Prescriptions & Daily Schedule</p>
+                    <h2 class="text-xs text-muted uppercase font-bold tracking-widest mb-1">Health & Care</h2>
+                    <h1 class="text-3xl font-bold text-dark">Medication Tracker</h1>
                 </div>
-                <button class="action-btn hidden" onclick="openMedModal()" id="addMedBtn">
+                <button class="btn-primary hidden" onclick="openMedModal()" id="addMedBtn">
                     <i class="fas fa-plus"></i> Add Medication
                 </button>
             </header>
 
-            <div class="table-container mb-4">
-                <div class="table-header">
-                    <h3 id="scheduleTitle" class="text-primary font-bold">Today's Schedule</h3>
-                    
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-muted" style="margin:0;">View Date:</label>
-                        <input type="text" id="historyDate" class="text-sm" style="width: 140px; margin:0; background:white;">
+            <!-- Stats Row -->
+            <div class="stats-row mb-6" id="medStatsRow">
+                <div class="stat-card bg-white border-subtle">
+                    <div class="icon-square bg-info-light"><i class="fas fa-pills text-info"></i></div>
+                    <div class="mt-2">
+                        <h2 class="text-2xl font-bold text-dark" id="statTotalMeds">--</h2>
+                        <p class="text-xs text-muted font-bold uppercase">Total Meds</p>
                     </div>
                 </div>
-                
-                <div class="tasks-table">
-                    <table id="checklistTable">
+                <div class="stat-card bg-white border-subtle">
+                    <div class="icon-square bg-success-light"><i class="fas fa-calendar-check text-success"></i></div>
+                    <div class="mt-2">
+                        <h2 class="text-2xl font-bold text-dark" id="statDueToday">--</h2>
+                        <p class="text-xs text-muted font-bold uppercase">Due Today</p>
+                    </div>
+                </div>
+                <div class="stat-card bg-white border-subtle" id="statLowStockCard">
+                    <div class="icon-square bg-warning-light"><i class="fas fa-exclamation-triangle text-warning"></i></div>
+                    <div class="mt-2">
+                        <h2 class="text-2xl font-bold text-dark" id="statLowStock">--</h2>
+                        <p class="text-xs text-muted font-bold uppercase">Low Stock</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Schedule -->
+            <div class="side-card mb-6" style="border-radius:20px;">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="font-bold text-dark" id="scheduleTitle">Today's Schedule</h3>
+                        <p class="text-xs text-muted">Track daily medication adherence</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-muted" style="font-size:14px;"></i>
+                        <input type="text" id="historyDate" style="width:130px; margin:0; font-size:13px; padding:8px 12px; border-radius:10px;">
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table id="checklistTable" style="width:100%; border-collapse:collapse;">
                         <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Time</th>
-                                <th>Elder</th>
-                                <th>Medication</th>
-                                <th>Dosage</th>
-                                <th>Action</th>
+                            <tr style="border-bottom: 2px solid #f1f5f9;">
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Status</th>
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Time</th>
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Elder</th>
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Medication</th>
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Dosage</th>
+                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="checklistBody">
-                            <tr><td colspan="6" class="text-center text-muted p-4">Loading schedule...</td></tr>
+                            <tr><td colspan="6" style="text-align:center; color:#9ca3af; padding:24px; font-size:14px;">Loading schedule...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <h3 class="mb-4">Medicine Cabinet (All)</h3>
+            <!-- Medicine Cabinet -->
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-dark text-lg">Medicine Cabinet</h3>
+                    <p class="text-xs text-muted">All active prescriptions</p>
+                </div>
+                <span id="medsCabinetCount" class="text-xs font-bold text-muted"></span>
+            </div>
             <div class="cards" id="medsList">
                 <p class="text-muted">Loading inventory...</p>
             </div>

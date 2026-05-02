@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caregiver Dashboard - ElderSmart</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
+
 <body class="dashboard-page">
 
     <div id="sidebar-container"></div>
 
     <main class="main-content">
         <div class="dashboard-container">
-            
+
             <header class="dashboard-header mb-4">
                 <div>
                     <h1 class="text-3xl font-bold">Welcome Back, <span id="welcomeName">Caregiver</span>!</h1>
                 </div>
                 <div class="flex gap-2">
-                     <button class="action-btn-icon btn-edit" onclick="location.reload()" title="Refresh Data">
+                    <button class="action-btn-icon btn-edit" onclick="location.reload()" title="Refresh Data">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                     <button class="action-btn" onclick="window.location.href='appointments.html'">
@@ -37,17 +39,18 @@
             </header>
 
             <div class="dashboard-layout-grid">
-                
+
                 <div class="left-panel stagger-1">
-                    
+
                     <div class="hero-banner">
                         <div>
                             <h2 style="font-size: 24px; margin-bottom: 10px;">Your Loved Ones Are in Good Care.</h2>
-                            <p style="opacity: 0.9; margin-bottom: 20px; max-width: 400px;">
-                                You have upcoming visits and notifications—check today’s schedule to stay on track.
+                            <p style="opacity: 0.9; margin-bottom: 20px; max-width: 750px;">
+                                You have upcoming visits and notifications, check today’s schedule to stay on track.
                             </p>
                             <div class="flex gap-4">
-                                <button onclick="window.location.href='notifications.html'" class="btn-secondary" style="border:none; color: var(--primary);">
+                                <button onclick="window.location.href='notifications.html'" class="btn-secondary"
+                                    style="border:none; color: var(--primary);">
                                     Check Alerts
                                 </button>
                                 <button onclick="window.location.href='schedule.html'" class="btn-outline-light">
@@ -69,7 +72,8 @@
                             <div class="icon-box-sm bg-info-light"><i class="fas fa-users"></i></div>
                             <div>
                                 <p class="text-muted text-xs font-bold uppercase">Elders</p>
-                                <h3 id="totalElders" class="text-xl font-bold skeleton skeleton-text-short">Loading...</h3>
+                                <h3 id="totalElders" class="text-xl font-bold skeleton skeleton-text-short">Loading...
+                                </h3>
                             </div>
                         </div>
 
@@ -77,11 +81,13 @@
                             <div class="icon-box-sm bg-warning-light"><i class="fas fa-pills"></i></div>
                             <div>
                                 <p class="text-muted text-xs font-bold uppercase">Meds</p>
-                                <h3 id="totalMeds" class="text-xl font-bold skeleton skeleton-text-short">Loading...</h3>
+                                <h3 id="totalMeds" class="text-xl font-bold skeleton skeleton-text-short">Loading...
+                                </h3>
                             </div>
                         </div>
 
-                        <div class="mini-stat-card stagger-2" id="alertCard" onclick="window.location.href='notifications.html'">
+                        <div class="mini-stat-card stagger-2" id="alertCard"
+                            onclick="window.location.href='notifications.html'">
                             <div class="icon-box-sm bg-danger-light"><i class="fas fa-bell"></i></div>
                             <div>
                                 <p class="text-muted text-xs font-bold uppercase">Alerts</p>
@@ -91,7 +97,7 @@
                     </div>
 
                     <div class="grid-2-col mt-4 stagger-3">
-                         <div class="card">
+                        <div class="card">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold">Health Updates</h3>
                                 <a href="health_records.html" class="text-sm text-link">View All</a>
@@ -99,28 +105,29 @@
                             <div id="miniAlertList" class="flex flex-col gap-3">
                                 <p class="text-sm text-muted">No urgent alerts.</p>
                             </div>
-                         </div>
+                        </div>
 
-                         <div class="card bg-surface">
+                        <div class="card bg-surface">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="font-bold">Health Status</h3>
                             </div>
-                            <div style="position: relative; height: 160px; width: 100%; display: flex; justify-content: center;">
-                                <canvas id="compositionChart"></canvas>
+                            <div id="elderHealthList" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                                <div style="text-align:center; color:#9ca3af; font-size:13px; padding:16px;">Analyzing family health...</div>
                             </div>
-                            <p class="text-center text-xs text-muted mt-2">Based on last 20 checkups</p>
-                         </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="right-panel stagger-4">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold">Upcoming Check-ups</h3>
-                        <button class="btn-icon text-muted" onclick="window.location.href='appointments.html'"><i class="fas fa-plus"></i></button>
+                        <button class="btn-icon text-muted" onclick="window.location.href='appointments.html'"><i
+                                class="fas fa-plus"></i></button>
                     </div>
 
                     <div class="card mb-4 p-0 overflow-hidden text-center">
-                        <div id="miniCalendar"></div> </div>
+                        <div id="miniCalendar"></div>
+                    </div>
 
                     <div class="card p-4">
                         <div class="flex justify-between items-center mb-3">
@@ -128,18 +135,21 @@
                             <span id="selectedDateBadge" class="badge badge-stock-ok hidden">Today</span>
                         </div>
 
-                        <div id="nextApptSummary" class="cursor-pointer skeleton" style="min-height: 80px; width: 100%; border-radius: 12px;">
+                        <div id="nextApptSummary" class="cursor-pointer skeleton"
+                            style="min-height: 80px; width: 100%; border-radius: 12px;">
                             <p class="text-muted text-sm hidden">Loading schedule...</p>
                         </div>
-                        
+
                         <div class="mt-4 pt-4 border-t border-gray-100">
-                             <div class="flex justify-between items-center">
+                            <div class="flex justify-between items-center">
                                 <span class="text-xs text-muted">Total Scheduled</span>
-                                <span id="upcomingAppts" class="font-bold text-primary skeleton skeleton-text-short" style="display:inline-block; width:30px;">--</span>
-                             </div>
-                             <button onclick="window.location.href='appointments.html'" class="btn-secondary w-full mt-3 text-xs">
+                                <span id="upcomingAppts" class="font-bold text-primary skeleton skeleton-text-short"
+                                    style="display:inline-block; width:30px;">--</span>
+                            </div>
+                            <button onclick="window.location.href='appointments.html'"
+                                class="btn-secondary w-full mt-3 text-xs">
                                 View Full Schedule
-                             </button>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -150,7 +160,8 @@
 
     <script src="js/firebase.js"></script>
     <script src="js/navigation.js"></script>
-    <script src="js/services.js"></script> 
+    <script src="js/services.js"></script>
     <script src="js/caregiver-dashboard.js"></script>
 </body>
+
 </html>
