@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Check-ups - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+
+            <header class="dashboard-header">
+                <div>
+                    <h1>Medical Check-ups</h1>
+                    <p class="subtitle text-muted">Log results from doctor visits and clinic appointments.</p>
+                </div>
+                <button class="action-btn" onclick="openHealthModal()">
+                    <i class="fas fa-plus"></i> Log New Visit
+                </button>
+            </header>
+
+            <div class="health-grid">
+
+                <div class="card">
+                    <h3 class="mb-4 text-sm font-bold text-muted uppercase">Blood Pressure Trend (Last 10 Visits)</h3>
+                    <div class="chart-container">
+                        <canvas id="bpChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card stat-box">
+                    <div>
+                        <p class="stat-label">Last Recorded BP</p>
+                        <h2 id="lastBP" class="stat-value primary">--/--</h2>
+                    </div>
+                    <div class="stat-divider">
+                        <p class="stat-label">Last Weight</p>
+                        <h2 id="lastWeight" class="stat-value info">-- kg</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="font-bold">Visit History</h3>
+                </div>
+                <div class="tasks-table">
+                    <table id="healthTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Elder</th>
+                                <th>Location / Doctor</th>
+                                <th>Vitals Recorded</th>
+                                <th>Doctor's Notes</th>
+                                <th>Logged By</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="healthTableBody">
+                            <tr><td colspan="7" class="text-center p-4 text-muted">Loading history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="healthModal" class="modal">
+        <div class="modal-card">
+            <h2 id="modalTitle">Log Medical Visit</h2>
+            <form id="healthForm">
+
+                <label>Date of Visit</label>
+                <input type="date" id="visitDate" required>
+
+                <label>Elder Name</label>
+                <select id="visitElder" required>
+                    <option value="">Loading...</option>
+                </select>
+
+                <label>Location / Clinic</label>
+                <input type="text" id="visitLocation" placeholder="e.g. Prince Court Medical Center" required>
+
+                <div class="flex gap-4">
+                    <div class="w-full">
+                        <label>Blood Pressure</label>
+                        <input type="text" id="visitBP" placeholder="120/80">
+                    </div>
+                    <div class="w-full">
+                        <label>Heart Rate</label>
+                        <input type="number" id="visitHR" placeholder="75">
+                    </div>
+                </div>
+
+                <label>Weight (kg)</label>
+                <input type="number" step="0.1" id="visitWeight" placeholder="65.5">
+
+                <label>Doctor's Notes / Instructions</label>
+                <textarea id="visitNotes" rows="3" placeholder="Doctor advised to reduce salt..."></textarea>
+
+                <div class="flex gap-2 mt-4">
+                    <button type="button" onclick="closeHealthModal()" class="btn-secondary w-full">Cancel</button>
+                    <button type="submit" class="btn-primary w-full">Save Log</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/health.js"></script>
+</body>
+</html>

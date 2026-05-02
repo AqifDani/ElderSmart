@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+            
+            <header class="dashboard-header stagger-1">
+                <div>
+                    <h1>Hello, <span id="welcomeName">Friend</span> 👋</h1>
+                    <p class="subtitle text-muted">Here is your plan for today.</p>
+                </div>
+                
+                <div class="family-code-pill">
+                    <span>Family Code:</span>
+                    <span id="displayFamilyId" class="code-text">LOADING</span>
+                    <button onclick="copyFamilyCode()" class="text-link" style="background:none; border:none; cursor:pointer;" title="Copy">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="cards stagger-2">
+                <div class="card card-secondary">
+                    <div class="icon-box bg-info-light">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h2>Next Visit</h2>
+                    <p id="nextApptTime" class="text-xl font-bold text-primary skeleton skeleton-text-short">--:--</p>
+                    <p id="nextApptTitle" class="text-muted text-sm skeleton skeleton-text">No appointments today</p>
+                </div>
+
+                <div class="card card-primary">
+                    <div class="icon-box bg-warning-light">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <h2>Medications</h2>
+                    <p id="medsCount" class="text-xl font-bold text-primary skeleton skeleton-text-short">0</p>
+                    <p class="text-muted text-sm">Pills scheduled for today</p>
+                </div>
+            </div>
+
+            <div class="table-container stagger-3">
+                <div class="table-header">
+                    <h3 class="font-bold">My Daily Schedule</h3>
+                </div>
+                <div class="tasks-table">
+                    <table id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">Time</th>
+                                <th style="width: 100px;">Type</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                            <tr>
+                                <td colspan="3" class="text-center p-4 text-muted skeleton skeleton-text" style="height:40px;">Loading schedule...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/elder-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Elder Care</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+
+            <header class="dashboard-header">
+                <div>
+                    <h1>Appointments</h1>
+                    <p class="subtitle text-muted">Manage doctor visits and therapy sessions.</p>
+                </div>
+                <button class="action-btn hidden" onclick="openApptModal()" id="addApptBtn">
+                    <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                </button>
+            </header>
+
+            <div class="cards">
+                <div class="card card-warning">
+                    <div class="icon-box bg-warning-light">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <h2>Next Visit</h2>
+                    <p id="nextApptDate">No upcoming visits</p>
+                    <small id="nextApptDetails" class="text-warning font-bold">--</small>
+                </div>
+                <div class="card card-info">
+                    <div class="icon-box bg-info-light">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h2>Total Planned</h2>
+                    <p id="totalAppts" class="text-xl font-bold">0</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="overflow-x: auto;">
+                <div class="table-header">
+                    <h3 class="font-bold text-primary">Upcoming Schedule</h3>
+                </div>
+                <div class="tasks-table">
+                    <table id="apptTable">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Elder Name</th>
+                                <th>Purpose</th>
+                                <th>Doctor</th>
+                                <th>Caregiver</th>
+                                <th>Location</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apptTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted p-4">Loading schedule...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="apptModal" class="modal">
+        <div class="modal-card">
+            <h2 id="modalTitle">Schedule Appointment</h2>
+
+            <form id="apptForm">
+                <input type="hidden" id="apptId">
+
+                <label>For Elder</label>
+                <select id="apptElder" required>
+                    <option value="">Loading elders...</option>
+                </select>
+
+                <label>Assigned Caregiver</label>
+                <input type="text" id="apptAssigned" placeholder="Auto-assigned to you..." required class="input-auto">
+
+                <div class="flex gap-4">
+                    <div class="w-full">
+                        <label>Date & Time</label>
+                        <input type="text" id="apptDate" placeholder="Select Date..." required style="background: white;">
+                    </div>
+                    <div class="w-full">
+                         <label>Doctor's Name</label>
+                        <input type="text" id="apptDoctor" placeholder="e.g. Dr. Harlina" required>
+                    </div>
+                </div>
+
+                <label>Purpose / Title</label>
+                <input type="text" id="apptTitle" placeholder="e.g. Monthly Checkup" required>
+
+                <label>Location</label>
+                <input type="text" id="apptLocation" placeholder="Clinic Address">
+
+                <label>Notes</label>
+                <input type="text" id="apptNotes" placeholder="Instructions...">
+
+                <div class="flex gap-2 mt-4">
+                    <button type="button" onclick="closeApptModal()" class="btn-secondary w-full">Cancel</button>
+                    <button type="submit" id="saveApptBtn" class="btn-primary w-full">Save Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/appointments.js"></script>
+</body>
+</html>

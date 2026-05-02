@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderSmart – Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="auth-split-page">
+
+    <div class="auth-visual">
+        <img src="https://i.pinimg.com/1200x/b5/c9/27/b5c92731ff8df981e361a343c47d8fc2.jpg" alt="Elder Care">
+        <div class="visual-overlay">
+            <h2>Together, We Make Care Easier</h2>
+            <p>Ready to Make a Difference Today?</p>
+        </div>
+    </div>
+
+    <div class="auth-form-container">
+        <div class="auth-card-modern">
+            <div class="logo-header">
+                <i class="fas fa-heartbeat text-primary" style="font-size: 32px;"></i>
+                <span style="font-size: 24px; font-weight: 700; color: var(--primary-dark);">ElderSmart</span>
+            </div>
+            
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="text-muted mb-4">Please enter your details to sign in.</p>
+
+            <form onsubmit="login(event)">
+                <label>Email</label>
+                <input type="email" id="email" required placeholder="name@example.com">
+
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="******">
+                
+                <div class="text-right mb-4">
+                    <a href="#" onclick="openResetModal()" class="text-sm text-link">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-primary mt-2" style="width:100%;">Login</button>
+            </form>
+
+            <p class="mt-4 text-sm text-center text-muted">
+                Don't have an account? <a href="register.html" class="text-link">Register</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="resetModal" class="modal">
+        <div class="modal-card">
+            <h2 class="text-primary mb-2">Reset Password</h2>
+            <form onsubmit="handleReset(event)">
+                <input type="email" id="resetEmail" required class="mb-4" placeholder="Enter email...">
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeResetModal()" class="btn-secondary w-full">Cancel</button>
+                    <button type="submit" class="btn-primary w-full">Send Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        function openResetModal() { document.getElementById("resetModal").style.display = "flex"; }
+        function closeResetModal() { document.getElementById("resetModal").style.display = "none"; }
+    </script>
+</body>
+</html>

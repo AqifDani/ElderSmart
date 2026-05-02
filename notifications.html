@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+
+            <div class="hero-banner-card stagger-1">
+                <div class="hero-text">
+                    <h1 class="text-3xl font-bold mb-2 text-dark">Activity Feed</h1>
+                    <p class="text-muted mb-6">Stay updated with the latest alerts and reminders.</p>
+
+                    <div class="flex gap-3">
+                        <button class="filter-pill active" onclick="filterNotifications('all', this)">
+                            <i class="fas fa-inbox"></i> All
+                        </button>
+                        <button class="filter-pill" onclick="filterNotifications('unread', this)">
+                            <i class="fas fa-exclamation-circle"></i> Unread
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hero-illustration">
+                    <i class="fas fa-bell" style="color: #4A6351; opacity: 0.1;"></i>
+                </div>
+
+                <div class="hero-actions">
+                    <!-- Test Button -->
+                    <button onclick="simulateAlert()" class="btn-icon-glass" title="Test Alert">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    
+                    <!-- Mark All Read Button (Now handled in JS file) -->
+                    <button class="btn-glass ml-2" onclick="markAllAsRead()" title="Mark All Read">
+                        <i class="fas fa-check-double"></i>
+                        <span class="mobile-hidden" style="margin-left: 5px;">Mark Read</span>
+                    </button>
+
+                    <!-- Clear All Button -->
+                    <button class="btn-glass text-danger ml-2" onclick="clearAllNotifications()"
+                        title="Clear All History">
+                        <i class="fas fa-trash-alt"></i>
+                        <span class="mobile-hidden" style="margin-left: 5px;">Clear All</span>
+                    </button>
+                </div>
+            </div>
+            <br>
+            <div id="notificationList" class="notification-feed mt-6 stagger-2">
+                <!-- Skeleton Loader Cards -->
+                <div class="notification-card skeleton-card">
+                    <div class="notif-header w-full">
+                        <div class="flex items-start gap-4 w-full">
+                            <div class="skeleton" style="width:40px; height:40px; border-radius:12px; flex-shrink:0;"></div>
+                            <div class="flex-grow">
+                                <div class="skeleton skeleton-text" style="width:60%; height:16px; margin-bottom:8px;"></div>
+                                <div class="skeleton skeleton-text" style="width:90%; height:12px; margin-bottom:6px;"></div>
+                                <div class="skeleton skeleton-text" style="width:40%; height:12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="notification-card skeleton-card">
+                    <div class="notif-header w-full">
+                        <div class="flex items-start gap-4 w-full">
+                            <div class="skeleton" style="width:40px; height:40px; border-radius:12px; flex-shrink:0;"></div>
+                            <div class="flex-grow">
+                                <div class="skeleton skeleton-text" style="width:50%; height:16px; margin-bottom:8px;"></div>
+                                <div class="skeleton skeleton-text" style="width:80%; height:12px; margin-bottom:6px;"></div>
+                                <div class="skeleton skeleton-text" style="width:35%; height:12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="notification-card skeleton-card">
+                    <div class="notif-header w-full">
+                        <div class="flex items-start gap-4 w-full">
+                            <div class="skeleton" style="width:40px; height:40px; border-radius:12px; flex-shrink:0;"></div>
+                            <div class="flex-grow">
+                                <div class="skeleton skeleton-text" style="width:70%; height:16px; margin-bottom:8px;"></div>
+                                <div class="skeleton skeleton-text" style="width:85%; height:12px; margin-bottom:6px;"></div>
+                                <div class="skeleton skeleton-text" style="width:45%; height:12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/notifications.js"></script>
+</body>
+
+</html>

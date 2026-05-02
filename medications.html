@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medications - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+
+            <header class="dashboard-header">
+                <div>
+                    <h1>Medication Tracker</h1>
+                    <p class="subtitle text-muted">Family Prescriptions & Daily Schedule</p>
+                </div>
+                <button class="action-btn hidden" onclick="openMedModal()" id="addMedBtn">
+                    <i class="fas fa-plus"></i> Add Medication
+                </button>
+            </header>
+
+            <div class="table-container mb-4">
+                <div class="table-header">
+                    <h3 id="scheduleTitle" class="text-primary font-bold">Today's Schedule</h3>
+                    
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-muted" style="margin:0;">View Date:</label>
+                        <input type="text" id="historyDate" class="text-sm" style="width: 140px; margin:0; background:white;">
+                    </div>
+                </div>
+                
+                <div class="tasks-table">
+                    <table id="checklistTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Elder</th>
+                                <th>Medication</th>
+                                <th>Dosage</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="checklistBody">
+                            <tr><td colspan="6" class="text-center text-muted p-4">Loading schedule...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h3 class="mb-4">Medicine Cabinet (All)</h3>
+            <div class="cards" id="medsList">
+                <p class="text-muted">Loading inventory...</p>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="medModal" class="modal">
+        <div class="modal-card">
+            <h2 id="medModalTitle">Add New Medication</h2>
+            <form id="medForm">
+                <input type="hidden" id="medId">
+
+                <label>For Elder</label>
+                <select id="medElder" required></select>
+
+                <label>Medication Name</label>
+                <input type="text" id="medName" placeholder="e.g. Lisinopril" required>
+
+                <div class="flex gap-4">
+                    <div class="w-full">
+                        <label>Dosage</label>
+                        <input type="text" id="medDosage" placeholder="e.g. 10mg" required>
+                    </div>
+                    <div class="w-full">
+                        <label>Time</label>
+                        <input type="text" id="medTime" placeholder="Select Time..." required style="background: white;">
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="w-full">
+                        <label>Current Stock</label>
+                        <input type="number" id="medStock" placeholder="e.g. 30">
+                    </div>
+                    <div class="w-full">
+                        <label>Pills per Dose</label>
+                        <input type="number" id="medPerDose" placeholder="1" value="1">
+                    </div>
+                </div>
+
+                <label>Frequency</label>
+                <select id="medFrequency" onchange="toggleDaysSelector(this.value)">
+                    <option value="daily">Every Day</option>
+                    <option value="specific">Specific Days</option>
+                </select>
+
+                <div id="daysSelector" class="hidden mb-4 p-4 bg-gray-50 border rounded-lg">
+                    <label class="mb-2">Select Days:</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="0"> Sun</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="1"> Mon</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="2"> Tue</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="3"> Wed</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="4"> Thu</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="5"> Fri</label>
+                        <label class="text-sm"><input type="checkbox" name="weekDay" value="6"> Sat</label>
+                    </div>
+                </div>
+
+                <label>Notes</label>
+                <input type="text" id="medNotes" placeholder="Take with food...">
+
+                <div class="flex gap-2 mt-4">
+                    <button type="button" onclick="closeMedModal()" class="btn-secondary w-full">Cancel</button>
+                    <button type="submit" id="saveMedBtn" class="btn-primary w-full">Save Medication</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/medications.js"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Care Circle - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+            
+            <header class="dashboard-header mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Family Care Circle</h1>
+                </div>
+            </header>
+
+            <div class="profiles-hero-grid mb-8 stagger-1">
+                
+                <div class="hero-invite-card">
+                    <div class="hero-content-left">
+                        <h1 class="text-3xl font-bold mb-3 text-dark">Add a Loved One Here !</h1>
+                        <p class="text-muted mb-6" style="max-width: 300px;">
+                            Grow your care circle and stay connected in seconds.
+                        </p>
+                        <div class="flex gap-4 metrics-row">
+                            <div>
+                                <h3 class="text-2xl font-bold text-primary" id="totalEldersCount">--</h3>
+                                <p class="text-xs text-muted uppercase font-bold">Active Profiles</p>
+                            </div>
+                            <div style="width: 1px; height: 40px; background: #e2e8f0;"></div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-success">Active</h3>
+                                <p class="text-xs text-muted uppercase font-bold">Status</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-illustration-3d">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+
+                <div class="family-code-card">
+                    <div class="flex justify-between items-start w-full">
+                        <h3 class="font-bold text-lg text-dark">Family Code</h3>
+                        <div class="icon-circle-sm bg-white text-dark"><i class="fas fa-key"></i></div>
+                    </div>
+                    
+                    <div class="text-center my-auto">
+                        <div id="displayFamilyCode" class="code-display">LOADING</div>
+                        <p class="text-xs text-white/80 mt-2">Share this code with elders during registration</p>
+                    </div>
+
+                    <button onclick="copyFamilyCode()" class="btn-copy-code">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title mb-6 flex items-center gap-3 stagger-2">
+                <div class="h-6 w-1 bg-secondary rounded-full"></div>
+                <h3 class="font-bold text-lg">Managed Profiles</h3>
+            </div>
+
+            <div id="elder-list" class="elder-grid-layout stagger-3">
+                <!-- Skeleton Profile Cards -->
+                <div class="card text-center" style="padding:30px;">
+                    <div class="skeleton" style="width:90px; height:90px; border-radius:50%; margin:0 auto 20px;"></div>
+                    <div class="skeleton skeleton-text" style="width:60%; height:18px; margin:0 auto 10px;"></div>
+                    <div class="skeleton skeleton-text" style="width:40%; height:12px; margin:0 auto 20px;"></div>
+                    <div class="skeleton" style="width:100%; height:60px; border-radius:12px; margin-bottom:15px;"></div>
+                    <div class="skeleton" style="width:100%; height:36px; border-radius:10px;"></div>
+                </div>
+                <div class="card text-center" style="padding:30px;">
+                    <div class="skeleton" style="width:90px; height:90px; border-radius:50%; margin:0 auto 20px;"></div>
+                    <div class="skeleton skeleton-text" style="width:55%; height:18px; margin:0 auto 10px;"></div>
+                    <div class="skeleton skeleton-text" style="width:45%; height:12px; margin:0 auto 20px;"></div>
+                    <div class="skeleton" style="width:100%; height:60px; border-radius:12px; margin-bottom:15px;"></div>
+                    <div class="skeleton" style="width:100%; height:36px; border-radius:10px;"></div>
+                </div>
+            </div>
+
+            <!-- New Care Team Section -->
+            <div class="section-title mb-6 mt-10 flex items-center gap-3 stagger-4">
+                <div class="h-6 w-1 bg-primary rounded-full"></div>
+                <h3 class="font-bold text-lg">Care Team</h3>
+            </div>
+
+            <div id="caregiver-list" class="elder-grid-layout stagger-5">
+                <!-- Skeleton Caregiver Cards -->
+                <div class="card" style="padding:20px; display:flex; align-items:center; gap:15px;">
+                    <div class="skeleton" style="width:60px; height:60px; border-radius:50%;"></div>
+                    <div style="flex-grow:1;">
+                        <div class="skeleton skeleton-text" style="width:60%; height:16px; margin-bottom:8px;"></div>
+                        <div class="skeleton skeleton-text" style="width:40%; height:12px;"></div>
+                    </div>
+                </div>
+                <div class="card" style="padding:20px; display:flex; align-items:center; gap:15px;">
+                    <div class="skeleton" style="width:60px; height:60px; border-radius:50%;"></div>
+                    <div style="flex-grow:1;">
+                        <div class="skeleton skeleton-text" style="width:50%; height:16px; margin-bottom:8px;"></div>
+                        <div class="skeleton skeleton-text" style="width:35%; height:12px;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="addElderModal" class="modal">
+        <div class="modal-card bounce-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-xl font-bold">Edit Profile</h2>
+                <button onclick="closeModal()" class="btn-icon-hover"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form id="elderForm" onsubmit="saveElderProfile(event)">
+                <input type="hidden" id="editElderId">
+
+                <div class="profile-upload-container mb-6">
+                    <div class="profile-upload" onclick="document.getElementById('elderPhoto').click()">
+                        <i class="fas fa-camera text-muted" id="uploadIcon"></i>
+                        <img id="photoPreview" style="display:none;" src="">
+                        <input type="file" id="elderPhoto" hidden accept="image/*" onchange="previewImage(this)">
+                    </div>
+                    <button type="button" id="removePhotoBtn" onclick="removePhoto()" class="btn-remove-photo" style="display:none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Full Name</label>
+                        <input type="text" id="elderName" class="input-field" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Age</label>
+                        <input type="number" id="elderAge" class="input-field" placeholder="e.g. 75" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Medical Conditions</label>
+                        <input type="text" id="elderConditions" class="input-field" placeholder="e.g. Diabetes">
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary w-full mt-6 shadow-lg">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script> 
+    <script src="js/profiles.js"></script>
+
+    <script>
+        function closeModal() { document.getElementById('addElderModal').style.display = 'none'; }
+        
+        // Quick Copy Function for the new button
+        function copyFamilyCode() {
+            const code = document.getElementById("displayFamilyCode").innerText;
+            navigator.clipboard.writeText(code);
+            // Use existing toast if available, or alert
+            if(window.showToast) window.showToast("Copied", "Family Code copied to clipboard", "success");
+            else alert("Copied: " + code);
+        }
+    </script>
+</body>
+</html>

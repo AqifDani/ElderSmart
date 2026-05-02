@@ -1,0 +1,200 @@
+// js/schedule.js - TASKIE LAYOUT + REAL PROGRESS
+
+(async () => {
+    if (!window.appointmentService) return;
+    const userRole = await window.checkUserRole();
+    if (!userRole) return;
+    loadAppointmentLogistics(userRole);
+})();
+
+async function loadAppointmentLogistics(userRole) {
+    const grid = document.getElementById("scheduleGrid");
+    const nextTime = document.getElementById("nextApptTime");
+    const nextTitle = document.getElementById("nextApptTitle");
+    const nextDriver = document.getElementById("nextApptDriver");
+    
+    // Stats Elements
+    const statOpen = document.getElementById("statOpenCount");
+    const statTotal = document.getElementById("statTotalShifts");
+    const statTopName = document.getElementById("statTopWorker");
+    const topAvatar = document.getElementById("topWorkerAvatar");
+
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const familyId = currentUser.familyId;
+
+        const [usersSnap, appointments] = await Promise.all([
+            firebase.firestore().collection("users").where("familyId", "==", familyId).get(),
+            window.appointmentService.getUpcoming()
+        ]);
+
+        // 1. Logic: Workload & Unassigned
+        const workload = {};
+        let unassignedCount = 0;
+
+        usersSnap.forEach(doc => { if (doc.data().role !== 'elder') workload[doc.data().name] = 0; });
+        appointments.forEach(appt => {
+            if (appt.assignedToName) workload[appt.assignedToName] = (workload[appt.assignedToName] || 0) + 1;
+            else unassignedCount++;
+        });
+
+        // Sort Workers
+        const sortedWorkers = Object.entries(workload).sort((a, b) => b[1] - a[1]);
+        const topName = sortedWorkers.length > 0 && sortedWorkers[0][1] > 0 ? sortedWorkers[0][0] : "None";
+        const leastBusyName = sortedWorkers.length > 0 ? sortedWorkers[sortedWorkers.length - 1][0] : "Anyone";
+
+        // Update Stats UI
+        if(statOpen) statOpen.innerText = unassignedCount;
+        if(statTotal) statTotal.innerText = appointments.length;
+        if(statTopName) statTopName.innerText = topName;
+        if(topAvatar) topAvatar.innerText = topName.charAt(0).toUpperCase();
+
+        // 2. Next Task Logic
+        if (appointments.length === 0) {
+            grid.innerHTML = `<div class="text-center p-8 text-muted">No visits scheduled.</div>`;
+            return;
+        }
+
+        const firstAppt = appointments[0];
+        const nextDate = new Date(firstAppt.date);
+        
+        if(nextTime) nextTime.innerText = nextDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        if(nextTitle) nextTitle.innerText = firstAppt.title;
+        if(nextDriver) nextDriver.innerText = firstAppt.assignedToName || "Unassigned";
+
+        // 3. Render List (Task Cards)
+        grid.innerHTML = "";
+        const dates = [...new Set(appointments.map(a => a.date.split('T')[0]))];
+
+        dates.forEach(dStr => {
+            const dayAppts = appointments.filter(a => a.date.startsWith(dStr));
+            const dateDisplay = new Date(dStr).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+
+            // Date Header
+            grid.innerHTML += `<div class="text-xs font-bold text-muted uppercase mt-6 mb-3 ml-1">${dateDisplay}</div>`;
+
+            dayAppts.forEach(a => {
+                const isAssigned = a.assignedToName && a.assignedToName !== "";
+                const time = new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const cardClass = isAssigned ? "task-card assigned" : "task-card unassigned";
+                
+                // "Real" Feel: Calculate Progress
+                // Assumption: A visit lasts 1 hour. If current time is past start, show 100%. If approaching, show 0%.
+                // For a dynamic feel, we'll randomize 'Estimated Duration' visuals or use real time if it's today.
+                let progressPercent = 0;
+                const now = new Date();
+                const apptTime = new Date(a.date);
+                const oneHourLater = new Date(apptTime.getTime() + 60*60000);
+
+                if (now > oneHourLater) progressPercent = 100;
+                else if (now > apptTime) progressPercent = 50; // In progress
+                
+                // Color for progress bar
+                const progressColor = isAssigned ? 'var(--primary)' : 'var(--danger)';
+                const statusLabel = isAssigned ? "Scheduled" : "Pending";
+                const statusClass = isAssigned ? "active" : "";
+
+                let actionHtml = "";
+                if (isAssigned) {
+                    const initials = a.assignedToName.substring(0,2).toUpperCase();
+                    actionHtml = `
+                        <div class="flex items-center gap-2">
+                            <div class="driver-pill">
+                                <div class="avatar-circle">${initials}</div>
+                                <span class="hidden sm:inline">${a.assignedToName}</span>
+                            </div>
+                            <button onclick="openAssignModal('${a.id}', '${a.title}', '${leastBusyName}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            <button onclick="dropShift('${a.id}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                } else {
+                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${a.title}', '${leastBusyName}')" class="btn-assign">Assign</button>`;
+                }
+
+                grid.innerHTML += `
+                    <div class="${cardClass} animate__animated animate__fadeInUp">
+                        <div class="task-bar"></div>
+                        
+                        <div style="flex:1;">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-bold text-sm text-dark">${a.title}</h4>
+                                <span class="status-pill-task ${statusClass}">${statusLabel}</span>
+                            </div>
+                            
+                            <div class="flex gap-4 text-xs text-muted mb-3">
+                                <span><i class="far fa-clock"></i> ${time}</span>
+                                <span><i class="fas fa-map-marker-alt"></i> ${a.location || 'Home'}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-muted">Progress</span>
+                                <div class="progress-track-sm">
+                                    <div class="progress-fill-sm" style="width: ${progressPercent}%; background: ${progressColor};"></div>
+                                </div>
+                                <span class="text-xs text-muted">${progressPercent}%</span>
+                            </div>
+                        </div>
+
+                        <div class="pl-4 border-l border-gray-100 flex items-center">
+                            ${actionHtml}
+                        </div>
+                    </div>`;
+            });
+        });
+
+    } catch (e) { console.error("Error:", e); }
+}
+
+// ... (KEEP MODAL LOGIC BELOW - Unchanged from previous) ...
+// Ensure you keep openAssignModal, closeAssignModal, confirmAssignment, dropShift etc.
+let familyMembersCache = [];
+
+window.openAssignModal = async function(apptId, title, suggestion) {
+    const modal = document.getElementById("assignModal");
+    const select = document.getElementById("driverSelect");
+    const recText = document.getElementById("suggestionText");
+    const recName = document.getElementById("recName");
+    
+    document.getElementById("targetApptId").value = apptId;
+
+    if (familyMembersCache.length === 0) {
+        select.innerHTML = '<option>Loading...</option>';
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const snap = await firebase.firestore().collection("users").where("familyId", "==", currentUser.familyId).get();
+            familyMembersCache = [];
+            snap.forEach(doc => { if (doc.data().role !== 'elder') familyMembersCache.push({ name: doc.data().name }); });
+        } catch(e){}
+    }
+
+    select.innerHTML = '<option value="">-- Select --</option>';
+    familyMembersCache.forEach(u => {
+        const op = document.createElement("option");
+        op.value = u.name; op.text = u.name; select.appendChild(op);
+    });
+
+    if (suggestion && suggestion !== "Anyone") {
+        select.value = suggestion;
+        if(recName) recName.innerText = suggestion;
+        if(recText) recText.classList.remove("hidden");
+    } else {
+        if(recText) recText.classList.add("hidden");
+    }
+    modal.style.display = "flex";
+};
+
+window.closeAssignModal = function() { document.getElementById("assignModal").style.display = "none"; };
+
+window.confirmAssignment = async function() {
+    const apptId = document.getElementById("targetApptId").value;
+    const name = document.getElementById("driverSelect").value;
+    if(!name) return alert("Select a caregiver");
+    await firebase.firestore().collection("appointments").doc(apptId).update({ assignedToName: name });
+    closeAssignModal(); loadAppointmentLogistics();
+};
+
+window.dropShift = async function(apptId) {
+    if(confirm("Drop shift?")) {
+        await firebase.firestore().collection("appointments").doc(apptId).update({ assignedToName: "" });
+        loadAppointmentLogistics();
+    }
+};
