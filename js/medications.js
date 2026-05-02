@@ -231,6 +231,8 @@ window.markTaken = async function (id, name, qtyToTake) {
 };
 
 window.openMedModal = async function (id = null) {
+    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    
     const modal = document.getElementById("medModal");
     const saveBtn = document.getElementById("saveMedBtn");
     const title = document.getElementById("medModalTitle");
@@ -289,6 +291,7 @@ const medForm = document.getElementById("medForm");
 if (medForm) {
     medForm.addEventListener("submit", async function (e) {
         e.preventDefault();
+        if (localStorage.getItem('userRole') !== 'caregiver') return;
         
         const nameVal = document.getElementById("medName").value.trim();
         const dosageVal = document.getElementById("medDosage").value.trim();
@@ -328,6 +331,7 @@ if (medForm) {
     });
 }
 window.deleteMed = function (id) {
+    if (localStorage.getItem('userRole') !== 'caregiver') return;
     if (confirm("Delete this medication?")) {
         window.medicationService.delete(id).then(() => {
             loadInventory('caregiver');

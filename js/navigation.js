@@ -228,7 +228,26 @@ window.checkUserRole = async function () {
             if (nameElem) nameElem.textContent = stored ? stored.name : user.email.split('@')[0];
             if (avatarElem) avatarElem.textContent = (stored ? stored.name : "U").charAt(0).toUpperCase();
 
-            resolve(localStorage.getItem('userRole'));
+            const role = localStorage.getItem('userRole');
+            const path = window.location.pathname.toLowerCase();
+            
+            // STRICT RBAC ROUTING
+            const CAREGIVER_ONLY = ['caregiver-dashboard.html', 'notifications.html', 'elder_profiles.html', 'schedule.html'];
+            const ELDER_ONLY = ['elder-dashboard.html'];
+            
+            const isCaregiverPage = CAREGIVER_ONLY.some(p => path.includes(p));
+            const isElderPage = ELDER_ONLY.some(p => path.includes(p));
+            
+            if (role === 'elder' && isCaregiverPage) {
+                window.location.href = 'elder-dashboard.html';
+                return resolve(null);
+            }
+            if (role === 'caregiver' && isElderPage) {
+                window.location.href = 'caregiver-dashboard.html';
+                return resolve(null);
+            }
+
+            resolve(role);
         });
     });
 };

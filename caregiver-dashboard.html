@@ -22,16 +22,26 @@
     <main class="main-content">
         <div class="dashboard-container">
             
+            <!-- ACTION NEEDED ALERT BAR -->
+            <div id="urgentAlertBar" class="alert-bar-urgent hidden">
+                <i class="fas fa-exclamation-circle"></i>
+                <div class="alert-content">
+                    <div class="alert-title">Action Needed</div>
+                    <div class="alert-desc" id="urgentAlertText">You have critical alerts pending review.</div>
+                </div>
+                <button class="btn-secondary" style="background: white; border: none; color: var(--danger); font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow-sm);" onclick="window.location.href='notifications.html'">Review</button>
+            </div>
+
             <header class="dashboard-header mb-4">
                 <div>
-                    <h1 class="text-3xl font-bold">Welcome Back, <span id="welcomeName">Caregiver</span>!</h1>
+                    <h1 class="text-2xl font-bold">Welcome Back, <span id="welcomeName">Caregiver</span>!</h1>
                 </div>
                 <div class="flex gap-2">
                      <button class="action-btn-icon btn-edit" onclick="location.reload()" title="Refresh Data">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                     <button class="action-btn" onclick="window.location.href='appointments.html'">
-                        <i class="fas fa-plus"></i> Add appointments
+                        <i class="fas fa-plus"></i> Add Event
                     </button>
                 </div>
             </header>
@@ -40,22 +50,15 @@
                 
                 <div class="left-panel stagger-1">
                     
-                    <div class="hero-banner">
+                    <!-- COMPACT HERO BANNER -->
+                    <div class="hero-banner" style="padding: 16px 24px; min-height: auto; margin-bottom: 24px;">
                         <div>
-                            <h2 style="font-size: 24px; margin-bottom: 10px;">Your Loved Ones Are in Good Care.</h2>
-                            <p style="opacity: 0.9; margin-bottom: 20px; max-width: 400px;">
-                                You have upcoming visits and notifications—check today’s schedule to stay on track.
+                            <h2 style="font-size: 18px; margin-bottom: 4px;">Your Loved Ones Are in Good Care.</h2>
+                            <p style="opacity: 0.9; margin-bottom: 0; font-size: 13px; max-width: 400px;">
+                                Check today’s schedule to stay on track.
                             </p>
-                            <div class="flex gap-4">
-                                <button onclick="window.location.href='notifications.html'" class="btn-secondary" style="border:none; color: var(--primary);">
-                                    Check Alerts
-                                </button>
-                                <button onclick="window.location.href='schedule.html'" class="btn-outline-light">
-                                    View Report
-                                </button>
-                            </div>
                         </div>
-                        <div class="hero-icon">
+                        <div class="hero-icon" style="opacity: 0.15; right: 10px; transform: scale(0.6); top: -10px;">
                             <i class="fas fa-user-nurse"></i>
                         </div>
                     </div>
@@ -91,24 +94,30 @@
                     </div>
 
                     <div class="grid-2-col mt-4 stagger-3">
+                         <!-- HEALTH STATUS (CIRCULAR GAUGE) -->
+                         <div class="card bg-surface">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold">Health Status</h3>
+                                <span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:10px;">+5% from last week</span>
+                            </div>
+                            <div style="position: relative; height: 160px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                                <canvas id="compositionChart"></canvas>
+                                <div style="position: absolute; text-align: center;">
+                                    <div class="text-2xl font-bold text-success" id="overallHealthScore">85</div>
+                                    <div class="text-xs text-muted">Overall</div>
+                                </div>
+                            </div>
+                         </div>
+
+                         <!-- HEALTH UPDATES -->
                          <div class="card">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold">Health Updates</h3>
                                 <a href="health_records.html" class="text-sm text-link">View All</a>
                             </div>
                             <div id="miniAlertList" class="flex flex-col gap-3">
-                                <p class="text-sm text-muted">No urgent alerts.</p>
+                                <p class="text-sm text-muted">No recent updates.</p>
                             </div>
-                         </div>
-
-                         <div class="card bg-surface">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="font-bold">Health Status</h3>
-                            </div>
-                            <div style="position: relative; height: 160px; width: 100%; display: flex; justify-content: center;">
-                                <canvas id="compositionChart"></canvas>
-                            </div>
-                            <p class="text-center text-xs text-muted mt-2">Based on last 20 checkups</p>
                          </div>
                     </div>
                 </div>

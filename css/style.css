@@ -20,7 +20,7 @@
     --info-bg: #e0f2fe;
 
     /* Surfaces */
-    --bg-body: #f1ecc5;       /* Warm Stone Background */
+    --bg-body: #FDFCF0;       /* Soft Cream Background */
     --surface: #ffffff;       /* White Cards */
     --border: #e2e8e2;
 
@@ -67,7 +67,27 @@ body {
 .mt-4 { margin-top: 16px; }
 .mb-2 { margin-bottom: 8px; }
 .mb-4 { margin-bottom: 16px; }
+.p-0 { padding: 0 !important; }
+.p-4 { padding: 16px !important; }
 .hidden { display: none !important; }
+
+/* Dashboard Specific Utilities */
+.alert-bar-urgent {
+    background: #FFF5F5;
+    border-left: 4px solid var(--danger);
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+.alert-bar-urgent i { color: var(--danger); font-size: 1.2rem; }
+.alert-bar-urgent .alert-content { flex: 1; }
+.alert-bar-urgent .alert-title { font-weight: bold; color: var(--danger); margin-bottom: 2px; }
+.alert-bar-urgent .alert-desc { font-size: 13px; color: var(--text-main); }
+
 
 /* Text Utilities */
 .text-sm { font-size: 13px; }

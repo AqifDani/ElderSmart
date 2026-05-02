@@ -107,6 +107,7 @@ function updateChart(data) {
 // ... (Rest of actions: deleteHealthRecord, loadElderOptions, modal logic) ...
 // Included truncated versions of logic to fit context
 window.deleteHealthRecord = async function (id) {
+    if (localStorage.getItem('userRole') !== 'caregiver') return;
     if (confirm("Delete this health record?")) {
         await window.healthService.delete(id);
         loadCheckups('caregiver');
@@ -125,6 +126,7 @@ window.loadElderOptions = async function () {
 };
 
 window.openHealthModal = function () {
+    if (localStorage.getItem('userRole') !== 'caregiver') return;
     document.getElementById("healthModal").style.display = "flex";
     document.getElementById("visitDate").valueAsDate = new Date();
     loadElderOptions();
@@ -136,6 +138,7 @@ const healthForm = document.getElementById("healthForm");
 if (healthForm) {
     healthForm.addEventListener("submit", async function (e) {
         e.preventDefault();
+        if (localStorage.getItem('userRole') !== 'caregiver') return;
         // ... (Same validation logic as before) ...
         const elderSelect = document.getElementById("visitElder");
         const dateVal = document.getElementById("visitDate").value;
