@@ -47,7 +47,40 @@ async function loadAppointmentLogistics(userRole) {
         if(statOpen) statOpen.innerText = unassignedCount;
         if(statTotal) statTotal.innerText = appointments.length;
         if(statTopName) statTopName.innerText = topName;
-        if(topAvatar) topAvatar.innerText = topName.charAt(0).toUpperCase();
+        
+        // Render Workload List
+        const listContainer = document.getElementById("workloadList");
+        if (listContainer) {
+            listContainer.innerHTML = "";
+            const maxShifts = Math.max(...Object.values(workload), 1);
+            
+            sortedWorkers.forEach(([name, count]) => {
+                const percent = (count / maxShifts) * 100;
+                const isLeastBusy = (name === leastBusyName && count < maxShifts);
+                const barColor = isLeastBusy ? 'var(--secondary)' : 'var(--primary)';
+                
+                listContainer.innerHTML += `
+                    <div class="workload-item">
+                        <div class="workload-info">
+                            <div class="workload-name">
+                                ${name}
+                                ${isLeastBusy ? '<span class="fairness-badge">Suggested</span>' : ''}
+                            </div>
+                            <div class="workload-bar-bg">
+                                <div class="workload-bar-fill" style="width: ${percent}%; background: ${barColor};"></div>
+                            </div>
+                        </div>
+                        <div class="workload-count">${count} Shifts</div>
+                    </div>`;
+            });
+        }
+
+        // Update Top Performer Bar
+        const topBar = document.getElementById("topWorkerBar");
+        if (topBar && sortedWorkers.length > 0) {
+            const topPercent = (sortedWorkers[0][1] / appointments.length) * 100;
+            topBar.style.width = `${topPercent}%`;
+        }
 
         // 2. Next Task Logic
         if (appointments.length === 0) {
