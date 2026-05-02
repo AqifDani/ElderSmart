@@ -63,11 +63,17 @@
                             </div>
                         </div>
 
-                        <div class="stat-card bg-white border-subtle flex-center-col cursor-pointer hover-lift" onclick="location.href='appointments.html'">
-                            <div class="icon-circle-lg bg-primary-light text-primary mb-2">
-                                <i class="fas fa-plus"></i>
+                        <div class="stat-card bg-white border-subtle" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px dashed rgba(74,99,81,0.3); cursor:pointer;" onclick="location.href='appointments.html'">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
+                                <div class="icon-square" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white; flex-shrink:0;">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold" style="color: var(--primary); font-size:15px; margin:0;">New Task</h3>
+                                    <p class="text-xs text-muted" style="margin:0;">Create appointment</p>
+                                </div>
                             </div>
-                            <h3 class="font-bold text-primary text-sm">New Task</h3>
+                            <p class="text-xs" style="color: var(--primary); opacity:0.7;">Click to schedule a new visit or checkup →</p>
                         </div>
 
                     </div>
@@ -225,8 +231,8 @@
             <!-- Actions -->
             <div class="flex gap-3">
                 <button onclick="closeDropModal()" class="btn-ghost w-full">Keep Shift</button>
-                <button onclick="confirmDropShift()" style="background:#ef4444;color:white;border:none;padding:10px 20px;border-radius:12px;font-weight:700;cursor:pointer;width:100%;">
-                    <i class="fas fa-times mr-1"></i> Drop Shift
+                <button onclick="confirmDropShift()" class="btn-danger w-full">
+                    <i class="fas fa-times"></i> Drop Shift
                 </button>
             </div>
         </div>

@@ -357,13 +357,13 @@ label {
 .btn-primary, .action-btn {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white; border: none; padding: 12px 20px;
-    border-radius: 10px; font-weight: 600; font-size: 14px;
+    border-radius: 12px; font-weight: 600; font-size: 14px;
     cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    transition: 0.2s; justify-content: center;
+    transition: all 0.25s ease; justify-content: center; letter-spacing: 0.2px;
 }
 .btn-primary:hover, .action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 0 2px #D4AF37, 0 10px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 20px rgba(74, 99, 81, 0.35);
 }
 
 .btn-secondary {
@@ -375,13 +375,37 @@ label {
 .btn-danger {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white; border: none; padding: 12px 20px;
-    border-radius: 10px; font-weight: 600; font-size: 14px;
+    border-radius: 12px; font-weight: 600; font-size: 14px;
     cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    transition: 0.2s; justify-content: center;
+    transition: all 0.25s ease; justify-content: center; letter-spacing: 0.2px;
 }
 .btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 0 2px #ef4444, 0 10px 25px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Ghost Button - used in modals as the cancel/secondary action */
+.btn-ghost {
+    background: transparent;
+    border: 1.5px solid #d1d5db;
+    color: var(--text-muted);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+}
+.btn-ghost:hover {
+    background: #f1f5f9;
+    border-color: #9ca3af;
+    color: var(--text-main);
+    transform: translateY(-1px);
 }
 
 /* Settings Page */
@@ -2220,13 +2244,18 @@ body.auth-split-page {
 
 /* Buttons */
 .btn-mini-action {
-    width: 36px; height: 36px; border-radius: 10px;
+    width: 34px; height: 34px; border-radius: 10px;
     background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: 0.2s;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; /* Explicit font-size ensures icon centers correctly */
+    line-height: 1;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
 }
-.btn-mini-action:hover { background: var(--primary); color: white; border-color: var(--primary); }
-.btn-mini-action.danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+.btn-mini-action:hover { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-1px); }
+.btn-mini-action.danger { color: #ef4444; }
+.btn-mini-action.danger:hover { background: var(--danger); color: white; border-color: var(--danger); transform: translateY(-1px); }
 
 .status-pill-task {
     font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
