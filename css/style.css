@@ -2194,6 +2194,23 @@ body.auth-split-page {
 .task-card.assigned .task-bar { background: var(--primary); }
 .task-card.unassigned .task-bar { background: var(--danger); }
 
+/* Glass Badge for Priority Card */
+.badge-white-glass {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Background opacity helper */
+.bg-white\/20 { background-color: rgba(255, 255, 255, 0.2) !important; }
+
 /* Progress Bar (Refined) */
 .progress-container {
     width: 100%; background: #f1f5f9; height: 8px; 
@@ -2225,6 +2242,26 @@ body.auth-split-page {
     border: 1px solid rgba(0,0,0,0.04);
     box-shadow: 0 10px 30px rgba(0,0,0,0.03); /* Soft float */
     margin-bottom: 30px;
+}
+
+/* Up Next Task Box */
+.next-task-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+.next-task-box:hover {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.icon-circle-xs {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
 }
 
 /* Circular Progress Avatar */
