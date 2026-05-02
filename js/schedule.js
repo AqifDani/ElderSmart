@@ -97,17 +97,19 @@ async function loadAppointmentLogistics(userRole) {
                 let actionHtml = "";
                 if (isAssigned) {
                     const initials = a.assignedToName.substring(0,2).toUpperCase();
+                    const titleEsc = a.title.replace(/'/g, "\\'");
                     actionHtml = `
                         <div class="flex items-center gap-2">
                             <div class="driver-pill">
                                 <div class="avatar-circle">${initials}</div>
                                 <span class="hidden sm:inline">${a.assignedToName}</span>
                             </div>
-                            <button onclick="openAssignModal('${a.id}', '${a.title}', '${leastBusyName}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                            <button onclick="dropShift('${a.id}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
+                            <button onclick="openAssignModal('${a.id}', '${titleEsc}', '${leastBusyName}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            <button onclick="openDropModal('${a.id}', '${titleEsc}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
                         </div>`;
                 } else {
-                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${a.title}', '${leastBusyName}')" class="btn-assign">Assign</button>`;
+                    const titleEsc = a.title.replace(/'/g, "\\'");
+                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${titleEsc}', '${leastBusyName}')" class="btn-assign">Assign</button>`;
                 }
 
                 grid.innerHTML += `
@@ -144,8 +146,9 @@ async function loadAppointmentLogistics(userRole) {
     } catch (e) { console.error("Error:", e); }
 }
 
-// ... (KEEP MODAL LOGIC BELOW - Unchanged from previous) ...
-// Ensure you keep openAssignModal, closeAssignModal, confirmAssignment, dropShift etc.
+// ==========================================
+// ASSIGN MODAL
+// ==========================================
 let familyMembersCache = [];
 
 window.openAssignModal = async function(apptId, title, suggestion) {
@@ -153,20 +156,25 @@ window.openAssignModal = async function(apptId, title, suggestion) {
     const select = document.getElementById("driverSelect");
     const recText = document.getElementById("suggestionText");
     const recName = document.getElementById("recName");
+    const shiftName = document.getElementById("assignShiftName");
+    const remarkBox = document.getElementById("assignRemark");
     
     document.getElementById("targetApptId").value = apptId;
+    if (shiftName) shiftName.innerText = title || "Shift";
+    if (remarkBox) remarkBox.value = "";
 
     if (familyMembersCache.length === 0) {
         select.innerHTML = '<option>Loading...</option>';
         try {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            const snap = await firebase.firestore().collection("users").where("familyId", "==", currentUser.familyId).get();
+            const snap = await firebase.firestore().collection("users")
+                .where("familyId", "==", currentUser.familyId).get();
             familyMembersCache = [];
             snap.forEach(doc => { if (doc.data().role !== 'elder') familyMembersCache.push({ name: doc.data().name }); });
         } catch(e){}
     }
 
-    select.innerHTML = '<option value="">-- Select --</option>';
+    select.innerHTML = '<option value="">-- Select Caregiver --</option>';
     familyMembersCache.forEach(u => {
         const op = document.createElement("option");
         op.value = u.name; op.text = u.name; select.appendChild(op);
@@ -174,10 +182,10 @@ window.openAssignModal = async function(apptId, title, suggestion) {
 
     if (suggestion && suggestion !== "Anyone") {
         select.value = suggestion;
-        if(recName) recName.innerText = suggestion;
-        if(recText) recText.classList.remove("hidden");
+        if (recName) recName.innerText = suggestion;
+        if (recText) recText.classList.remove("hidden");
     } else {
-        if(recText) recText.classList.add("hidden");
+        if (recText) recText.classList.add("hidden");
     }
     modal.style.display = "flex";
 };
@@ -187,14 +195,64 @@ window.closeAssignModal = function() { document.getElementById("assignModal").st
 window.confirmAssignment = async function() {
     const apptId = document.getElementById("targetApptId").value;
     const name = document.getElementById("driverSelect").value;
-    if(!name) return alert("Select a caregiver");
-    await firebase.firestore().collection("appointments").doc(apptId).update({ assignedToName: name });
-    closeAssignModal(); loadAppointmentLogistics();
+    const remark = document.getElementById("assignRemark").value.trim();
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (!name) return showToast("Missing", "Please select a caregiver.", "error");
+
+    const updatePayload = {
+        assignedToName: name,
+        lastModifiedBy: currentUser.name,
+        lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (remark) updatePayload.lastRemark = remark;
+
+    await firebase.firestore().collection("appointments").doc(apptId).update(updatePayload);
+    if (window.showToast) showToast("Assigned", `Shift assigned to ${name}.`, "success");
+    closeAssignModal();
+    loadAppointmentLogistics();
 };
 
-window.dropShift = async function(apptId) {
-    if(confirm("Drop shift?")) {
-        await firebase.firestore().collection("appointments").doc(apptId).update({ assignedToName: "" });
-        loadAppointmentLogistics();
-    }
+// ==========================================
+// DROP SHIFT MODAL
+// ==========================================
+window.openDropModal = function(apptId, title) {
+    const modal = document.getElementById("dropModal");
+    const shiftName = document.getElementById("dropShiftName");
+    const remarkBox = document.getElementById("dropRemark");
+    const errMsg = document.getElementById("dropRemarkError");
+    
+    document.getElementById("targetDropApptId").value = apptId;
+    if (shiftName) shiftName.innerText = title || "Shift";
+    if (remarkBox) remarkBox.value = "";
+    if (errMsg) errMsg.classList.add("hidden");
+    modal.style.display = "flex";
 };
+
+window.closeDropModal = function() { document.getElementById("dropModal").style.display = "none"; };
+
+window.confirmDropShift = async function() {
+    const apptId = document.getElementById("targetDropApptId").value;
+    const remark = document.getElementById("dropRemark").value.trim();
+    const errMsg = document.getElementById("dropRemarkError");
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (!remark) {
+        if (errMsg) errMsg.classList.remove("hidden");
+        return;
+    }
+    if (errMsg) errMsg.classList.add("hidden");
+
+    await firebase.firestore().collection("appointments").doc(apptId).update({
+        assignedToName: "",
+        lastRemark: remark,
+        lastModifiedBy: currentUser.name,
+        lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if (window.showToast) showToast("Dropped", "Shift has been unassigned.", "error");
+    closeDropModal();
+    loadAppointmentLogistics();
+};
+
+// Legacy: keep dropShift as alias for backward compatibility
+window.dropShift = function(apptId) { openDropModal(apptId, 'this shift'); };

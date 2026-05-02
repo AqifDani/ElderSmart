@@ -90,8 +90,14 @@ async function checkShiftAvailability(fullDateStr) {
 function loadAppointments(userRole) {
     const tableBody = document.getElementById("apptTableBody");
 
-    window.appointmentService.listenUpcoming((appointments) => {
+    window.appointmentService.listenUpcoming((allAppointments) => {
         tableBody.innerHTML = "";
+
+        // RBAC: Elders only see their own appointments
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const appointments = userRole === 'elder'
+            ? allAppointments.filter(a => a.elderId === currentUser.uid)
+            : allAppointments;
 
         if (appointments.length === 0) {
             tableBody.innerHTML = "<tr><td colspan='7' class='text-center p-4 text-muted'>No upcoming appointments found.</td></tr>";
