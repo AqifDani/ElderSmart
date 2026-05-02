@@ -178,17 +178,6 @@ function updateNextApptWidget(appts, isSpecificDate = false) {
 
 function updateMiniAlerts(count) {
     const container = document.getElementById("miniAlertList");
-    const topBar = document.getElementById("urgentAlertBar");
-    const topBarText = document.getElementById("urgentAlertText");
-    
-    // Top Bar Logic
-    if (topBar && count > 0) {
-        topBar.classList.remove("hidden");
-        topBarText.innerText = `You have ${count} critical alerts pending review.`;
-    } else if (topBar) {
-        topBar.classList.add("hidden");
-    }
-
     if (!container) return;
     
     if (count > 0) {
@@ -231,18 +220,6 @@ function renderCompositionChart(records) {
 
     if (safeCount === 0 && warningCount === 0) safeCount = 1;
 
-    // Update DOM center score overlay
-    const scoreEl = document.getElementById("overallHealthScore");
-    if (scoreEl) {
-        const total = safeCount + warningCount;
-        const percent = Math.round((safeCount / total) * 100);
-        scoreEl.innerText = isNaN(percent) ? '--' : percent + '%';
-        if (percent < 50) scoreEl.className = "font-bold text-danger";
-        else if (percent < 80) scoreEl.className = "font-bold text-warning";
-        else scoreEl.className = "font-bold text-success";
-        scoreEl.style.fontSize = '22px';
-    }
-
     new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -250,19 +227,46 @@ function renderCompositionChart(records) {
             datasets: [{
                 data: [safeCount, warningCount],
                 backgroundColor: ['#166534', '#ef4444'],
-                borderWidth: 0,
-                hoverOffset: 4
+                borderWidth: 0, hoverOffset: 4
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '80%',
+            responsive: true, maintainAspectRatio: false, cutout: '75%',
             plugins: { legend: { display: false }, tooltip: { enabled: true } }
-        }
+        },
+        plugins: [{
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                if (records.length === 0) return;
+                const width = chart.width, height = chart.height, ctx = chart.ctx;
+                ctx.restore();
+                const total = safeCount + warningCount;
+                const percent = Math.round((safeCount / total) * 100);
+                
+                const fontSize = (height / 114).toFixed(2);
+                ctx.font = "bold " + fontSize + "em sans-serif";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#166534";
+                
+                const text = percent + "%", textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2.2;
+                ctx.fillText(text, textX, textY);
+                
+                ctx.font = "normal " + (fontSize*0.4).toFixed(2) + "em sans-serif";
+                ctx.fillStyle = "#6b7280";
+                const subtext = "Safe", subtextX = Math.round((width - ctx.measureText(subtext).width) / 2), subtextY = height / 1.75;
+                ctx.fillText(subtext, subtextX, subtextY);
+                ctx.save();
+            }
+        }]
     });
 }
-
+async function runSafetyChecks() {
+    const user = firebase.auth().currentUser;
+    if (user && window.medicationService) {
+        try { await window.medicationService.checkForMissedMeds(user); } catch (e) {}
+    }
+}
+setTimeout(runSafetyChecks, 3000);
 
 // Add this to your main Dashboard/Overview initialization
 async function runSafetyChecks() {
