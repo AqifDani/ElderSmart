@@ -369,7 +369,96 @@ class MedicationService extends BaseService {
 }
 
 class ScheduleService extends BaseService {
-    constructor() { super("shifts"); }
+    constructor() { 
+        super("shifts"); 
+        this.usersCollection = this.db.collection("users");
+        this.appointmentsCollection = this.db.collection("appointments");
+        this.availabilityCollection = this.db.collection("availability");
+    }
+
+    /**
+     * THE STRICT FAIRNESS ENGINE
+     * Determines which caregiver is prioritized for a shift based on deficit, workload, and recency.
+     */
+    async calculateFairnessPriority(familyId, targetDate) {
+        try {
+            // 1. Fetch all potential caregivers
+            const caregiversSnap = await this.usersCollection
+                .where("familyId", "==", familyId)
+                .where("role", "==", "caregiver")
+                .get();
+
+            if (caregiversSnap.empty) return null;
+
+            let caregivers = caregiversSnap.docs.map(doc => ({
+                uid: doc.id,
+                name: doc.data().name,
+                deficitScore: doc.data().deficitScore || 0
+            }));
+
+            // 2. FILTER: Explicitly Busy
+            const busySnap = await this.availabilityCollection
+                .where("familyId", "==", familyId)
+                .where("date", "==", targetDate)
+                .where("status", "==", "busy")
+                .get();
+
+            const busyIds = new Set(busySnap.docs.map(doc => doc.data().caregiverId));
+            let eligibleCaregivers = caregivers.filter(c => !busyIds.has(c.uid));
+
+            if (eligibleCaregivers.length === 0) return null;
+
+            // 3. ENRICH DATA: Fetch monthly totals and recency
+            const enrichmentPromises = eligibleCaregivers.map(async (caregiver) => {
+                const stats = await this._getCaregiverWorkloadStats(caregiver.uid);
+                return { ...caregiver, ...stats };
+            });
+
+            const enrichedCaregivers = await Promise.all(enrichmentPromises);
+
+            // 4. THE ALGORITHMIC SORT
+            enrichedCaregivers.sort((a, b) => {
+                // Priority 1: Deficit Score (Lowest owes shifts)
+                if (a.deficitScore !== b.deficitScore) return a.deficitScore - b.deficitScore;
+
+                // Priority 2: Monthly Total (Tie-breaker 1)
+                if (a.monthlyTotal !== b.monthlyTotal) return a.monthlyTotal - b.monthlyTotal;
+
+                // Priority 3: Recency (Tie-breaker 2: oldest timestamp first)
+                return a.lastShiftTimestamp - b.lastShiftTimestamp;
+            });
+
+            return { uid: enrichedCaregivers[0].uid, name: enrichedCaregivers[0].name };
+        } catch (error) {
+            console.error("Fairness Engine Error:", error);
+            return null;
+        }
+    }
+
+    async _getCaregiverWorkloadStats(caregiverId) {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        try {
+            const apptsSnap = await this.appointmentsCollection
+                .where("assignedToId", "==", caregiverId)
+                .where("status", "==", "completed")
+                .get();
+
+            let monthlyTotal = 0;
+            let lastShiftTimestamp = 0;
+
+            apptsSnap.forEach(doc => {
+                const apptDate = doc.data().date;
+                if (apptDate >= startOfMonth) monthlyTotal++;
+                const ts = new Date(apptDate).getTime();
+                if (ts > lastShiftTimestamp) lastShiftTimestamp = ts;
+            });
+
+            return { monthlyTotal, lastShiftTimestamp };
+        } catch (e) {
+            return { monthlyTotal: 0, lastShiftTimestamp: 0 };
+        }
+    }
 
     async getShifts(startDate, endDate) {
         const fid = this.getFamilyId();

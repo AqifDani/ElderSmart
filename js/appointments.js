@@ -27,35 +27,13 @@ function initDatePicker() {
     });
 }
 
-async function getLeastBusyCaregiver() {
-    try {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const familyId = currentUser.familyId;
-        const usersSnap = await firebase.firestore().collection("users").where("familyId", "==", familyId).get();
-
-        const workload = {};
-        usersSnap.forEach(doc => {
-            if (doc.data().role !== 'elder') workload[doc.data().name] = 0;
-        });
-
-        const appts = await window.appointmentService.getUpcoming();
-        appts.forEach(a => {
-            if (a.assignedToName) workload[a.assignedToName] = (workload[a.assignedToName] || 0) + 1;
-        });
-
-        const sorted = Object.entries(workload).sort((a, b) => a[1] - b[1]);
-        return sorted.length > 0 ? sorted[0][0] : null;
-    } catch (e) { return null; }
-}
 async function checkShiftAvailability(fullDateStr) {
     if (!fullDateStr) return;
     const assignedInput = document.getElementById("apptAssigned");
     const dateStr = fullDateStr.split("T")[0];
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    // Reset Classes
-    assignedInput.className = ""; // clear all
-    assignedInput.classList.add("input-loading");
+    assignedInput.className = "input-loading";
     assignedInput.value = "Calculating...";
 
     try {
@@ -65,20 +43,25 @@ async function checkShiftAvailability(fullDateStr) {
         if (shifts.length > 0) {
             const onDutyPerson = shifts[0].caregiver;
             assignedInput.value = onDutyPerson;
-            assignedInput.classList.add("input-success"); // Green
+            assignedInput.classList.add("input-success");
             if(window.showToast) showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
         } else {
-            const fairName = await getLeastBusyCaregiver();
-            if (fairName) {
-                assignedInput.value = fairName;
-                assignedInput.classList.add("input-warning"); // Yellow
-                if(window.showToast) showToast("Fairness Engine", `${fairName} is most free.`, "default");
+            // CALL THE STRICT FAIRNESS ENGINE
+            const priorityResult = await window.scheduleService.calculateFairnessPriority(currentUser.familyId, dateStr);
+            
+            if (priorityResult) {
+                assignedInput.value = priorityResult.name;
+                assignedInput.classList.add("input-warning");
+                if(window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized.`, "default");
             } else {
+                // FALLBACK: Everyone busy or unassigned
                 if (currentUser) assignedInput.value = currentUser.name;
-                assignedInput.classList.add("input-auto"); // Blue
+                assignedInput.classList.add("input-auto");
+                if(window.showToast) showToast("Notice", "No available caregivers found. Self-assigning.", "default");
             }
         }
     } catch (error) {
+        console.error("Shift Check Error:", error);
         if (currentUser) assignedInput.value = currentUser.name;
         assignedInput.classList.add("input-auto");
     }

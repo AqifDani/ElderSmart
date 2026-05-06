@@ -137,12 +137,12 @@ async function loadAppointmentLogistics(userRole) {
                                 <div class="avatar-circle">${initials}</div>
                                 <span class="hidden sm:inline">${a.assignedToName}</span>
                             </div>
-                            <button onclick="openAssignModal('${a.id}', '${titleEsc}', '${leastBusyName}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
                             <button onclick="openDropModal('${a.id}', '${titleEsc}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
                         </div>`;
                 } else {
                     const titleEsc = a.title.replace(/'/g, "\\'");
-                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${titleEsc}', '${leastBusyName}')" class="btn-assign">Assign</button>`;
+                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-assign">Assign</button>`;
                 }
 
                 grid.innerHTML += `
@@ -184,7 +184,7 @@ async function loadAppointmentLogistics(userRole) {
 // ==========================================
 let familyMembersCache = [];
 
-window.openAssignModal = async function(apptId, title, suggestion) {
+window.openAssignModal = async function(apptId, title) {
     const modal = document.getElementById("assignModal");
     const select = document.getElementById("driverSelect");
     const recText = document.getElementById("suggestionText");
@@ -196,14 +196,16 @@ window.openAssignModal = async function(apptId, title, suggestion) {
     if (shiftName) shiftName.innerText = title || "Shift";
     if (remarkBox) remarkBox.value = "";
 
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    // 1. Load Caregivers if not cached
     if (familyMembersCache.length === 0) {
-        select.innerHTML = '<option>Loading...</option>';
+        select.innerHTML = '<option>Loading caregivers...</option>';
         try {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             const snap = await firebase.firestore().collection("users")
                 .where("familyId", "==", currentUser.familyId).get();
             familyMembersCache = [];
-            snap.forEach(doc => { if (doc.data().role !== 'elder') familyMembersCache.push({ name: doc.data().name }); });
+            snap.forEach(doc => { if (doc.data().role !== 'elder') familyMembersCache.push({ name: doc.data().name, uid: doc.id }); });
         } catch(e){}
     }
 
@@ -213,13 +215,23 @@ window.openAssignModal = async function(apptId, title, suggestion) {
         op.value = u.name; op.text = u.name; select.appendChild(op);
     });
 
-    if (suggestion && suggestion !== "Anyone") {
-        select.value = suggestion;
-        if (recName) recName.innerText = suggestion;
-        if (recText) recText.classList.remove("hidden");
-    } else {
+    // 2. CALL THE STRICT FAIRNESS ENGINE
+    // We need the date of this specific appointment to check availability
+    try {
         if (recText) recText.classList.add("hidden");
-    }
+        const apptDoc = await firebase.firestore().collection("appointments").doc(apptId).get();
+        if (apptDoc.exists) {
+            const dateStr = apptDoc.data().date.split('T')[0];
+            const priorityResult = await window.scheduleService.calculateFairnessPriority(currentUser.familyId, dateStr);
+            
+            if (priorityResult) {
+                select.value = priorityResult.name;
+                if (recName) recName.innerText = priorityResult.name;
+                if (recText) recText.classList.remove("hidden");
+            }
+        }
+    } catch (e) { console.error("Fairness Suggestion Error:", e); }
+
     modal.style.display = "flex";
 };
 
