@@ -9,7 +9,7 @@ let currentViewDate = new Date().toISOString().split('T')[0];
     const userRole = await window.checkUserRole();
     if (!userRole) return;
 
-    if (userRole === 'caregiver') {
+    if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
         const btn = document.getElementById("addMedBtn");
         if (btn) btn.classList.remove("hidden"); // Use class toggle
     }
@@ -302,7 +302,8 @@ window.markTaken = async function (id, name, qtyToTake) {
 };
 
 window.openMedModal = async function (id = null) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     
     const modal = document.getElementById("medModal");
     const saveBtn = document.getElementById("saveMedBtn");
@@ -362,7 +363,8 @@ const medForm = document.getElementById("medForm");
 if (medForm) {
     medForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        if (localStorage.getItem('userRole') !== 'caregiver') return;
+        const role = localStorage.getItem('userRole');
+        if (role !== 'caregiver' && role !== 'primary_caregiver') return;
         
         const nameVal = document.getElementById("medName").value.trim();
         const dosageVal = document.getElementById("medDosage").value.trim();
@@ -402,7 +404,8 @@ if (medForm) {
     });
 }
 window.deleteMed = function (id) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     if (confirm("Delete this medication?")) {
         window.medicationService.delete(id).then(() => {
             loadInventory('caregiver');

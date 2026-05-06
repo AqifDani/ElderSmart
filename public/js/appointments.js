@@ -7,7 +7,7 @@ let datePickerInstance = null;
     const userRole = await window.checkUserRole();
     if (!userRole) return;
 
-    if (userRole === 'caregiver') {
+    if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
         const addBtn = document.getElementById("addApptBtn");
         if (addBtn) addBtn.classList.remove("hidden");
     }
@@ -176,7 +176,8 @@ async function loadElderOptions() {
 }
 
 window.openApptModal = async function (id = null) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     document.getElementById("apptModal").style.display = "flex";
     await loadElderOptions();
     if (id) {
@@ -205,14 +206,16 @@ window.closeApptModal = function () { document.getElementById("apptModal").style
 
 // ... (Delete and Complete Logic - Same as before) ...
 window.deleteAppt = function (id) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     if (confirm("Delete appointment?")) {
         window.appointmentService.delete(id).then(() => loadAppointments('caregiver'));
     }
 };
 
 window.completeAppt = function (id) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     if (!confirm("Mark this appointment as completed?")) return;
     window.appointmentService.markComplete(id).then(() => {
         showToast("Success", "Appointment completed!", "success");
@@ -225,7 +228,8 @@ const apptForm = document.getElementById("apptForm");
 if (apptForm) {
     apptForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        if (localStorage.getItem('userRole') !== 'caregiver') return;
+        const role = localStorage.getItem('userRole');
+        if (role !== 'caregiver' && role !== 'primary_caregiver') return;
         const id = document.getElementById("apptId").value;
         const elderSelect = document.getElementById("apptElder");
         const assignedName = document.getElementById("apptAssigned").value;

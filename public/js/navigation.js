@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedRole === 'elder' || storedRole === 'Elder') {
             placeholder.innerHTML = ELDER_SIDEBAR_HTML;
         } else {
+            // Both caregiver and primary_caregiver get the caregiver sidebar
             placeholder.innerHTML = CAREGIVER_SIDEBAR_HTML;
         }
     }
@@ -242,7 +243,7 @@ window.checkUserRole = async function () {
                 window.location.href = 'elder-dashboard.html';
                 return resolve(null);
             }
-            if (role === 'caregiver' && isElderPage) {
+            if ((role === 'caregiver' || role === 'primary_caregiver') && isElderPage) {
                 window.location.href = 'caregiver-dashboard.html';
                 return resolve(null);
             }
