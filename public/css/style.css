@@ -143,6 +143,14 @@ body.dashboard-page {
     display: flex; align-items: center; justify-content: center; font-size: 22px;
     box-shadow: 0 4px 10px rgba(45, 90, 71, 0.3);
 }
+.logo-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+    margin-left: 12px;
+}
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
     color: var(--dark);
