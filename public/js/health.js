@@ -54,7 +54,7 @@ function loadCheckups(userRole) {
                 : `<span class="text-muted text-xs">--</span>`;
 
             // Action Buttons
-            let actionHtml = (userRole === 'caregiver') 
+            let actionHtml = (userRole === 'caregiver' || userRole === 'primary_caregiver') 
                 ? `<button onclick="deleteHealthRecord('${data.id}')" title="Delete Record" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>`
                 : `<span class="text-muted">--</span>`;
 
@@ -107,7 +107,8 @@ function updateChart(data) {
 // ... (Rest of actions: deleteHealthRecord, loadElderOptions, modal logic) ...
 // Included truncated versions of logic to fit context
 window.deleteHealthRecord = async function (id) {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     if (confirm("Delete this health record?")) {
         await window.healthService.delete(id);
         loadCheckups('caregiver');
@@ -126,7 +127,8 @@ window.loadElderOptions = async function () {
 };
 
 window.openHealthModal = function () {
-    if (localStorage.getItem('userRole') !== 'caregiver') return;
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     document.getElementById("healthModal").style.display = "flex";
     document.getElementById("visitDate").valueAsDate = new Date();
     loadElderOptions();
@@ -138,7 +140,8 @@ const healthForm = document.getElementById("healthForm");
 if (healthForm) {
     healthForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        if (localStorage.getItem('userRole') !== 'caregiver') return;
+        const role = localStorage.getItem('userRole');
+        if (role !== 'caregiver' && role !== 'primary_caregiver') return;
         // ... (Same validation logic as before) ...
         const elderSelect = document.getElementById("visitElder");
         const dateVal = document.getElementById("visitDate").value;

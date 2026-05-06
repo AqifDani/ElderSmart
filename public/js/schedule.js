@@ -59,18 +59,23 @@ async function loadAppointmentLogistics(userRole) {
                 const isLeastBusy = (name === leastBusyName && count < maxShifts);
                 const barColor = isLeastBusy ? 'var(--secondary)' : 'var(--primary)';
                 
+                const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const rowClass = isLeastBusy ? 'workload-row suggested' : 'workload-row';
+                
                 listContainer.innerHTML += `
-                    <div class="workload-item">
+                    <div class="${rowClass}">
+                        <div class="workload-avatar" style="background: ${isLeastBusy ? 'var(--secondary)' : 'var(--primary)'}">
+                            ${initials}
+                        </div>
                         <div class="workload-info">
-                            <div class="workload-name">
-                                ${name}
-                                ${isLeastBusy ? '<span class="fairness-badge">Suggested</span>' : ''}
+                            <div class="workload-header">
+                                <span class="workload-name">${name}</span>
+                                <span class="workload-badge">${count} Shifts</span>
                             </div>
-                            <div class="workload-bar-bg">
-                                <div class="workload-bar-fill" style="width: ${percent}%; background: ${barColor};"></div>
+                            <div class="progress-track" style="height: 5px; margin-top: 0;">
+                                <div class="progress-fill" style="width: ${percent}%; background: ${barColor};"></div>
                             </div>
                         </div>
-                        <div class="workload-count">${count} Shifts</div>
                     </div>`;
             });
         }
@@ -158,22 +163,22 @@ async function loadAppointmentLogistics(userRole) {
                         <div class="task-bar"></div>
                         
                         <div style="flex:1;">
-                            <div class="flex justify-between items-start mb-1">
-                                <h4 class="font-bold text-sm text-dark">${a.title}</h4>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-md text-dark">${a.title}</h4>
                                 <span class="status-pill-task ${statusClass}">${statusLabel}</span>
                             </div>
                             
-                            <div class="flex gap-4 text-xs text-muted mb-3">
+                            <div class="flex gap-4 text-xs text-muted mb-4">
                                 <span><i class="far fa-clock"></i> ${time}</span>
                                 <span><i class="fas fa-map-marker-alt"></i> ${a.location || 'Home'}</span>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-muted">Progress</span>
-                                <div class="progress-track-sm">
-                                    <div class="progress-fill-sm" style="width: ${progressPercent}%; background: ${progressColor};"></div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] uppercase font-bold text-muted tracking-wider">Progress</span>
+                                <div class="progress-track" style="flex:1; height: 6px; margin-top:0;">
+                                    <div class="progress-fill" style="width: ${progressPercent}%; background: ${progressColor};"></div>
                                 </div>
-                                <span class="text-xs text-muted">${progressPercent}%</span>
+                                <span class="text-xs font-bold text-dark">${progressPercent}%</span>
                             </div>
                         </div>
 

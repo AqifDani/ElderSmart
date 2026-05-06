@@ -118,24 +118,26 @@ async function loadFamilyLeaderboard() {
             const score = c.deficitScore || 0;
             
             return `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td class="p-3">
-                        <div class="flex items-center gap-3">
-                            <div class="avatar-circle-sm" style="background: ${c.role === 'primary_caregiver' ? 'var(--primary)' : '#e2e8f0'}; color: ${c.role === 'primary_caregiver' ? 'white' : '#64748b'};">
+                <tr class="leaderboard-row">
+                    <td class="p-4">
+                        <div class="flex items-center gap-4">
+                            <div class="avatar-pill ${c.role === 'primary_caregiver' ? 'primary' : 'secondary'}">
                                 ${c.name.charAt(0)}
                             </div>
                             <div>
-                                <div class="font-bold text-sm">${c.name} ${c.id === firebase.auth().currentUser.uid ? '(You)' : ''}</div>
+                                <div class="font-bold text-sm">${c.name} ${c.id === firebase.auth().currentUser.uid ? '<span class="text-xs text-primary">(You)</span>' : ''}</div>
                                 <div class="text-xs text-muted">${roleLabel} Caregiver</div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-3 text-sm font-medium">${completed} Shifts</td>
-                    <td class="p-3">
-                        <span class="font-bold ${score < 0 ? 'text-danger' : 'text-success'}">${score}</span>
+                    <td class="p-4">
+                        <div class="text-sm font-bold text-dark">${completed} <span class="text-xs text-muted font-normal">Shifts</span></div>
                     </td>
-                    <td class="p-3 text-right">
-                        ${isTarget ? '<span class="badge badge-stock-low">Next Up</span>' : '<span class="badge badge-stock-ok">Steady</span>'}
+                    <td class="p-4">
+                        <span class="font-bold text-sm ${score < 0 ? 'text-danger' : 'text-success'}">${score > 0 ? '+' : ''}${score}</span>
+                    </td>
+                    <td class="p-4 text-right">
+                        ${isTarget ? '<span class="badge badge-stock-low">Next In Line</span>' : '<span class="badge badge-stock-ok">Stable</span>'}
                     </td>
                 </tr>
             `;
@@ -221,25 +223,27 @@ function updateNextApptWidget(appts, isSpecificDate = false) {
     itemsToShow.forEach(next => {
         const dateObj = new Date(next.date);
         html += `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
-            <div>
-                <h2 style="margin:0; font-size:20px; color:var(--primary);">
-                    ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </h2>
-                <p style="margin:5px 0 0; font-weight:bold; color:#333; font-size:14px;">${next.title}</p>
-                <p style="margin:2px 0 0; font-size:12px; color:#666;">
-                    ${next.doctor ? '👨‍⚕️ ' + next.doctor : ''} 
-                </p>
-            </div>
-            <div style="text-align:right;">
-                <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">
-                    ${dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                </span>
-                <div style="margin-top:8px;">
-                     ${next.assignedToName 
-                        ? `<span style="font-size:12px; color:green;">✔ ${next.assignedToName.split(' ')[0]}</span>` 
-                        : `<span style="font-size:12px; color:red; font-weight:bold;">⚠ Unassigned</span>`
-                     }
+        <div class="next-appt-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="appt-time">
+                        ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <p class="font-bold text-sm text-dark mt-1 mb-0">${next.title}</p>
+                    <p class="text-xs text-muted mt-1">
+                        ${next.doctor ? '👨‍⚕️ ' + next.doctor : ''} 
+                    </p>
+                </div>
+                <div class="text-right">
+                    <span class="badge appt-badge">
+                        ${dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                    <div class="mt-2">
+                        ${next.assignedToName 
+                            ? `<span class="text-xs text-success font-bold">✔ ${next.assignedToName.split(' ')[0]}</span>` 
+                            : `<span class="text-xs text-danger font-bold">⚠ Unassigned</span>`
+                        }
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -320,51 +324,25 @@ function renderElderHealthList(records, elders) {
         const dataCount = elderRecords.length > 0 ? `${elderRecords.length} records` : 'No records yet';
 
         html += `
-        <div onclick="window.location.href='health_records.html?elderId=${elder.id}'" style="
-            background: white;
-            border-radius: 18px;
-            padding: 16px 18px;
-            cursor: pointer;
-            border: 1.5px solid #f1f5f9;
-            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            position: relative;
-            overflow: hidden;
-        " onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.08)'; this.style.borderColor='${s.dot}';" 
-           onmouseleave="this.style.transform=''; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; this.style.borderColor='#f1f5f9';">
-            
-            <!-- Subtle left accent -->
-            <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:${s.bar}; border-radius:4px 0 0 4px;"></div>
+        <div class="health-status-card stagger-${(idx % 4) + 1}" onclick="window.location.href='health_records.html?elderId=${elder.id}'">
+            <div class="health-status-accent" style="background: ${s.bar};"></div>
 
-            <div style="display:flex; align-items:center; gap:14px; padding-left:6px;">
-                <!-- Avatar -->
-                <div style="
-                    width:46px; height:46px; flex-shrink:0;
-                    background: ${s.bg};
-                    border: 2px solid ${s.dot}30;
-                    border-radius:14px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-weight:800; font-size:15px; color:${s.text};
-                ">${initials}</div>
+            <div class="flex items-center gap-4">
+                <div class="health-avatar" style="background: ${s.bg}; color: ${s.text}; border: 1.5px solid ${s.dot}30;">
+                    ${initials}
+                </div>
 
-                <!-- Info -->
-                <div style="flex:1; min-width:0;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                        <span style="font-weight:700; font-size:14px; color:#1f2937; white-space:nowrap;">${elder.name}</span>
-                        <span style="font-weight:800; font-size:18px; color:#1f2937; line-height:1;">${percent}%</span>
+                <div class="w-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-sm text-dark">${elder.name}</span>
+                        <span class="font-bold text-lg text-dark">${percent}%</span>
                     </div>
-                    <!-- Progress bar -->
-                    <div style="background:#f1f5f9; height:6px; border-radius:10px; overflow:hidden; margin-bottom:7px;">
-                        <div style="height:100%; width:${percent}%; background:${s.bar}; border-radius:10px; transition:width 1s ease;"></div>
+                    <div class="progress-container" style="margin-top: 0; height: 8px;">
+                        <div class="progress-fill-gradient" style="width: ${percent}%; background: ${s.bar};"></div>
                     </div>
-                    <!-- Bottom row -->
-                    <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <span style="
-                            background:${s.bg}; color:${s.text};
-                            font-size:10px; font-weight:800; text-transform:uppercase;
-                            padding:2px 9px; border-radius:20px; letter-spacing:0.4px;
-                        ">${s.label}</span>
-                        <span style="font-size:11px; color:#9ca3af; font-weight:500;">${dataCount}</span>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="badge" style="background: ${s.bg}; color: ${s.text};">${s.label}</span>
+                        <span class="text-xs text-muted font-medium">${dataCount}</span>
                     </div>
                 </div>
             </div>

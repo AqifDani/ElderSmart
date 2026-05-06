@@ -120,7 +120,7 @@ function loadAppointments(userRole) {
             let actionButtons = "";
             if (isCompleted) {
                 actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
-            } else if (userRole === 'caregiver') {
+            } else if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
                 actionButtons = `
                     <button onclick="completeAppt('${data.id}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>
                     <button onclick="openApptModal('${data.id}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>

@@ -96,7 +96,7 @@ class ElderService extends BaseService {
         try {
             const snap = await this.collection
                 .where("familyId", "==", fid)
-                .where("role", "==", "caregiver")
+                .where("role", "in", ["caregiver", "primary_caregiver"])
                 .get();
             return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
@@ -126,7 +126,7 @@ class ElderService extends BaseService {
 
         return this.collection
             .where("familyId", "==", fid)
-            .where("role", "==", "caregiver")
+            .where("role", "in", ["caregiver", "primary_caregiver"])
             .onSnapshot(snap => {
                 callback(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
             }, err => {
@@ -382,10 +382,10 @@ class ScheduleService extends BaseService {
      */
     async calculateFairnessPriority(familyId, targetDate) {
         try {
-            // 1. Fetch all potential caregivers
+            // 1. Fetch all potential caregivers (Both roles)
             const caregiversSnap = await this.usersCollection
                 .where("familyId", "==", familyId)
-                .where("role", "==", "caregiver")
+                .where("role", "in", ["caregiver", "primary_caregiver"])
                 .get();
 
             if (caregiversSnap.empty) return null;
