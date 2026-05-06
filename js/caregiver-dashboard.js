@@ -64,8 +64,86 @@ async function loadDashboardStats() {
         // 5. Render Health List (Per Elder)
         renderElderHealthList(healthRecords, elders);
 
+        // 6. Family Leaderboard
+        loadFamilyLeaderboard();
+
     } catch (error) {
         console.error("Dashboard Error:", error);
+    }
+}
+
+async function loadFamilyLeaderboard() {
+    const tableBody = document.getElementById("leaderboardBody");
+    if (!tableBody) return;
+
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const familyId = currentUser.familyId;
+
+        // Fetch all caregivers in the family
+        const [usersSnap, apptsSnap] = await Promise.all([
+            firebase.firestore().collection("users")
+                .where("familyId", "==", familyId)
+                .get(),
+            firebase.firestore().collection("appointments")
+                .where("familyId", "==", familyId)
+                .where("status", "==", "completed")
+                .get()
+        ]);
+
+        const caregivers = [];
+        usersSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.role === 'caregiver' || data.role === 'primary_caregiver') {
+                caregivers.push({ id: doc.id, ...data });
+            }
+        });
+
+        // Tally completed shifts per caregiver
+        const shiftCounts = {};
+        apptsSnap.forEach(doc => {
+            const data = doc.data();
+            // Use assignedToName as the key since current system often uses names
+            const name = data.assignedToName;
+            if (name) shiftCounts[name] = (shiftCounts[name] || 0) + 1;
+        });
+
+        // Find minimum deficit score for highlighting
+        const minDeficit = Math.min(...caregivers.map(c => c.deficitScore || 0));
+
+        tableBody.innerHTML = caregivers.sort((a, b) => (a.deficitScore || 0) - (b.deficitScore || 0)).map(c => {
+            const isTarget = (c.deficitScore || 0) === minDeficit;
+            const completed = shiftCounts[c.name] || 0;
+            const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
+            const score = c.deficitScore || 0;
+            
+            return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td class="p-3">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar-circle-sm" style="background: ${c.role === 'primary_caregiver' ? 'var(--primary)' : '#e2e8f0'}; color: ${c.role === 'primary_caregiver' ? 'white' : '#64748b'};">
+                                ${c.name.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm">${c.name} ${c.id === firebase.auth().currentUser.uid ? '(You)' : ''}</div>
+                                <div class="text-xs text-muted">${roleLabel} Caregiver</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-3 text-sm font-medium">${completed} Shifts</td>
+                    <td class="p-3">
+                        <span class="font-bold ${score < 0 ? 'text-danger' : 'text-success'}">${score}</span>
+                    </td>
+                    <td class="p-3 text-right">
+                        ${isTarget ? '<span class="badge badge-stock-low">Next Up</span>' : '<span class="badge badge-stock-ok">Steady</span>'}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("Leaderboard Error:", error);
+        tableBody.innerHTML = "<tr><td colspan='4' class='text-center p-4 text-danger'>Failed to load leaderboard.</td></tr>";
     }
 }
 

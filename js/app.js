@@ -60,23 +60,20 @@ async function registerUser(event) {
     let familyId = "";
 
     try {
-        // --- THE BLIND CODE FIX ---
+        // --- SECURE FAMILY CODE LOGIC ---
         if (inputCode) {
-            // Check if ANY user exists with this familyId
-            const familyCheck = await firebase.firestore()
-                .collection("users")
-                .where("familyId", "==", inputCode)
-                .limit(1)
-                .get();
+            // Verify code against the 'families' registry
+            const familyRef = firebase.firestore().collection("families").doc(inputCode);
+            const familyDoc = await familyRef.get();
             
-            if (familyCheck.empty) {
-                // Stop registration immediately if code is fake/typo
+            if (!familyDoc.exists) {
                 throw new Error("Invalid Family Code. Please check for typos or leave it blank to create a new family group.");
             }
             familyId = inputCode;
         } else {
-            // Generate new code only if input was intentionally left blank
+            // Generate a unique family code
             familyId = "FAM-" + Math.floor(10000 + Math.random() * 90000);
+            // We'll create this family document AFTER the user is created (due to security rules)
         }
 
         btn.innerText = "Creating Account...";
@@ -85,6 +82,14 @@ async function registerUser(event) {
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
+        // If we generated a NEW family ID, create it now that we are authenticated
+        if (!inputCode) {
+            await firebase.firestore().collection("families").doc(familyId).set({
+                createdBy: user.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
         const userData = {
             name: name,
             email: email,
@@ -92,6 +97,11 @@ async function registerUser(event) {
             familyId: familyId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
+
+        // Initialize Deficit Score for all caregiver roles
+        if (role === 'caregiver' || role === 'primary_caregiver') {
+            userData.deficitScore = 0;
+        }
 
         if (role === 'elder') {
             userData.age = ""; 
@@ -157,6 +167,7 @@ async function handleUserRedirect(user) {
         if (userData.role === 'elder') {
             window.location.href = 'elder-dashboard.html';
         } else {
+            // Both caregiver and primary_caregiver go to the same dashboard
             window.location.href = 'caregiver-dashboard.html';
         }
 

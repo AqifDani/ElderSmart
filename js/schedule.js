@@ -128,6 +128,8 @@ async function loadAppointmentLogistics(userRole) {
                 const statusClass = isAssigned ? "active" : "";
 
                 let actionHtml = "";
+                const isPrimary = userRole === 'primary_caregiver';
+
                 if (isAssigned) {
                     const initials = a.assignedToName.substring(0,2).toUpperCase();
                     const titleEsc = a.title.replace(/'/g, "\\'");
@@ -138,11 +140,17 @@ async function loadAppointmentLogistics(userRole) {
                                 <span class="hidden sm:inline">${a.assignedToName}</span>
                             </div>
                             <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
                             <button onclick="openDropModal('${a.id}', '${titleEsc}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
                         </div>`;
                 } else {
                     const titleEsc = a.title.replace(/'/g, "\\'");
-                    actionHtml = `<button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-assign">Assign</button>`;
+                    actionHtml = `
+                        <div class="flex items-center gap-2">
+                            <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-assign">Assign</button>
+                            ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
+                        </div>
+                    `;
                 }
 
                 grid.innerHTML += `
@@ -301,3 +309,59 @@ window.confirmDropShift = async function() {
 
 // Legacy: keep dropShift as alias for backward compatibility
 window.dropShift = function(apptId) { openDropModal(apptId, 'this shift'); };
+
+// ==========================================
+// ADMIN OVERRIDE LOGIC
+// ==========================================
+window.openOverrideModal = async function(apptId) {
+    if (localStorage.getItem('userRole') !== 'primary_caregiver') return;
+
+    const modal = document.getElementById("overrideModal");
+    const select = document.getElementById("overrideDriverSelect");
+    document.getElementById("overrideApptId").value = apptId;
+
+    // Load caregivers if cache is empty
+    if (familyMembersCache.length === 0) {
+        select.innerHTML = '<option>Loading...</option>';
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const snap = await firebase.firestore().collection("users")
+                .where("familyId", "==", currentUser.familyId).get();
+            familyMembersCache = [];
+            snap.forEach(doc => { if (doc.data().role !== 'elder') familyMembersCache.push({ name: doc.data().name, uid: doc.id }); });
+        } catch(e){}
+    }
+
+    select.innerHTML = '<option value="">-- Choose Caregiver --</option>';
+    familyMembersCache.forEach(u => {
+        const op = document.createElement("option");
+        op.value = u.name; op.text = u.name; select.appendChild(op);
+    });
+
+    modal.style.display = "flex";
+};
+
+window.closeOverrideModal = function() { document.getElementById("overrideModal").style.display = "none"; };
+
+window.confirmOverride = async function() {
+    const apptId = document.getElementById("overrideApptId").value;
+    const name = document.getElementById("overrideDriverSelect").value;
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (!name) return showToast("Required", "Select a caregiver to override.", "error");
+
+    try {
+        await firebase.firestore().collection("appointments").doc(apptId).update({
+            assignedToName: name,
+            lastModifiedBy: currentUser.name + " (Admin Override)",
+            lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        if (window.showToast) showToast("Override Successful", `Shift forcefully assigned to ${name}.`, "success");
+        closeOverrideModal();
+        loadAppointmentLogistics(currentUser.role);
+    } catch (error) {
+        console.error("Override Error:", error);
+        showToast("Error", "Failed to override assignment.", "error");
+    }
+};
