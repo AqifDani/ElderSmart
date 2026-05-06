@@ -1894,18 +1894,19 @@ td {
 }
 
 .feature-pill-card {
-    background: white;
+    background: #ffffff;
     padding: 50px 40px;
     border-radius: 40px;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(46, 125, 50, 0.1);
+    box-shadow: 10px 10px 20px rgba(45, 90, 71, 0.1), -10px -10px 20px #ffffff;
     transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
     text-align: left;
 }
 
 .feature-pill-card:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 40px 80px rgba(45, 90, 71, 0.12);
-    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 10px rgba(45, 90, 71, 0.15), -5px -5px 10px #ffffff;
+    border-color: #9caf88;
 }
 
 .feature-pill-card i {
