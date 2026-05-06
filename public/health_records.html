@@ -1,121 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Check-ups - ElderSmart</title>
+    <title>Medical Master Log - ElderSmart</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body class="dashboard-page">
 
     <div id="sidebar-container"></div>
 
     <main class="main-content">
         <div class="dashboard-container">
-
-            <header class="dashboard-header">
+            
+            <header class="dashboard-header mb-8">
                 <div>
-                    <h1>Medical Check-ups</h1>
-                    <p class="subtitle text-muted">Log results from doctor visits and clinic appointments.</p>
+                    <h2 class="text-xs text-muted uppercase font-bold tracking-widest mb-1">Health Intelligence</h2>
+                    <h1 class="text-3xl font-bold text-dark">Medical Master Log</h1>
+                    <p class="text-sm text-muted mt-1">A real-time clinical feed of all elder doctor visits and vital check-ups.</p>
                 </div>
-                <button class="action-btn" onclick="openHealthModal()">
+                <button class="btn-primary shadow-lg" onclick="openHealthModal()">
                     <i class="fas fa-plus"></i> Log New Visit
                 </button>
             </header>
 
-            <div class="health-grid">
-
-                <div class="card">
-                    <h3 class="mb-4 text-sm font-bold text-muted uppercase">Blood Pressure Trend (Last 10 Visits)</h3>
-                    <div class="chart-container">
-                        <canvas id="bpChart"></canvas>
+            <div class="taskie-grid">
+                
+                <!-- MAIN FEED -->
+                <div class="main-column">
+                    <div id="healthFeed" class="flex flex-col gap-6">
+                        <!-- Clinical Event Cards -->
+                        <div class="text-center p-12 text-muted">Scanning clinical records...</div>
                     </div>
                 </div>
 
-                <div class="card stat-box">
-                    <div>
-                        <p class="stat-label">Last Recorded BP</p>
-                        <h2 id="lastBP" class="stat-value primary">--/--</h2>
+                <!-- SIDEBAR: CLINICAL INTELLIGENCE -->
+                <div class="side-column">
+                    <div id="criticalAlerts" class="card p-6 border-none shadow-lg bg-danger text-white mb-6 hidden animate__animated animate__pulse animate__infinite">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-lg"><i class="fas fa-exclamation-triangle mr-2"></i> High Risk</h3>
+                            <span class="badge bg-white text-danger font-bold" id="criticalCount">0</span>
+                        </div>
+                        <div id="criticalList" class="space-y-3">
+                            <!-- Critical names will appear here -->
+                        </div>
                     </div>
-                    <div class="stat-divider">
-                        <p class="stat-label">Last Weight</p>
-                        <h2 id="lastWeight" class="stat-value info">-- kg</h2>
-                    </div>
-                </div>
-            </div>
 
-            <div class="table-container">
-                <div class="table-header">
-                    <h3 class="font-bold">Visit History</h3>
+                    <div class="card p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-xs font-bold text-muted uppercase tracking-wider">Facility Pulse</h4>
+                            <i class="fas fa-chart-line text-primary"></i>
+                        </div>
+                        <div class="grid grid-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-center">
+                                <p class="text-[10px] text-muted font-bold uppercase mb-1">Visits Today</p>
+                                <div id="visitsToday" class="text-2xl font-bold text-dark">0</div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-center">
+                                <p class="text-[10px] text-muted font-bold uppercase mb-1">Check-ups Due</p>
+                                <div id="checkupsDue" class="text-2xl font-bold text-warning">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-xs font-bold text-muted uppercase tracking-wider">Medication Adherence</h4>
+                            <span id="adherencePercent" class="text-xs font-bold text-primary">0%</span>
+                        </div>
+                        <div class="chart-container-mini" style="height: 180px;">
+                            <canvas id="adherenceChart"></canvas>
+                        </div>
+                        <p class="text-[10px] text-center text-muted mt-4">Total pharmacy compliance for today</p>
+                    </div>
                 </div>
-                <div class="tasks-table">
-                    <table id="healthTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Elder</th>
-                                <th>Location / Doctor</th>
-                                <th>Vitals Recorded</th>
-                                <th>Doctor's Notes</th>
-                                <th>Logged By</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="healthTableBody">
-                            <tr><td colspan="7" class="text-center p-4 text-muted">Loading history...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+
             </div>
 
         </div>
     </main>
 
+    <!-- MODAL (Kept but styled) -->
     <div id="healthModal" class="modal">
-        <div class="modal-card">
-            <h2 id="modalTitle">Log Medical Visit</h2>
+        <div class="modal-card bounce-in" style="max-width: 500px;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-dark">Log Medical Visit</h2>
+                <button onclick="closeHealthModal()" class="btn-icon-hover"><i class="fas fa-times"></i></button>
+            </div>
             <form id="healthForm">
-
-                <label>Date of Visit</label>
-                <input type="date" id="visitDate" required>
-
-                <label>Elder Name</label>
-                <select id="visitElder" required>
-                    <option value="">Loading...</option>
-                </select>
-
-                <label>Location / Clinic</label>
-                <input type="text" id="visitLocation" placeholder="e.g. Prince Court Medical Center" required>
-
-                <div class="flex gap-4">
-                    <div class="w-full">
-                        <label>Blood Pressure</label>
-                        <input type="text" id="visitBP" placeholder="120/80">
+                <div class="grid grid-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Date of Visit</label>
+                        <input type="date" id="visitDate" class="input-field" required>
                     </div>
-                    <div class="w-full">
-                        <label>Heart Rate</label>
-                        <input type="number" id="visitHR" placeholder="75">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Patient / Elder</label>
+                        <select id="visitElder" class="input-field" required></select>
                     </div>
                 </div>
 
-                <label>Weight (kg)</label>
-                <input type="number" step="0.1" id="visitWeight" placeholder="65.5">
+                <div class="mb-4">
+                    <label class="text-xs font-bold uppercase text-muted">Clinic / Location</label>
+                    <input type="text" id="visitLocation" class="input-field" placeholder="e.g. KPJ Medical Center" required>
+                </div>
 
-                <label>Doctor's Notes / Instructions</label>
-                <textarea id="visitNotes" rows="3" placeholder="Doctor advised to reduce salt..."></textarea>
+                <div class="grid grid-3 gap-4 mb-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">BP</label>
+                        <input type="text" id="visitBP" class="input-field" placeholder="120/80">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Pulse</label>
+                        <input type="number" id="visitHR" class="input-field" placeholder="75">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase text-muted">Weight</label>
+                        <input type="number" step="0.1" id="visitWeight" class="input-field" placeholder="kg">
+                    </div>
+                </div>
 
-                <div class="flex gap-2 mt-4">
-                    <button type="button" onclick="closeHealthModal()" class="btn-secondary w-full">Cancel</button>
-                    <button type="submit" class="btn-primary w-full">Save Log</button>
+                <div class="mb-6">
+                    <label class="text-xs font-bold uppercase text-muted">Doctor's Clinical Notes</label>
+                    <textarea id="visitNotes" rows="3" class="input-field" placeholder="Record instructions or diagnosis..."></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeHealthModal()" class="btn-ghost w-full">Cancel</button>
+                    <button type="submit" class="btn-primary w-full shadow-md">Save Record</button>
                 </div>
             </form>
         </div>

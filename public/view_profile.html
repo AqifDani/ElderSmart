@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Chart - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="dashboard-page">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="dashboard-container">
+
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 mb-6 text-xs font-bold uppercase tracking-widest text-muted">
+                <a href="elder_profiles.html" class="hover:text-primary transition-colors">Care Circle</a>
+                <i class="fas fa-chevron-right text-[8px]"></i>
+                <span class="text-dark">Medical Chart</span>
+            </div>
+
+            <div class="clinical-workspace-grid">
+
+                <!-- LEFT: PERSONAL SUMMARY & VITALS PULSE -->
+                <aside class="clinical-sidebar animate__animated animate__fadeInLeft">
+                    <div class="card p-0 overflow-hidden border-none shadow-lg">
+                        <div class="profile-header-bg"></div>
+                        <div class="p-6 text-center -mt-12">
+                            <div class="relative inline-block">
+                                <img id="elderAvatar"
+                                    src="https://ui-avatars.com/api/?name=Elder&background=4A6351&color=fff"
+                                    class="elder-avatar-large shadow-xl border-4 border-white mb-4">
+                                <span class="status-dot-large online"></span>
+                            </div>
+                            <h2 id="elderName" class="text-2xl font-bold text-dark mb-1">Loading...</h2>
+                            <p id="elderMeta" class="text-xs font-bold text-muted uppercase tracking-tighter">-- Years
+                                Old • Family ID: --</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50/50 border-t border-gray-100">
+                            <div class="vitals-quick-grid">
+                                <div class="vital-mini-card">
+                                    <span class="text-[10px] font-bold text-muted uppercase">BP</span>
+                                    <div id="sideBP" class="text-lg font-bold text-primary">--/--</div>
+                                </div>
+                                <div class="vital-mini-card">
+                                    <span class="text-[10px] font-bold text-muted uppercase">Heart Rate</span>
+                                    <div id="sideHR" class="text-lg font-bold text-secondary">-- bpm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4 p-5">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-clipboard-list text-primary opacity-50"></i>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest">Clinical Conditions
+                            </h4>
+                        </div>
+                        <div id="elderConditions" class="flex flex-wrap gap-2">
+                            <!-- Tags will be injected here -->
+                            <span class="clinical-tag">Loading...</span>
+                        </div>
+                    </div>
+
+                    <button onclick="location.href='health_records.html'"
+                        class="btn-ghost w-full mt-4 text-xs font-bold uppercase tracking-widest">
+                        <i class="fas fa-plus-circle mr-2"></i> Log Vitals
+                    </button>
+                </aside>
+
+                <!-- RIGHT: COMMAND TABS -->
+                <div class="clinical-main-content animate__animated animate__fadeInRight">
+
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="clinical-tabs">
+                            <button onclick="switchTab('vitals')" id="tab-vitals" class="clinical-tab active">
+                                <i class="fas fa-chart-line"></i> Vitals Pulse
+                            </button>
+                            <button onclick="switchTab('logs')" id="tab-logs" class="clinical-tab">
+                                <i class="fas fa-notes-medical"></i> Clinical Logs
+                            </button>
+                            <button onclick="switchTab('pharmacy')" id="tab-pharmacy" class="clinical-tab">
+                                <i class="fas fa-pills"></i> Pharmacy
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="printChart()" class="btn-icon-hover bg-white shadow-sm" title="Print Medical Chart">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button onclick="shareChart()" class="btn-icon-hover bg-white shadow-sm" title="Share Chart Link">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: VITALS PULSE -->
+                    <div id="content-vitals" class="tab-pane active">
+                        <div class="grid grid-2 gap-6 mb-6">
+                            <div class="card">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-dark">BP Trend</h3>
+                                    <span class="badge badge-primary">Last 10 Visits</span>
+                                </div>
+                                <div class="chart-container-large">
+                                    <canvas id="bpChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-dark">Weight Stability</h3>
+                                    <span class="badge badge-secondary">Trend Line</span>
+                                </div>
+                                <div class="chart-container-large">
+                                    <canvas id="weightChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: CLINICAL LOGS -->
+                    <div id="content-logs" class="tab-pane">
+                        <div class="table-container p-0 border-none shadow-none bg-transparent">
+                            <div id="healthLogsList" class="flex flex-col gap-4">
+                                <!-- Dynamic Health Logs -->
+                                <div class="text-center p-12 text-muted">Loading medical history...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: PHARMACY -->
+                    <div id="content-pharmacy" class="tab-pane">
+                        <div id="medicationGrid" class="grid grid-2 gap-4">
+                            <!-- Dynamic Meds -->
+                            <div class="text-center p-12 text-muted col-span-full">Loading medication room...</div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/view_profile.js"></script>
+</body>
+
+</html>

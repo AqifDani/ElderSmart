@@ -1,176 +1,263 @@
-// js/health.js - REFACTORED (Clean Classes)
+// js/health.js - REFACTORED (Medical Master Feed)
 
-let bpChartInstance = null;
+let miniChartInstance = null;
 
 (async () => {
     if (!window.healthService || !window.elderService) return;
     const userRole = await window.checkUserRole();
     if (!userRole) return;
-    loadCheckups(userRole);
+    
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) loadMedicalFeed(userRole);
+    });
 })();
 
-// ==========================================
-// 1. DATA LOADING & VISUALIZATION
-// ==========================================
-function loadCheckups(userRole) {
-    const tableBody = document.getElementById("healthTableBody");
-    const lastBP = document.getElementById("lastBP");
-    const lastWeight = document.getElementById("lastWeight");
+function loadMedicalFeed(userRole) {
+    const feed = document.getElementById("healthFeed");
+    const criticalAlerts = document.getElementById("criticalAlerts");
+    const criticalList = document.getElementById("criticalList");
+    const criticalCount = document.getElementById("criticalCount");
+    const visitsTodayEl = document.getElementById("visitsToday");
+    const checkupsDueEl = document.getElementById("checkupsDue");
 
-    window.healthService.listenRecent((rawRecords) => {
-        const records = rawRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+    window.healthService.listenRecent(async (records) => {
+        feed.innerHTML = "";
+        
+        const todayStr = new Date().toISOString().split('T')[0];
+        let todayCount = 0;
+        let criticalElders = new Map(); // Map to keep latest high reading per elder
 
-        tableBody.innerHTML = "";
+        // Get total elders for "Due" calculation
+        const allElders = await window.elderService.getAll();
+        const eldersWithRecentLog = new Set();
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-        if (records.length === 0) {
-            tableBody.innerHTML = "<tr><td colspan='7' class='text-center p-4 text-muted'>No check-ups logged yet.</td></tr>";
-            if (lastBP) lastBP.innerText = "--/--";
-            if (lastWeight) lastWeight.innerText = "--";
-            updateChart([]);
-            return;
-        }
+        records.forEach(r => {
+            // Count Today's Visits
+            if (r.date === todayStr) todayCount++;
 
-        // --- CHART & STATS ---
-        updateChart([...records].reverse());
-        const latest = records[0];
-        if (lastBP) lastBP.innerText = latest.bp || "--/--";
-        if (lastWeight) lastWeight.innerText = (latest.weight ? latest.weight + " kg" : "--");
-
-        // --- RENDER TABLE ---
-        records.forEach((data) => {
-            const dateStr = new Date(data.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-
-            // Highlight High BP using badge class
-            let bpDisplay = data.bp || "--";
-            if (data.bp && data.bp.includes('/')) {
-                const [sys, dia] = data.bp.split('/').map(Number);
-                if (sys > 140 || dia > 90) {
-                    bpDisplay = `<span class="badge badge-stock-low">⚠ ${data.bp}</span>`;
-                }
+            // Track Recent Activity (Last 48h)
+            const recordDate = new Date(r.date);
+            if (recordDate >= twoDaysAgo) {
+                eldersWithRecentLog.add(r.elderId);
             }
 
-            const elderDisplay = data.elderName
-                ? `<span class="badge" style="background:#f0fdf4; color:#166534;">${data.elderName}</span>`
-                : `<span class="text-muted text-xs">--</span>`;
+            // Check for Critical BP (Ignore if already acknowledged)
+            if (r.bp && r.bp.includes('/') && !r.acknowledged) {
+                const [sys, dia] = r.bp.split('/').map(Number);
+                if (sys >= 140 || dia >= 90) {
+                    if (!criticalElders.has(r.elderId)) {
+                        criticalElders.set(r.elderId, { name: r.elderName, bp: r.bp, recordId: r.id });
+                    }
+                }
+            }
+        });
 
-            // Action Buttons
-            let actionHtml = (userRole === 'caregiver' || userRole === 'primary_caregiver') 
-                ? `<button onclick="deleteHealthRecord('${data.id}')" title="Delete Record" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>`
-                : `<span class="text-muted">--</span>`;
+        // 1. Update Critical Alert Box
+        if (criticalElders.size > 0) {
+            criticalAlerts.classList.remove('hidden');
+            criticalCount.innerText = criticalElders.size;
+            criticalList.innerHTML = Array.from(criticalElders.values()).map(e => `
+                <div class="flex justify-between items-center bg-white/10 p-2 rounded-lg text-sm mb-2">
+                    <span class="font-bold">${e.name}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="badge bg-white text-danger">${e.bp}</span>
+                        <button onclick="acknowledgeAlert('${e.recordId}')" class="text-white hover:text-green-300 transition-colors" title="Mark as Handled">
+                            <i class="fas fa-check-circle text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            criticalAlerts.classList.add('hidden');
+        }
 
-            tableBody.innerHTML += `
-                <tr>
-                    <td><span class="font-bold">${dateStr}</span></td>
-                    <td>${elderDisplay}</td> 
-                    <td>${data.location}</td>
-                    <td>
-                        BP: ${bpDisplay} <br>
-                        <small class="text-muted">Wt: ${data.weight || '--'}kg</small>
-                    </td>
-                    <td class="text-muted" style="max-width: 250px;">${data.notes || "-"}</td>
-                    <td class="text-xs text-muted">${data.loggedBy}</td>
-                    <td class="text-center">${actionHtml}</td>
-                </tr>`;
+        // 2. Update Pulse Stats
+        if (visitsTodayEl) visitsTodayEl.innerText = todayCount;
+        if (checkupsDueEl) checkupsDueEl.innerText = Math.max(0, allElders.length - eldersWithRecentLog.size);
+
+        // 3. Update Medication Adherence
+        updateAdherenceChart();
+
+        // --- Render Feed Cards ---
+        records.forEach((data, index) => {
+            const dateStr = new Date(data.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            const delay = (index * 0.1).toFixed(1);
+            
+            // Highlight High BP
+            let bpStatusClass = "";
+            if (data.bp && data.bp.includes('/')) {
+                const [sys, dia] = data.bp.split('/').map(Number);
+                if (sys > 140 || dia > 90) bpStatusClass = "high-bp-pulse";
+            }
+
+            const card = `
+                <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: ${delay}s; position:relative; overflow:hidden;">
+                    <div class="clinical-event-bar"></div>
+                    
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="flex items-center gap-4">
+                            <div class="elder-mini-avatar" onclick="window.location.href='view_profile.html?id=${data.elderId}'">
+                                ${data.elderName ? data.elderName[0] : '?'}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-dark text-lg hover:text-primary cursor-pointer transition-colors" 
+                                    onclick="window.location.href='view_profile.html?id=${data.elderId}'">
+                                    ${data.elderName || 'Unknown Patient'}
+                                </h4>
+                                <p class="text-xs text-muted font-bold uppercase tracking-widest">
+                                    <i class="fas fa-clinic-medical mr-1"></i> ${data.location || 'Clinic Visit'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-bold text-muted uppercase tracking-tighter block">${dateStr}</span>
+                            <span class="badge badge-success mt-1" style="font-size:9px;">Logged by Team</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-3 gap-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 mb-5">
+                        <div class="text-center">
+                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Blood Pressure</p>
+                            <div class="text-xl font-bold text-primary ${bpStatusClass}">${data.bp || '--/--'}</div>
+                        </div>
+                        <div class="text-center border-x border-gray-200">
+                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Heart Rate</p>
+                            <div class="text-xl font-bold text-secondary">${data.hr || '--'} <span class="text-xs opacity-50">bpm</span></div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Weight</p>
+                            <div class="text-xl font-bold text-dark">${data.weight || '--'} <span class="text-xs opacity-50">kg</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end">
+                        <div style="flex:1;">
+                            <p class="text-xs text-muted font-bold uppercase mb-2">Doctor's Observations</p>
+                            <p class="text-sm text-dark italic opacity-80 line-clamp-2">"${data.notes || 'No specific notes recorded for this visit.'}"</p>
+                        </div>
+                        ${(userRole === 'caregiver' || userRole === 'primary_caregiver') ? `
+                            <button onclick="deleteHealthRecord('${data.id}')" class="btn-icon-hover text-danger ml-4">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            feed.innerHTML += card;
         });
     });
 }
 
-// ==========================================
-// 2. CHART RENDERING
-// ==========================================
-function updateChart(data) {
-    const ctx = document.getElementById('bpChart');
+let adherenceChartInstance = null;
+
+async function updateAdherenceChart() {
+    const ctx = document.getElementById('adherenceChart');
     if (!ctx) return;
 
-    const labels = data.map(d => `${new Date(d.date).getDate()}/${new Date(d.date).getMonth() + 1}`);
-    const systolic = data.map(d => d.bp ? parseInt(d.bp.split('/')[0]) : null);
-    const diastolic = data.map(d => d.bp ? parseInt(d.bp.split('/')[1]) : null);
+    try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dayIndex = new Date().getDay();
 
-    if (bpChartInstance) bpChartInstance.destroy();
+        const [meds, logs] = await Promise.all([
+            window.medicationService.getAll(),
+            window.medicationService.getLogsByDate(todayStr)
+        ]);
 
-    bpChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'Systolic', data: systolic, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.3, fill: true },
-                { label: 'Diastolic', data: diastolic, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.3, fill: true }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: { y: { beginAtZero: false, suggestedMin: 60, suggestedMax: 160 } }
-        }
-    });
+        // Calculate Total Scheduled for Today
+        const scheduledToday = meds.filter(m => {
+            if (m.startDate && todayStr < m.startDate) return false;
+            if (m.frequency === 'daily') return true;
+            if (m.frequency === 'specific' && m.days && m.days.includes(dayIndex)) return true;
+            return false;
+        });
+
+        const totalScheduled = scheduledToday.length;
+        const totalTaken = Object.keys(logs).length;
+        const percent = totalScheduled > 0 ? Math.round((totalTaken / totalScheduled) * 100) : 100;
+
+        document.getElementById("adherencePercent").innerText = `${percent}%`;
+
+        if (adherenceChartInstance) adherenceChartInstance.destroy();
+
+        adherenceChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Taken', 'Pending'],
+                datasets: [{
+                    data: [totalTaken, Math.max(0, totalScheduled - totalTaken)],
+                    backgroundColor: ['#4A6351', '#f1f5f9'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    } catch (error) {
+        console.error("Adherence calculation failed:", error);
+    }
 }
 
-// ... (Rest of actions: deleteHealthRecord, loadElderOptions, modal logic) ...
-// Included truncated versions of logic to fit context
-window.deleteHealthRecord = async function (id) {
-    const role = localStorage.getItem('userRole');
-    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    if (confirm("Delete this health record?")) {
-        await window.healthService.delete(id);
-        loadCheckups('caregiver');
-    }
-};
-
+// ... MODAL & DELETE LOGIC (Same as previous but with improved services calls) ...
 window.loadElderOptions = async function () {
     const select = document.getElementById("visitElder");
-    select.innerHTML = '<option value="">Loading...</option>';
+    if(!select) return;
     const elders = await window.elderService.getAll();
-    select.innerHTML = '';
-    elders.forEach(e => {
-        const op = document.createElement("option");
-        op.value = e.id; op.text = e.name; select.appendChild(op);
-    });
+    select.innerHTML = elders.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
 };
 
 window.openHealthModal = function () {
-    const role = localStorage.getItem('userRole');
-    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     document.getElementById("healthModal").style.display = "flex";
     document.getElementById("visitDate").valueAsDate = new Date();
     loadElderOptions();
 };
 window.closeHealthModal = function () { document.getElementById("healthModal").style.display = "none"; };
 
-// Form Logic
+window.deleteHealthRecord = async function (id) {
+    if (confirm("Delete this medical record from the master log?")) {
+        await window.healthService.delete(id);
+    }
+};
+
+window.acknowledgeAlert = async function (recordId) {
+    try {
+        await firebase.firestore().collection("health_records").doc(recordId).update({
+            acknowledged: true,
+            acknowledgedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            acknowledgedBy: firebase.auth().currentUser.email
+        });
+        showToast("Clinical Alert", "Record marked as handled", "success");
+    } catch (error) {
+        console.error("Acknowledgment failed:", error);
+        showToast("Error", "Could not acknowledge alert", "error");
+    }
+};
+
 const healthForm = document.getElementById("healthForm");
 if (healthForm) {
     healthForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        const role = localStorage.getItem('userRole');
-        if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-        // ... (Same validation logic as before) ...
         const elderSelect = document.getElementById("visitElder");
-        const dateVal = document.getElementById("visitDate").value;
-        const locVal = document.getElementById("visitLocation").value.trim();
-        const bpVal = document.getElementById("visitBP").value.trim();
-        
-        // Simplified Logic for saving
         const visitData = {
-            date: dateVal, location: locVal, bp: bpVal,
+            date: document.getElementById("visitDate").value,
+            location: document.getElementById("visitLocation").value.trim(),
+            bp: document.getElementById("visitBP").value.trim(),
             hr: document.getElementById("visitHR").value,
             weight: document.getElementById("visitWeight").value,
             notes: document.getElementById("visitNotes").value.trim(),
-            loggedBy: firebase.auth().currentUser.email,
             elderId: elderSelect.value,
             elderName: elderSelect.options[elderSelect.selectedIndex].text
         };
 
         try {
             await window.healthService.logVisit(visitData);
-            // Critical Alert Logic (Keep this from original)
-            if (bpVal && bpVal.includes('/')) {
-                const [sys, dia] = bpVal.split('/').map(Number);
-                if (sys > 140 || dia > 90) {
-                     // ... Trigger Notification logic ...
-                }
-            }
-            showToast("Success", "Check-up saved!", "success");
+            showToast("Success", "Medical record added to feed", "success");
             closeHealthModal();
-            loadCheckups('caregiver');
-        } catch (error) { showToast("Error", "Could not save", "error"); }
+        } catch (error) { showToast("Error", "Save failed", "error"); }
     });
 }

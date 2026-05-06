@@ -76,9 +76,12 @@ function loadElders() {
                         </div>
                     </div>
 
-                    <div class="flex gap-2 mt-auto">
-                        <button onclick="editElder('${data.id}')" class="btn-secondary w-full" style="justify-content:center; padding: 10px;">
-                            <i class="fas fa-pencil-alt" style="margin-right:8px;"></i> Edit Profile
+                    <div class="flex flex-col gap-2 mt-auto">
+                        <button onclick="viewProfile('${data.id}')" class="btn-primary w-full shadow-md" style="justify-content:center; padding: 12px; font-weight:700;">
+                            <i class="fas fa-file-medical" style="margin-right:8px;"></i> View Clinical Chart
+                        </button>
+                        <button onclick="editElder('${data.id}')" class="btn-ghost w-full text-xs" style="justify-content:center; padding: 8px; opacity:0.7;">
+                             Edit Basic Info
                         </button>
                     </div>
                 </div>
@@ -162,6 +165,10 @@ window.removePhoto = function () {
     document.getElementById("uploadIcon").style.display = "block";
     document.getElementById("removePhotoBtn").style.display = "none";
     document.getElementById("elderPhoto").value = "";
+};
+
+window.viewProfile = function(id) {
+    window.location.href = `view_profile.html?id=${id}`;
 };
 
 window.editElder = async function (id) {
