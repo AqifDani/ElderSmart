@@ -259,10 +259,14 @@ function renderChecklist(dateStr) {
                 }
             }
 
+            const reminderIcon = (med.reminderOffset && med.reminderOffset !== "none" && med.reminderOffset !== "0") 
+                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert: ${med.reminderOffset}m before"></i>` 
+                : "";
+
             tableBody.innerHTML += `
                 <tr class="${rowClass}">
                     <td>${statusHtml}</td>
-                    <td>${formatTime(med.time)}</td>
+                    <td>${formatTime(med.time)} ${reminderIcon}</td>
                     <td><span class="badge" style="background:#eee; color:#333;">${med.elderName}</span></td>
                     <td class="font-bold">${med.name}</td>
                     <td>${med.dosage} <span class="text-xs text-muted">(x${qty})</span></td>
@@ -332,6 +336,7 @@ window.openMedModal = async function (id = null) {
             document.getElementById("medPerDose").value = data.perDose || 1;
             if (medTimePicker && data.time) medTimePicker.setDate(data.time);
             document.getElementById("medFrequency").value = data.frequency || 'daily';
+            document.getElementById("medReminder").value = data.reminderOffset || "0";
             
             // Handle Days Checkboxes
             document.querySelectorAll('input[name="weekDay"]').forEach(cb => cb.checked = false);
@@ -353,6 +358,7 @@ window.openMedModal = async function (id = null) {
         document.getElementById("medPerDose").value = "1";
         document.getElementById("daysSelector").classList.add('hidden');
         if (medTimePicker) { medTimePicker.clear(); medTimePicker.setDate("08:00"); }
+        document.getElementById("medReminder").value = "0";
     }
 };
 
@@ -386,7 +392,8 @@ if (medForm) {
             perDose: parseInt(document.getElementById("medPerDose").value) || 1,
             notes: document.getElementById("medNotes").value.trim(),
             elderId: elderSelect.value,
-            elderName: elderSelect.options[elderSelect.selectedIndex].text
+            elderName: elderSelect.options[elderSelect.selectedIndex].text,
+            reminderOffset: document.getElementById("medReminder").value
         };
 
         // FIX: Add startDate for new meds so they don't appear in history

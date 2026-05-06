@@ -264,20 +264,24 @@ function updateMiniAlerts(count) {
     
     if (count > 0) {
         container.innerHTML = `
-            <div class="flex items-center gap-3 p-3 bg-danger-bg rounded-lg border border-red-200">
-                <i class="fas fa-exclamation-circle text-danger text-xl"></i>
+            <div class="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100 shadow-sm animate__animated animate__headShake">
+                <div class="flex-shrink-0 w-10 h-10 bg-danger rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-exclamation-triangle text-white text-lg"></i>
+                </div>
                 <div>
-                    <h4 class="font-bold text-danger text-sm">Action Needed</h4>
-                    <p class="text-xs text-danger">You have ${count} unread alerts.</p>
+                    <h4 class="font-black text-danger text-sm tracking-tight" style="font-family:'Outfit', sans-serif;">Action Needed</h4>
+                    <p class="text-xs text-danger opacity-80">You have ${count} unread alerts.</p>
                 </div>
             </div>`;
     } else {
         container.innerHTML = `
-            <div class="flex items-center gap-3 p-3 bg-success-bg rounded-lg border border-green-200">
-                <i class="fas fa-check-circle text-success text-xl"></i>
+            <div class="flex items-center gap-4 p-4 bg-green-50 rounded-2xl border border-green-100">
+                <div class="flex-shrink-0 w-10 h-10 bg-success rounded-xl flex items-center justify-center">
+                    <i class="fas fa-check-circle text-white text-lg"></i>
+                </div>
                 <div>
-                    <h4 class="font-bold text-success text-sm">All Clear</h4>
-                    <p class="text-xs text-success">System is running smoothly.</p>
+                    <h4 class="font-black text-success text-sm tracking-tight" style="font-family:'Outfit', sans-serif;">All Clear</h4>
+                    <p class="text-xs text-success opacity-80">System is running smoothly.</p>
                 </div>
             </div>`;
     }

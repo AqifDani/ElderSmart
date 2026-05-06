@@ -42,30 +42,29 @@
                                     class="elder-avatar-large shadow-xl border-4 border-white mb-4">
                                 <span class="status-dot-large online"></span>
                             </div>
-                            <h2 id="elderName" class="text-2xl font-bold text-dark mb-1">Loading...</h2>
-                            <p id="elderMeta" class="text-xs font-bold text-muted uppercase tracking-tighter">-- Years
+                            <h2 id="elderName" class="text-3xl font-black text-dark mb-1 text-gradient animate__animated animate__fadeInDown">Loading...</h2>
+                            <p id="elderMeta" class="text-[10px] font-bold text-muted uppercase tracking-widest opacity-70">-- Years
                                 Old • Family ID: --</p>
                         </div>
-
+ 
                         <div class="p-4 bg-gray-50/50 border-t border-gray-100">
                             <div class="vitals-quick-grid">
                                 <div class="vital-mini-card">
-                                    <span class="text-[10px] font-bold text-muted uppercase">BP</span>
-                                    <div id="sideBP" class="text-lg font-bold text-primary">--/--</div>
+                                    <span class="clinical-label">Blood Pressure</span>
+                                    <div id="sideBP" class="text-xl vital-number text-primary">--/--</div>
                                 </div>
                                 <div class="vital-mini-card">
-                                    <span class="text-[10px] font-bold text-muted uppercase">Heart Rate</span>
-                                    <div id="sideHR" class="text-lg font-bold text-secondary">-- bpm</div>
+                                    <span class="clinical-label">Heart Rate</span>
+                                    <div id="sideHR" class="text-xl vital-number text-secondary">-- bpm</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
+ 
                     <div class="card mt-4 p-5">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="fas fa-clipboard-list text-primary opacity-50"></i>
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest">Clinical Conditions
-                            </h4>
+                            <h4 class="clinical-label">Clinical Conditions</h4>
                         </div>
                         <div id="elderConditions" class="flex flex-wrap gap-2">
                             <!-- Tags will be injected here -->

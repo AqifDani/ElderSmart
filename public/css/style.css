@@ -143,10 +143,32 @@ body.dashboard-page {
     display: flex; align-items: center; justify-content: center; font-size: 22px;
     box-shadow: 0 4px 10px rgba(45, 90, 71, 0.3);
 }
-.logo-text {
-    font-size: 22px; font-weight: 800;
-    color: white;
-    letter-spacing: -0.5px;
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    color: var(--dark);
+    letter-spacing: -0.02em;
+}
+
+/* --- TYPOGRAPHY UTILITIES --- */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.clinical-label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+}
+
+.vital-number {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
 .sidebar-nav { flex: 1; padding: 16px; overflow-y: auto; }
@@ -1242,6 +1264,24 @@ span.flatpickr-weekday {
     display: flex; flex-direction: column; gap: 10px;
 }
 
+.notification.vital-mini-card {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.vital-mini-card span {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.vital-mini-card div {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
 .notification-card {
     background: white;
     padding: 16px;
@@ -1309,26 +1349,37 @@ span.flatpickr-weekday {
 /* The "All Invoices" style Hero Card */
 /* Unified Professional Hero Banner (Deep Sage Green) */
 .hero-banner, .hero-banner-card {
-    background: linear-gradient(135deg, #2D5A47 0%, #1E3A2F 100%);
-    border-radius: 28px;
-    padding: 40px 48px;
+    background: linear-gradient(135deg, #1E2D24 0%, #2D5A47 100%);
+    border-radius: 32px;
+    padding: 48px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 40px rgba(45, 90, 71, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 .hero-banner::before, .hero-banner-card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; 
-    width: 8px; background: var(--secondary); /* Gold accent */
+    content: ''; 
+    position: absolute; 
+    top: -50%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
 }
-.hero-banner h1, .hero-banner h2, .hero-banner-card h1 { 
-    color: white !important; 
-    font-weight: 800; 
-    margin-bottom: 12px;
+
+.hero-banner h1, .hero-banner-card h1 { 
+    font-family: 'Outfit', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: white !important;
+    margin-bottom: 8px;
+    letter-spacing: -0.04em;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 .hero-banner p, .hero-banner-card p { 
     color: rgba(255, 255, 255, 0.85) !important; 
@@ -1348,6 +1399,70 @@ span.flatpickr-weekday {
 .btn-outline-light:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: white;
+}
+
+/* --- GLASS ACTIONS --- */
+.filter-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.filter-pill.active {
+    background: white;
+    color: #1E2D24;
+    border-color: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.filter-pill:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-glass {
+    background: white;
+    color: #1E2D24;
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex; align-items: center; gap: 10px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.btn-glass:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+}
+
+.btn-icon-glass {
+    width: 48px; height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.btn-icon-glass:hover {
+    background: white;
+    color: #1E2D24;
+    transform: scale(1.05);
 }
 
 /* Background Icon Decoration */

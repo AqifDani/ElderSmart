@@ -111,8 +111,22 @@
                 <label>Location</label>
                 <input type="text" id="apptLocation" placeholder="Clinic Address">
 
-                <label>Notes</label>
-                <input type="text" id="apptNotes" placeholder="Instructions...">
+                <div class="flex gap-4">
+                    <div class="w-full">
+                        <label>Notes</label>
+                        <input type="text" id="apptNotes" placeholder="Instructions...">
+                    </div>
+                    <div class="w-full">
+                        <label>Reminder Option</label>
+                        <select id="apptReminder">
+                            <option value="0">At time of visit</option>
+                            <option value="30">30 mins before</option>
+                            <option value="60">1 hour before</option>
+                            <option value="1440">1 day before</option>
+                            <option value="none">No reminder</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="flex gap-2 mt-4">
                     <button type="button" onclick="closeApptModal()" class="btn-secondary w-full">Cancel</button>

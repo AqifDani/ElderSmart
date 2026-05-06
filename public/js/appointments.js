@@ -133,11 +133,15 @@ function loadAppointments(userRole) {
             const rowClass = isCompleted ? "row-completed" : "";
             const textClass = isCompleted ? "text-strike" : "";
 
+            const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0") 
+                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${data.reminderOffset}m before"></i>` 
+                : "";
+
             tableBody.innerHTML += `
                 <tr class="${rowClass}">
                     <td class="${textClass}">
                         <strong>${dateStr}</strong><br> 
-                        <span class="text-xs text-muted">${timeStr}</span>
+                        <span class="text-xs text-muted">${timeStr}</span> ${reminderIcon}
                     </td>
                     <td class="${textClass}">${elderDisplay}</td>
                     <td class="${textClass}">${data.title}</td>
@@ -192,6 +196,7 @@ window.openApptModal = async function (id = null) {
             if (datePickerInstance) datePickerInstance.setDate(d.date);
             document.getElementById("apptAssigned").value = d.assignedToName;
             document.getElementById("apptElder").value = d.elderId;
+            document.getElementById("apptReminder").value = d.reminderOffset || "0";
         }
     } else {
         document.getElementById("apptForm").reset();
@@ -199,6 +204,7 @@ window.openApptModal = async function (id = null) {
         if (datePickerInstance) datePickerInstance.clear();
         const u = JSON.parse(localStorage.getItem('currentUser'));
         if (u) document.getElementById("apptAssigned").value = u.name;
+        document.getElementById("apptReminder").value = "0";
     }
 };
 
@@ -245,7 +251,8 @@ if (apptForm) {
             assignedToName: assignedName,
             elderId: elderSelect.value,
             elderName: elderSelect.options[elderSelect.selectedIndex].text,
-            loggedBy: currentUser.email
+            loggedBy: currentUser.email,
+            reminderOffset: document.getElementById("apptReminder").value
         };
 
         try {
