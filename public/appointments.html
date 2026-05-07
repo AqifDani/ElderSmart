@@ -136,6 +136,22 @@
         </div>
     </div>
 
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-card" style="max-width: 500px; text-align: center;">
+            <div id="confirmIconWrapper" class="confirm-icon-wrapper mb-6">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2 id="confirmTitle" class="confirm-title mb-3">Are you sure?</h2>
+            <p id="confirmMessage" class="confirm-message mb-8">This action cannot be undone. Please confirm to proceed.</p>
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="closeConfirmModal()" class="btn-ghost w-full" style="padding: 14px;">Cancel</button>
+                <button type="button" id="confirmActionBtn" class="btn-primary w-full" style="padding: 14px; font-weight: 700;">Confirm Action</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/navigation.js"></script>

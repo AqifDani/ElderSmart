@@ -210,22 +210,70 @@ window.openApptModal = async function (id = null) {
 
 window.closeApptModal = function () { document.getElementById("apptModal").style.display = "none"; };
 
-// ... (Delete and Complete Logic - Same as before) ...
+// --- Confirmation Modal Logic ---
+window.showConfirmModal = function({ title, message, iconClass, wrapperClass, btnText, btnClass, onConfirm }) {
+    const modal = document.getElementById("confirmModal");
+    document.getElementById("confirmTitle").innerText = title;
+    document.getElementById("confirmMessage").innerText = message;
+    
+    const iconWrapper = document.getElementById("confirmIconWrapper");
+    iconWrapper.innerHTML = `<i class="${iconClass}"></i>`;
+    iconWrapper.className = `confirm-icon-wrapper mb-6 ${wrapperClass}`;
+    
+    const actionBtn = document.getElementById("confirmActionBtn");
+    actionBtn.innerText = btnText;
+    actionBtn.className = `btn-primary w-full ${btnClass}`;
+    
+    actionBtn.onclick = () => {
+        onConfirm();
+        closeConfirmModal();
+    };
+    
+    modal.style.display = "flex";
+};
+
+window.closeConfirmModal = function() {
+    document.getElementById("confirmModal").style.display = "none";
+};
+
+// ... (Delete and Complete Logic - Refactored for Custom Modal) ...
 window.deleteAppt = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    if (confirm("Delete appointment?")) {
-        window.appointmentService.delete(id).then(() => loadAppointments('caregiver'));
-    }
+    
+    showConfirmModal({
+        title: "Delete Appointment?",
+        message: "Are you sure you want to remove this schedule? This action cannot be reversed.",
+        iconClass: "fas fa-trash-alt",
+        wrapperClass: "danger",
+        btnText: "Delete Permanently",
+        btnClass: "bg-danger",
+        onConfirm: () => {
+            window.appointmentService.delete(id).then(() => {
+                showToast("Success", "Appointment deleted", "success");
+                loadAppointments('caregiver');
+            });
+        }
+    });
 };
 
 window.completeAppt = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    if (!confirm("Mark this appointment as completed?")) return;
-    window.appointmentService.markComplete(id).then(() => {
-        showToast("Success", "Appointment completed!", "success");
-        loadAppointments('caregiver');
+    
+    showConfirmModal({
+        title: "Complete Visit?",
+        message: "Mark this appointment as successfully completed? This will update the elder's timeline.",
+        iconClass: "fas fa-check-circle",
+        wrapperClass: "success",
+        btnText: "Confirm Completion",
+        btnClass: "bg-success",
+        onConfirm: () => {
+            window.appointmentService.markComplete(id).then(() => {
+                showToast("Success", "Appointment completed!", "success");
+                loadAppointments('caregiver');
+            });
+        }
     });
 };
 
