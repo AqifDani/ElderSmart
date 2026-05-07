@@ -5812,7 +5812,7 @@ body.auth-split-page {
     display: flex;
 }
 
-.modal-card {
+.modal-overlay .modal-card {
     background: white;
     border-radius: 28px;
     padding: 40px;

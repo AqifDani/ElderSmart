@@ -225,7 +225,6 @@ window.saveElderProfile = async function (event) {
         await window.elderService.save(elderData, id);
         if(window.showToast) showToast("Success", "Profile updated", "success");
         document.getElementById('addElderModal').style.display = 'none';
-        loadElders();
     } catch (error) {
         if(window.showToast) showToast("Error", error.message, "error");
     } finally {
