@@ -5,6 +5,7 @@
 
 # Backup folder (Local only)
 backup/
+backup_plan/
 
 # ==============================================
 # OS & IDE files
