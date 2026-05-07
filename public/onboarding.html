@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - ElderSmart</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+    <div id="toast-container"></div>
+    
+    <div class="onboarding-container">
+        <!-- Sidebar Branding -->
+        <div class="onboarding-sidebar">
+            <div class="onboarding-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>ElderSmart</span>
+            </div>
+            <h1 class="onboarding-title">Welcome to the Family, <span id="userName">User</span>!</h1>
+            <p class="onboarding-subtitle">We just need a few more details to set up your clinical command center. This ensures your care network stays safe and organized.</p>
+            
+            <!-- Progress Tracker -->
+            <div class="onboarding-steps">
+                <div class="step active" id="step1-dot">
+                    <div class="step-num">1</div>
+                    <div class="step-label">Network</div>
+                </div>
+                <div class="step" id="step2-dot">
+                    <div class="step-num">2</div>
+                    <div class="step-label">Role</div>
+                </div>
+                <div class="step" id="step3-dot">
+                    <div class="step-num">3</div>
+                    <div class="step-label">Identity</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="onboarding-main">
+            <div class="onboarding-card">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 33%;"></div>
+                </div>
+
+                <!-- STEP 1: NETWORK IDENTIFICATION (FORMERLY STEP 3) -->
+                <div class="onboarding-step-content active" id="step1">
+                    <h2 class="step-heading">Your Care Network</h2>
+                    <p class="step-subheading">Join an existing family or start a new clinical network.</p>
+
+                    <div class="family-selection-box" id="joinFamilyBox">
+                        <label>JOIN WITH FAMILY CODE</label>
+                        <div class="family-input-group">
+                            <input type="text" id="inputFamilyCode" placeholder="e.g. FAM-12345" style="text-transform: uppercase;">
+                            <button class="btn-join" onclick="verifyAndJoinFamily()">Join</button>
+                        </div>
+                    </div>
+
+                    <div class="onboarding-divider"><span>OR</span></div>
+
+                    <button class="btn-outline-primary w-100" id="createNetworkBtn" onclick="generateNewFamily()">
+                        <i class="fas fa-plus-circle mr-2"></i> Create New Clinical Network
+                    </button>
+
+                    <div id="newFamilyCodeDisplay" class="family-code-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <p>Network Created Successfully!</p>
+                            <h3 id="displayFamilyCode">---</h3>
+                            <small>Share this code with your care team.</small>
+                        </div>
+                    </div>
+
+                    <div class="security-note mt-4">
+                        <i class="fas fa-shield-halved"></i>
+                        <div>
+                            <strong>Security Protocol Active</strong>
+                            <p>Your data is secured with clinical-grade AES-256 encryption. We never share your personal health info with third parties.</p>
+                        </div>
+                    </div>
+
+                    <div class="onboarding-actions">
+                        <button class="btn-primary" onclick="nextStep(2)" id="proceedToRoleBtn" disabled>
+                            Next Step <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: ROLE SELECTION -->
+                <div class="onboarding-step-content" id="step2">
+                    <h2 class="step-heading">What is your Role?</h2>
+                    <p class="step-subheading">Choose the role that best describes your position in the care team.</p>
+                    
+                    <div class="role-grid">
+                        <div class="role-option" onclick="selectRole('caregiver')" data-role="caregiver">
+                            <div class="role-icon"><i class="fas fa-user-nurse"></i></div>
+                            <h3>Caregiver</h3>
+                            <p>I provide daily support and medical assistance.</p>
+                        </div>
+                        <div class="role-option" id="primaryCaregiverRole" onclick="selectRole('primary_caregiver')" data-role="primary_caregiver">
+                            <div class="role-icon"><i class="fas fa-star-of-life"></i></div>
+                            <h3>Primary</h3>
+                            <p>I manage the entire family network and medical records.</p>
+                            <span class="role-limit-badge" style="display:none;">1 Per Family Only</span>
+                        </div>
+                        <div class="role-option" onclick="selectRole('elder')" data-role="elder">
+                            <div class="role-icon"><i class="fas fa-user-check"></i></div>
+                            <h3>Elder</h3>
+                            <p>I am the recipient of care and support.</p>
+                        </div>
+                    </div>
+
+                    <div class="onboarding-actions">
+                        <button class="btn-ghost" onclick="nextStep(1)"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                        <button class="btn-primary" onclick="nextStep(3)">Next Step <i class="fas fa-arrow-right ml-2"></i></button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: PERSONAL IDENTITY -->
+                <div class="onboarding-step-content" id="step3">
+                    <h2 class="step-heading">Personal Identity</h2>
+                    <p class="step-subheading">A professional photo helps your care team recognize you instantly.</p>
+                    
+                    <div class="profile-upload-section">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="upload-controls">
+                            <label for="photoUpload" class="btn-secondary">
+                                <i class="fas fa-upload mr-2"></i> Upload Photo
+                            </label>
+                            <input type="file" id="photoUpload" hidden accept="image/*">
+                            <p class="upload-hint">JPG, PNG or GIF. Max 5MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>CONTACT NUMBER</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="onboardingPhone" placeholder="+60 12-345 6789">
+                        </div>
+                    </div>
+
+                    <div class="onboarding-actions">
+                        <button class="btn-ghost" onclick="nextStep(2)"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                        <button class="btn-primary" id="finishOnboardingBtn" onclick="finishOnboarding()">
+                            Complete Setup <i class="fas fa-check-circle ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/onboarding.js"></script>
+</body>
+</html>

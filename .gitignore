@@ -1,10 +1,10 @@
 # ==============================================
 # SECRET CONFIGURATION — never commit real keys
 # ==============================================
-public/js/config.js
+**/config.js
 
-# Backup folder (contains previously exposed keys)
-js_backup/
+# Backup folder (Local only)
+backup/
 
 # ==============================================
 # OS & IDE files
@@ -14,4 +14,3 @@ Thumbs.db
 .vscode/
 *.log
 *.tmp
-backup_refactor/

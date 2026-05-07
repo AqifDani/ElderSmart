@@ -166,6 +166,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(container);
     }
 
+    // 6. INJECT LOGOUT MODAL
+    if (!document.getElementById('logoutModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'logoutModal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-card">
+                <div class="modal-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <h3 class="modal-title">Ready to Leave?</h3>
+                <p class="modal-description">You are about to be securely logged out of your Clinical Command Center. We'll see you soon!</p>
+                <div class="modal-actions">
+                    <button class="btn-modal-cancel" onclick="closeLogoutModal()">Stay</button>
+                    <button class="btn-modal-confirm" onclick="confirmLogout()">Log Out</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
     // 5. AUTH CHECK
     if (typeof firebase !== 'undefined') {
         window.checkUserRole();
@@ -175,6 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ==============================
    3. UTILS (Logout, Role, Toast)
    ============================= */
+window.closeLogoutModal = function() {
+    document.getElementById('logoutModal').classList.remove('active');
+}
+
+window.confirmLogout = function() {
+    firebase.auth().signOut().then(() => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('userRole');
+        window.location.href = "index.html";
+    });
+}
+
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -200,13 +233,7 @@ function toggleSidebar() {
 }
 
 window.logout = function () {
-    if (confirm("Are you sure you want to log out?")) {
-        firebase.auth().signOut().then(() => {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('userRole');
-            window.location.href = "index.html";
-        });
-    }
+    document.getElementById('logoutModal').classList.add('active');
 };
 
 window.checkUserRole = async function () {
@@ -272,3 +299,19 @@ window.showToast = function (title, message, type = 'default') {
         setTimeout(() => toast.remove(), 500);
     }, 3000);
 };
+window.togglePassword = function(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    const icon = iconElement.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+};
+
+

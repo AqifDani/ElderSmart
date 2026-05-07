@@ -1,0 +1,58 @@
+/* css/style.css - THE MASTER STYLESHEET (Final Polished Version) */
+
+/* =========================================
+   1. VARIABLES & THEME (Gilded Sage)
+   ========================================= */
+:root {
+    /* Core Brand Colors (The Serenity System) */
+    --primary: #2D5A47;
+    --primary-dark: #1B3E2F;
+    /* Professional Deep Sage */
+    --primary-light: #E9F2EE;
+    /* Ultra-soft background tint */
+    --secondary: #B88E2F;
+    /* Matte Gold / Brass */
+    --accent: #FF6B6B;
+    /* Warm Coral for urgent alerts */
+
+    /* Functional Colors (Accessibility Optimized) */
+    --danger: #D63031;
+    /* WCAG Compliant Red */
+    --danger-bg: #FFF5F5;
+    --success: #27AE60;
+    /* Calm Green */
+    --success-bg: #F0FFF4;
+    --warning: #E67E22;
+    /* High Contrast Orange */
+    --warning-bg: #FFF9F2;
+    --info: #0984E3;
+    /* Clinical Blue */
+    --info-bg: #F0F7FF;
+
+    /* Neutrals & Borders (Higher Contrast) */
+    --bg-body: #F1F5F9;
+    /* Darkened background for better card pop */
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    /* Standard border */
+    --border-strong: #CBD5E1;
+    /* Defined containment border */
+
+    /* Text - Maximum Contrast for Elders */
+    --text-main: #1A1A1B;
+    /* True high-contrast charcoal */
+    --text-muted: #64748B;
+    /* Slate grey */
+    --text-on-primary: #FFFFFF;
+
+    /* Measurements - Soft & Spaced */
+    --sidebar-width: 280px;
+    --radius: 20px;
+    --radius-sm: 12px;
+
+    /* Premium Elevation System */
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+    --shadow-focus: 0 0 0 4px rgba(45, 90, 71, 0.1);
+}

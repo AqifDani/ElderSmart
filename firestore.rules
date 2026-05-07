@@ -1,18 +1,67 @@
-rules_version='2'
-
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 6, 5);
+
+    // --- HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getMyData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isFamilyMember(familyId) {
+      return isSignedIn() && getMyData().familyId == familyId;
+    }
+
+    function isCaregiver() {
+      let role = getMyData().role;
+      return role == 'caregiver' || role == 'primary_caregiver';
+    }
+
+    // --- 1. FAMILY CODES (Public Verification) ---
+    match /families/{code} {
+      // Allow single lookups to verify if a code exists before registration
+      allow get: if true;
+      // Creation happens during registration
+      allow create: if isSignedIn(); 
+    }
+
+    // --- 2. USER PROFILES ---
+    match /users/{userId} {
+      // Restricted Read: Only own profile or same family members
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId || 
+        resource.data.familyId == getMyData().familyId
+      );
+
+      allow create: if isSignedIn() && request.auth.uid == userId;
+
+      allow update: if isSignedIn() && (
+        request.auth.uid == userId || 
+        (isCaregiver() && get(/databases/$(database)/documents/users/$(userId)).data.familyId == getMyData().familyId)
+      );
+    }
+
+    // --- 3. SHARED FAMILY DATA ---
+    match /{collection}/{docId} {
+      function isFamilyCollection() {
+        return collection in [
+          'shifts', 'appointments', 'elder_profiles', 
+          'health_records', 'medications', 'medication_logs', 'notifications', 'availability'
+        ];
+      }
+
+      allow read: if isFamilyCollection() && isFamilyMember(resource.data.familyId);
+
+      allow create: if isFamilyCollection() && 
+                    isSignedIn() && 
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update, delete: if isFamilyCollection() && 
+                            isCaregiver() && 
+                            resource.data.familyId == getMyData().familyId;
     }
   }
 }

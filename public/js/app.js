@@ -38,8 +38,6 @@ async function registerUser(event) {
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
-    const role = document.getElementById('regRole').value;
-    const inputCode = document.getElementById('regFamilyCode').value.trim();
     const confirmPassword = document.getElementById('regConfirmPassword').value;
 
     if (password !== confirmPassword) {
@@ -51,70 +49,33 @@ async function registerUser(event) {
         return;
     }
     
-    // UI Feedback to prevent double-clicks during validation
     const btn = document.getElementById('regBtn');
     const originalText = btn.innerText;
-    btn.innerText = "Verifying...";
+    btn.innerText = "Creating Account...";
     btn.disabled = true;
 
-    let familyId = "";
-
     try {
-        // --- SECURE FAMILY CODE LOGIC ---
-        if (inputCode) {
-            // Verify code against the 'families' registry
-            const familyRef = firebase.firestore().collection("families").doc(inputCode);
-            const familyDoc = await familyRef.get();
-            
-            if (!familyDoc.exists) {
-                throw new Error("Invalid Family Code. Please check for typos or leave it blank to create a new family group.");
-            }
-            familyId = inputCode;
-        } else {
-            // Generate a unique family code
-            familyId = "FAM-" + Math.floor(10000 + Math.random() * 90000);
-            // We'll create this family document AFTER the user is created (due to security rules)
-        }
-
-        btn.innerText = "Creating Account...";
-        
-        // Proceed with Firebase Auth creation
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        // If we generated a NEW family ID, create it now that we are authenticated
-        if (!inputCode) {
-            await firebase.firestore().collection("families").doc(familyId).set({
-                createdBy: user.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        const userData = {
+        await firebase.firestore().collection("users").doc(user.uid).set({
             name: name,
             email: email,
-            role: role,
-            familyId: familyId,
+            role: "pending",
+            familyId: "pending",
+            emailVerified: false,
+            onboardingComplete: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
+        });
 
-        // Initialize Deficit Score for all caregiver roles
-        if (role === 'caregiver' || role === 'primary_caregiver') {
-            userData.deficitScore = 0;
-        }
+        await user.sendEmailVerification();
 
-        if (role === 'elder') {
-            userData.age = ""; 
-            userData.conditions = "New Account";
-            userData.photo = null;
-        }
-
-        await firebase.firestore().collection("users").doc(user.uid).set(userData);
         if (window.showToast) {
-            showToast("Success", `Family Code: ${familyId}`, "success");
+            showToast("Account Created", "A verification email has been sent. Please check your inbox.", "success");
         } else {
-            alert(`Success! Family Code: ${familyId}`);
+            alert("Account Created! Please verify your email.");
         }
+        
         await handleUserRedirect(user);
 
     } catch (error) {
@@ -125,7 +86,6 @@ async function registerUser(event) {
             alert(error.message);
         }
     } finally {
-        // Reset button state regardless of success or failure
         if (btn) {
             btn.innerText = originalText;
             btn.disabled = false;
@@ -152,22 +112,40 @@ async function handleUserRedirect(user) {
 
         const userData = doc.data();
 
-        // ✅ CRITICAL: Ensure familyId is saved so Services can use it immediately
+        // 1. SAVE TO LOCALSTORAGE (Essential for services)
         localStorage.setItem('currentUser', JSON.stringify({
             uid: user.uid,
             email: user.email,
             name: userData.name || user.email,
             role: userData.role,
-            familyId: userData.familyId // This is what connects the profiles
+            familyId: userData.familyId
         }));
-        
         localStorage.setItem('userRole', userData.role);
 
-        // Redirect based on role
+        // 2. LEGACY BYPASS: If user existed before these rules and has no onboarding status, mark them as legacy
+        if (userData.onboardingComplete === undefined) {
+            await firebase.firestore().collection('users').doc(user.uid).update({
+                onboardingComplete: true,
+                isLegacyTestUser: true
+            });
+            userData.onboardingComplete = true;
+        }
+
+        // 3. AUTH & ONBOARDING ROUTING
+        if (!user.emailVerified) {
+             // Optional: Allow them to see a "Please verify" message/page
+             // window.location.href = 'verify-email.html'; 
+        }
+
+        if (!userData.onboardingComplete) {
+            window.location.href = 'onboarding.html';
+            return;
+        }
+
+        // 4. ROLE-BASED DASHBOARD REDIRECT
         if (userData.role === 'elder') {
             window.location.href = 'elder-dashboard.html';
         } else {
-            // Both caregiver and primary_caregiver go to the same dashboard
             window.location.href = 'caregiver-dashboard.html';
         }
 

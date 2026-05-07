@@ -91,15 +91,12 @@ function renderNotifications() {
     const list = document.getElementById('notificationList');
     if (!list) return;
 
-    // Filter Logic
     const filtered = allNotifications.filter(n => {
-        // Handle both field names: isRead (old) vs read (new)
         const isRead = n.isRead !== undefined ? n.isRead : n.read;
         if (currentFilter === 'unread') return !isRead;
         return true;
     });
 
-    // 1. Empty State
     if (filtered.length === 0) {
         list.innerHTML = `
             <div style="grid-column:1/-1; text-align:center; padding:60px; background:white; border-radius:24px; border:2px dashed #e2e8f0;">
@@ -110,15 +107,12 @@ function renderNotifications() {
         return;
     }
 
-    // 2. Build HTML String
     let fullHtml = "";
 
     filtered.forEach(notif => {
-        // Normalize fields
         const isRead = notif.isRead !== undefined ? notif.isRead : notif.read;
         const ts = notif.createdAt || notif.timestamp;
 
-        // Time Formatting
         let timeString = '';
         if (ts && typeof ts.toDate === 'function') {
              timeString = timeAgo(ts.toDate());
@@ -126,27 +120,44 @@ function renderNotifications() {
              timeString = timeAgo(new Date(ts));
         }
 
-        // Detect Type
         const title = (notif.title || "").toLowerCase();
         const type = (notif.type || "").toLowerCase();
-        let isUrgent = false;
         
-        if (type === 'urgent' && !title.includes('appointment')) isUrgent = true;
-        if (title.includes('missed') || title.includes('sos') || title.includes('alert')) isUrgent = true;
+        let isUrgent = false;
+        if (type === 'urgent' || title.includes('missed') || title.includes('sos') || title.includes('alert')) isUrgent = true;
+
+        let actionHtml = "";
+        let actionUrl = "#";
+        let actionLabel = "View Details";
+
+        if (type === 'medication' || title.includes('medication') || title.includes('pills') || title.includes('stock')) {
+            actionUrl = "medications.html";
+            actionLabel = "Go to Pharmacy";
+        } else if (type === 'appointment' || title.includes('appointment') || title.includes('check-up')) {
+            actionUrl = "appointments.html";
+            actionLabel = "Check Schedule";
+        } else if (title.includes('health') || title.includes('reading')) {
+            actionUrl = "health_records.html";
+            actionLabel = "Review Records";
+        }
+
+        if (actionUrl !== "#") {
+            actionHtml = `<button onclick="handleNotifAction(event, '${notif.id}', '${actionUrl}')" class="btn-xs ${isUrgent ? 'btn-primary' : 'btn-secondary'}" style="margin-top: 8px; border-radius: 8px; padding: 6px 12px; font-weight: 700;">${actionLabel} <i class="fas fa-arrow-right" style="font-size: 10px; margin-left: 4px;"></i></button>`;
+        }
 
         const cardType = isUrgent ? "urgent" : "info";
-        const iconClass = isUrgent ? "fa-exclamation-circle" : (type === 'medication' ? "fa-pills" : "fa-calendar-check");
+        const iconClass = getIconForType(type || (isUrgent ? 'urgent' : 'normal'));
         
         const statusHtml = !isRead 
             ? `<span class="status-badge status-new">NEW</span>` 
             : `<span class="status-badge status-seen">SEEN</span>`;
 
         fullHtml += `
-            <div class="notification-card ${cardType} ${isRead ? 'opacity-75' : ''}" onclick="markAsRead('${notif.id}', ${isRead})">
+            <div class="notification-card ${cardType} ${isRead ? 'read' : ''}" onclick="handleNotifAction(event, '${notif.id}', '${actionUrl}')">
                 <div class="notif-header w-full">
                     <div class="flex items-start gap-4 w-full">
-                        <div class="notif-icon-box">
-                            <i class="fas ${iconClass}"></i>
+                        <div class="notif-icon-box ${isUrgent ? 'bg-danger-bg text-danger' : ''}">
+                            <i class="${iconClass}"></i>
                         </div>
                         <div class="flex-grow">
                             <div class="flex justify-between items-start mb-1">
@@ -154,12 +165,12 @@ function renderNotifications() {
                                     <h4 class="${isRead ? 'font-normal' : 'font-bold'} text-lg">${notif.title || 'Notification'}</h4>
                                     <span class="notif-time text-xs text-muted">${timeString}</span>
                                 </div>
-                            </div>
-                            <p class="text-muted text-sm mb-3 mt-1">${notif.message || ''}</p>
-                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                                 ${statusHtml}
+                            </div>
+                            <p class="text-muted text-sm mt-1">${notif.message || ''}</p>
+                            <div class="flex justify-end items-center mt-3 pt-2">
                                 <button class="btn-trash" onclick="deleteNotification(event, '${notif.id}')" title="Dismiss">
-                                    <i class="fas fa-trash-alt"></i>
+                                    <i class="fas fa-trash-alt" style="font-size: 12px; opacity: 0.5;"></i>
                                 </button>
                             </div>
                         </div>
@@ -171,6 +182,21 @@ function renderNotifications() {
 
     list.innerHTML = fullHtml;
 }
+
+window.handleNotifAction = function(event, id, url) {
+    event.stopPropagation();
+    // Mark as read first
+    firebase.firestore().collection('notifications').doc(id)
+        .update({ isRead: true, read: true })
+        .then(() => {
+            if (url && url !== "#") {
+                window.location.href = url;
+            } else {
+                // If no URL, just re-render to show it's read
+                renderNotifications();
+            }
+        });
+};
 
 function filterNotifications(type, btnElement) {
     currentFilter = type;
@@ -323,21 +349,28 @@ window.simulateAlert = async function() {
         return;
     }
 
+    const testScenarios = [
+        { title: "Medication Reminder", message: "Elder Kasim is due for Lisinopril (10mg) now.", type: "medication" },
+        { title: "Upcoming Appointment", message: "Dr. Smith check-up at 2:00 PM.", type: "appointment" },
+        { title: "Urgent: High Blood Pressure", message: "Last reading for Kasim was 150/95. Please monitor.", type: "urgent" },
+        { title: "Stock Warning", message: "Only 2 days left of Paracetamol stock.", type: "medication" }
+    ];
+
+    const scenario = testScenarios[Math.floor(Math.random() * testScenarios.length)];
+
     try {
         await firebase.firestore().collection('notifications').add({
             familyId: user.familyId,
             recipientId: user.uid,
-            title: "Test Alert " + Math.floor(Math.random() * 100),
-            message: "This is a test notification generated at " + new Date().toLocaleTimeString(),
-            type: Math.random() > 0.5 ? "urgent" : "normal",
+            title: scenario.title,
+            message: scenario.message,
+            type: scenario.type,
             isRead: false,
-            read: false, // Adding both to be safe
+            read: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log("Simulated alert added.");
-        if (window.showToast) window.showToast("Success", "Test alert created", "success");
+        if (window.showToast) window.showToast("Success", "Actionable alert created", "success");
     } catch (e) {
-        console.error("Error simulating alert:", e);
-        if (window.showToast) window.showToast("Error", "Could not create alert", "error");
+        console.error(e);
     }
 };
