@@ -11,6 +11,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Prepare elements for reveal */
+        .reveal {
+            opacity: 0;
+            transition: none;
+        }
+    </style>
 </head>
 <body class="dashboard-page flex-col" style="display: block; background: #fff;">
 
@@ -19,9 +27,9 @@
             <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
             <span>ElderSmart</span>
         </div>
-        <div class="flex gap-4">
-            <a href="login.html" class="btn-secondary" style="text-decoration:none; padding: 10px 24px; border-radius: 12px;">Sign In</a>
-            <a href="register.html" class="btn-primary" style="text-decoration:none; padding: 10px 24px;">Get Started</a>
+        <div class="flex gap-6" style="gap: 10px;">
+            <a href="login.html" class="btn-secondary" style="text-decoration:none; padding: 13px 40px; border-radius: 40px;">Sign In</a>
+            <a href="register.html" class="btn-primary" style="text-decoration:none; padding: 12px 28px; border-radius: 40px;">Get Started</a>
         </div>
     </nav>
 
@@ -33,11 +41,11 @@
                 
                 <p>Comprehensive monitoring and scheduling for the elderly. Stay connected with your family and ensure their safety with ElderSmart.</p>
                 
-                <div class="flex gap-4">
-                    <a href="register.html" class="btn-primary animate__animated animate__pulse animate__infinite" style="padding: 18px 40px; font-size: 17px; text-decoration:none; box-shadow: 0 10px 30px rgba(45, 90, 71, 0.4);">
+                <div class="flex gap-8" style="gap: 20px;">
+                    <a href="register.html" class="btn-primary animate__animated animate__pulse animate__infinite" style="padding: 18px 40px; font-size: 17px; text-decoration:none; box-shadow: 0 10px 30px rgba(45, 90, 71, 0.4); border-radius: 40px;">
                         Start Your Family Network
                     </a>
-                    <a href="#demo" class="btn-ghost" style="padding: 18px 30px; font-size: 16px; text-decoration:none; border-width: 2px; color: white; border-color: rgba(255,255,255,0.4);">
+                    <a href="#demo" class="btn-ghost" style="padding: 18px 30px; font-size: 16px; text-decoration:none; border-width: 2px; color: white; border-color: rgba(255,255,255,0.4); border-radius: 40px;">
                         Watch Video Demo
                     </a>
                 </div>
@@ -70,23 +78,23 @@
         </div>
     </header>
 
-    <section id="features" class="feature-grid">
-        <div class="video-text animate__animated animate__fadeInUp">
+    <section id="features" class="feature-grid reveal" data-animation="animate__fadeInUp">
+        <div class="video-text">
             <span class="clinical-label">The Clinical Edge</span>
             <h2 style="font-size: 48px; font-weight: 900; color: var(--primary);">Powering Better <span class="highlight">Outcomes.</span></h2>
         </div>
         <div class="grid-container">
-            <div class="feature-pill-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <div class="feature-pill-card reveal" data-animation="animate__fadeInUp" style="transition-delay: 0.1s;">
                 <i class="fas fa-microscope"></i>
                 <h4>Health Monitoring</h4>
                 <p>Log vital signs and health status every day to maintain a clear record for doctors and family members.</p>
             </div>
-            <div class="feature-pill-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="feature-pill-card reveal" data-animation="animate__fadeInUp" style="transition-delay: 0.2s;">
                 <i class="fas fa-users-cog"></i>
                 <h4>Dynamic Scheduling</h4>
                 <p>Our proprietary Fairness Engine ensures caregiving shifts are balanced and no task is left unassigned.</p>
             </div>
-            <div class="feature-pill-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+            <div class="feature-pill-card reveal" data-animation="animate__fadeInUp" style="transition-delay: 0.3s;">
                 <i class="fas fa-calendar-day"></i>
                 <h4>Centralized Calendar</h4>
                 <p>Manage all elder-related schedules within a shared dashboard to simplify family coordination and planning.</p>
@@ -94,9 +102,9 @@
         </div>
     </section>
 
-    <section class="split-section">
-        <div class="split-image caregiver animate__animated animate__fadeInLeft"></div>
-        <div class="split-content animate__animated animate__fadeInRight">
+    <section class="split-section reveal" data-animation="animate__fadeIn">
+        <div class="split-image caregiver reveal" data-animation="animate__fadeInLeft"></div>
+        <div class="split-content reveal" data-animation="animate__fadeInRight">
             <span class="clinical-label">For Caregivers</span>
             <h3>Total Coordination, <span class="highlight">Zero Friction.</span></h3>
             <p>Manage multiple elders, coordinate with other family members, and receive proactive reminders. We handle the logistics so you can focus on the love.</p>
@@ -111,9 +119,9 @@
         </div>
     </section>
 
-    <section class="split-section reverse">
-        <div class="split-image elder animate__animated animate__fadeInRight"></div>
-        <div class="split-content animate__animated animate__fadeInLeft">
+    <section class="split-section reverse reveal" data-animation="animate__fadeIn">
+        <div class="split-image elder reveal" data-animation="animate__fadeInRight"></div>
+        <div class="split-content reveal" data-animation="animate__fadeInLeft">
             <span class="clinical-label">For Elders</span>
             <h3>Independence with a <span class="highlight">Safety Net.</span></h3>
             <p>Live with dignity in the comfort of your own home. ElderSmart's intuitive interface makes it easy to stay on track without feeling overwhelmed by technology.</p>
@@ -131,15 +139,15 @@
         </div>
     </section>
 
-    <section id="demo" class="video-section">
+    <section id="demo" class="video-section reveal" data-animation="animate__fadeInUp">
         <div class="video-container">
-            <div class="video-text animate__animated animate__fadeInUp">
+            <div class="video-text">
                 <span class="clinical-label">Product Showcase</span>
                 <h2>Technology that feels like <span class="highlight">Presence.</span></h2>
                 <p style="max-width: 600px; margin: 0 auto; color: var(--text-muted); font-size: 18px;">Distance shouldn't mean disconnect. Discover how ElderSmart bridges the gap between generations with proactive care intelligence.</p>
             </div>
             
-            <div class="video-wrapper animate__animated animate__zoomIn">
+            <div class="video-wrapper reveal" data-animation="animate__zoomIn">
                 <iframe width="100%" height="100%" 
                         src="https://www.youtube.com/embed/R4roGGBdeOA?controls=1&rel=0&modestbranding=1" 
                         title="ElderSmart Video" frameborder="0" 
@@ -150,15 +158,15 @@
         </div>
     </section>
 
-    <section class="cta-banner">
-        <div class="animate__animated animate__fadeInUp">
+    <section class="cta-banner reveal" data-animation="animate__fadeInUp">
+        <div>
             <h2>Ready to Join the <span class="highlight" style="color: white; -webkit-text-fill-color: white;">Future of Care?</span></h2>
             <p>Join thousands of families who trust ElderSmart to protect what matters most.</p>
-            <div class="flex justify-center gap-6">
-                <a href="register.html" class="btn-secondary" style="padding: 20px 40px; font-size: 18px; text-decoration:none; background: white; color: var(--primary); border: none;">
+            <div class="flex justify-center" style="gap: 15px;">
+                <a href="register.html" class="btn-secondary" style="padding: 20px 45px; font-size: 18px; text-decoration:none; background: white; color: var(--primary); border: none; border-radius: 40px;">
                     Create Your Account
                 </a>
-                <a href="login.html" class="btn-ghost" style="padding: 20px 50px; font-size: 18px; text-decoration:none; border-color: rgba(255,255,255,0.4); color: white;">
+                <a href="login.html" class="btn-ghost" style="padding: 20px 60px; font-size: 18px; text-decoration:none; border-color: rgba(255,255,255,0.4); color: white; border-radius: 40px;">
                     Sign In
                 </a>
             </div>
@@ -189,6 +197,28 @@
                     behavior: 'smooth'
                 });
             });
+        });
+
+        // Cinematic Scroll Reveal Engine
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const animation = el.getAttribute('data-animation') || 'animate__fadeInUp';
+                    el.style.opacity = '1';
+                    el.classList.add('animate__animated', animation);
+                    observer.unobserve(el); // Only animate once
+                }
+            });
+        };
+
+        const revealObserver = new IntersectionObserver(revealCallback, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            revealObserver.observe(el);
         });
     </script>
 </body>
