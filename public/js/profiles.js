@@ -30,8 +30,6 @@ function loadElders() {
 
     // Use listener instead of fetch
     window.elderService.listenElders((elders) => {
-        container.innerHTML = "";
-        
         const countEl = document.getElementById("totalEldersCount");
         if (countEl) countEl.innerText = elders.length;
 
@@ -45,19 +43,20 @@ function loadElders() {
             return;
         }
 
+        let html = "";
         elders.forEach((data, index) => {
             const avatarUrl = data.photo
                 ? data.photo
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff&size=128`;
 
             const delay = (index * 0.1).toFixed(1);
-            const card = `
+            html += `
                 <div class="card text-center elder-card-content" style="animation: fadeInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) both; animation-delay: ${delay}s;">
                     <div class="elder-avatar-container" style="margin-bottom: 20px;">
                         <img src="${avatarUrl}" class="elder-avatar" alt="${data.name}" 
                              style="width: 90px; height: 90px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                         <span class="elder-status-dot" title="Active Account" 
-                              style="width: 20px; height: 20px; bottom: 5px; right: 5px; border: 3px solid white;"></span>
+                               style="width: 20px; height: 20px; bottom: 5px; right: 5px; border: 3px solid white;"></span>
                     </div>
                     
                     <h2 style="margin-bottom:5px; font-size: 20px;">${data.name}</h2>
@@ -86,8 +85,8 @@ function loadElders() {
                     </div>
                 </div>
             `;
-            container.innerHTML += card;
         });
+        container.innerHTML = html;
 
     });
 }
@@ -97,25 +96,21 @@ function loadCaregivers() {
     if (!container) return;
 
     window.elderService.listenCaregivers((caregivers) => {
-        container.innerHTML = "";
-
         if (caregivers.length === 0) {
             container.innerHTML = `<p class="text-muted col-span-full text-center">No other caregivers found.</p>`;
             return;
         }
 
         const currentUser = firebase.auth().currentUser;
+        let html = "";
 
         caregivers.forEach((data, index) => {
-            // Use same avatar logic or a generic icon
             const avatarUrl = data.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'C')}&background=4A6351&color=fff`;
-            
             const isMe = currentUser && currentUser.uid === data.id;
             const youBadge = isMe ? `<span class="badge badge-primary ml-2" style="font-size:10px; padding:2px 6px; border-radius:10px; background:var(--primary); color:white;">(You)</span>` : '';
-
             const delay = (index * 0.1).toFixed(1);
             
-            const card = `
+            html += `
                 <div class="card" style="padding:20px; display:flex; align-items:center; gap:15px; animation: fadeInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) both; animation-delay: ${delay}s;">
                     <img src="${avatarUrl}" alt="${data.name}" style="width:60px; height:60px; border-radius:50%; border:2px solid var(--border);">
                     <div style="flex-grow:1;">
@@ -126,9 +121,8 @@ function loadCaregivers() {
                     </div>
                 </div>
             `;
-            container.innerHTML += card;
         });
-
+        container.innerHTML = html;
     });
 }
 

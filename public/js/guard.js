@@ -22,6 +22,16 @@
             return;
         }
 
+        // --- SMART CACHE OPTIMIZATION ---
+        const CACHE_DURATION = 10 * 60 * 1000; // 10 Minutes
+        const now = Date.now();
+        const stored = JSON.parse(localStorage.getItem('currentUser'));
+
+        // If we have a fresh cache, skip the Firestore read
+        if (stored && stored.uid === user.uid && stored.lastFetched && (now - stored.lastFetched < CACHE_DURATION)) {
+            return; // Trust the local state
+        }
+
         // Fetch fresh profile data
         try {
             const doc = await firebase.firestore().collection('users').doc(user.uid).get();
@@ -48,13 +58,14 @@
                 return;
             }
 
-            // Sync localStorage just in case it's stale
+            // Sync localStorage with fresh data and timestamp
             localStorage.setItem('currentUser', JSON.stringify({
                 uid: user.uid,
                 email: user.email,
                 name: data.name || user.email,
                 role: data.role,
-                familyId: data.familyId
+                familyId: data.familyId,
+                lastFetched: now // Track when this was fetched
             }));
             localStorage.setItem('userRole', data.role);
 

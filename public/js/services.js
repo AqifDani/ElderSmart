@@ -437,11 +437,14 @@ class ScheduleService extends BaseService {
 
     async _getCaregiverWorkloadStats(caregiverId) {
         const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        
         try {
             const apptsSnap = await this.appointmentsCollection
                 .where("assignedToId", "==", caregiverId)
                 .where("status", "==", "completed")
+                .where("date", ">=", thirtyDaysAgo) // ROLLLING WINDOW OPTIMIZATION
                 .get();
 
             let monthlyTotal = 0;

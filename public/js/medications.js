@@ -75,7 +75,6 @@ function renderInventory() {
     if (el('statLowStockCard') && lowStock > 0) el('statLowStockCard').style.borderLeft = '4px solid var(--warning)';
 
     // --- Render Cards ---
-    list.innerHTML = "";
     if (meds.length === 0) {
         list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#9ca3af;">
             <i class="fas fa-pills" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
@@ -95,6 +94,7 @@ function renderInventory() {
         { bg: '#ede9fe', color: '#5b21b6' },
     ];
 
+    let html = "";
     sortedMeds.forEach((med, i) => {
         const c = pillColors[i % pillColors.length];
         const freqDisplay = med.isPRN 
@@ -127,7 +127,7 @@ function renderInventory() {
                 </button>
             </div>` : '';
 
-        list.innerHTML += `
+        html += `
             <div style="
                 background: white; border-radius: 20px; padding: 20px;
                 border: 1.5px solid #f1f5f9;
@@ -179,6 +179,7 @@ function renderInventory() {
                 ${actionsHtml}
             </div>`;
     });
+    list.innerHTML = html;
 }
 
 // ==========================================
@@ -225,12 +226,8 @@ function renderChecklist(dateStr) {
         const todayStr = new Date().toISOString().split('T')[0];
         const isFuture = dateStr > todayStr;
 
-        tableBody.innerHTML = "";
-
         const scheduledMeds = meds.filter(m => {
-            // FIX: Check if date is before start date
             if (m.startDate && dateStr < m.startDate) return false;
-
             if (m.frequency === 'daily') return true;
             if (m.frequency === 'specific' && m.days && m.days.includes(dayIndex)) return true;
             return false;
@@ -241,9 +238,10 @@ function renderChecklist(dateStr) {
             return;
         }
 
-        scheduledMeds.sort((a, b) => a.time.localeCompare(b.time));
+        const sortedMeds = scheduledMeds.sort((a, b) => a.time.localeCompare(b.time));
 
-        scheduledMeds.forEach(med => {
+        let html = "";
+        sortedMeds.forEach(med => {
             const isTaken = logs[med.id]; 
             const qty = med.perDose || 1;
             
@@ -274,7 +272,7 @@ function renderChecklist(dateStr) {
                 ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert: ${med.reminderOffset}m before"></i>` 
                 : "";
 
-            tableBody.innerHTML += `
+            html += `
                 <tr class="${rowClass}">
                     <td>${statusHtml}</td>
                     <td>${formatTime(med.time)} ${reminderIcon}</td>
@@ -287,6 +285,7 @@ function renderChecklist(dateStr) {
                     <td>${btnHtml}</td>
                 </tr>`;
         });
+        tableBody.innerHTML = html;
 }
 
 // ... (Helpers: formatTime, formatDays remain the same) ...
