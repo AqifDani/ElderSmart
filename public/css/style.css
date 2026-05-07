@@ -191,6 +191,15 @@ body {
     text-decoration: underline;
 }
 
+/* Form Interactivity Refinements */
+input::placeholder, textarea::placeholder {
+    transition: color 0.3s ease;
+}
+
+input:focus::placeholder, textarea:focus::placeholder {
+    color: transparent;
+}
+
 /* Skeleton Loaders */
 @keyframes pulse {
     0% {

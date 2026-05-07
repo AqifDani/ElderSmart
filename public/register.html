@@ -45,18 +45,24 @@
                 <label>Confirm Password</label>
                 <input type="password" id="regConfirmPassword" placeholder="******" required>
 
-                <div class="grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label>I am a...</label>
-                        <select id="regRole" required>
-                            <option value="primary_caregiver">Primary Caregiver</option>
-                            <option value="caregiver">Supporting Caregiver</option>
-                            <option value="elder">Elder</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Family Code</label>
-                        <input type="text" id="regFamilyCode" placeholder="(Optional)">
+                <div class="mb-4">
+                    <label>I am a...</label>
+                    <select id="regRole" required>
+                        <option value="primary_caregiver">Primary Caregiver</option>
+                        <option value="caregiver">Supporting Caregiver</option>
+                        <option value="elder">Elder</option>
+                    </select>
+                </div>
+
+                <div class="family-code-box" style="background: rgba(46, 125, 50, 0.15); padding: 20px; border-radius: 16px; border: 1.5px dashed rgba(46, 125, 50, 0.2); margin-bottom: 24px;">
+                    <label style="color: var(--primary-dark); margin-bottom: 10px; display: block;">Family Code</label>
+                    <input type="text" id="regFamilyCode" placeholder="Enter your 6-digit code (Optional)" style="background: white; border-color: rgba(46, 125, 50, 0.2);">
+                    
+                    <div style="background: white; padding: 12px 15px; border-radius: 10px; margin-top: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                        <p style="margin: 0; font-size: 11px; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <span>Leave blank to generate a new family network.</span>
+                        </p>
                     </div>
                 </div>
 
