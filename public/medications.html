@@ -104,21 +104,46 @@
     </main>
 
     <div id="medModal" class="modal">
-        <div class="modal-card">
-            <h2 id="medModalTitle">Add New Medication</h2>
+        <div class="modal-card" style="width: 600px; max-width: 95%;">
+            <h2 id="medModalTitle" class="confirm-title mb-4" style="text-align:left;">Add New Medication</h2>
             <form id="medForm">
                 <input type="hidden" id="medId">
 
-                <label>For Elder</label>
-                <select id="medElder" required></select>
+                <label class="mb-2">For Elder</label>
+                <select id="medElder" class="mb-3" required></select>
 
-                <label>Medication Name</label>
-                <input type="text" id="medName" placeholder="e.g. Lisinopril" required>
+                <label class="mb-2">Medication Name</label>
+                <input type="text" id="medName" class="mb-3" placeholder="e.g. Lisinopril" required>
 
-                <div class="flex gap-4">
+                <div class="flex gap-4 mb-3">
                     <div class="w-full">
-                        <label>Dosage</label>
-                        <input type="text" id="medDosage" placeholder="e.g. 10mg" required>
+                        <label>Medicine Form</label>
+                        <select id="medFormType" onchange="updateMedUnits(this.value)">
+                            <option value="pill">Pill (Tablet/Capsule)</option>
+                            <option value="liquid">Liquid (ml)</option>
+                            <option value="inhaler">Inhaler (Puffs)</option>
+                            <option value="injection">Injection (Units/ml)</option>
+                            <option value="topical">Topical (Apply)</option>
+                            <option value="drops">Drops (Eye/Ear)</option>
+                        </select>
+                    </div>
+                    <div class="w-full">
+                        <label>Dose Amount (<span id="doseUnitLabel">pills</span>)</label>
+                        <div style="display: flex; align-items: stretch; gap: 8px;">
+                            <input type="number" id="medPerDose" placeholder="1" value="1" step="0.01" required style="flex: 1; margin-bottom: 0; min-height: 44px;">
+                            <div style="display: flex; gap: 4px;">
+                                <button type="button" onclick="setDose(0.25)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¼</button>
+                                <button type="button" onclick="setDose(0.5)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">½</button>
+                                <button type="button" onclick="setDose(0.75)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¾</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mb-3">
+                    <div class="w-full">
+                        <label>Dosage Strength</label>
+                        <input type="text" id="medDosage" placeholder="e.g. 10mg or 500mg/5ml" required>
                     </div>
                     <div class="w-full">
                         <label>Time</label>
@@ -126,37 +151,49 @@
                     </div>
                 </div>
 
-                <div class="flex gap-4">
+                <div class="flex gap-4 mb-3">
                     <div class="w-full">
-                        <label>Current Stock</label>
-                        <input type="number" id="medStock" placeholder="e.g. 30">
+                        <label>Current Stock (<span id="stockUnitLabel">pills</span>)</label>
+                        <input type="number" id="medStock" placeholder="e.g. 30" step="0.1">
                     </div>
                     <div class="w-full">
-                        <label>Pills per Dose</label>
-                        <input type="number" id="medPerDose" placeholder="1" value="1">
+                        <label>Meal Instruction</label>
+                        <select id="medInstruction">
+                            <option value="none">No specific instructions</option>
+                            <option value="before">Before Food</option>
+                            <option value="after">After Food</option>
+                            <option value="with">With Food</option>
+                            <option value="empty">Empty Stomach</option>
+                        </select>
                     </div>
                 </div>
 
-                <label>Frequency</label>
+                <div class="flex justify-between items-center mb-2 mt-4">
+                    <label style="margin-bottom:0; font-weight:700;">Frequency</label>
+                    <div class="flex items-center gap-2 px-3 py-1 bg-primary-light border border-primary-subtle rounded-full cursor-pointer" style="transition:all 0.2s;">
+                        <input type="checkbox" id="isPRN" onchange="toggleFrequency(this.checked)" style="width:14px; height:14px;"> 
+                        <span class="text-xs font-bold text-primary uppercase tracking-tight">As Needed (PRN)</span>
+                    </div>
+                </div>
                 <select id="medFrequency" onchange="toggleDaysSelector(this.value)">
                     <option value="daily">Every Day</option>
                     <option value="specific">Specific Days</option>
                 </select>
 
-                <div id="daysSelector" class="hidden mb-4 p-4 bg-gray-50 border rounded-lg">
-                    <label class="mb-2">Select Days:</label>
-                    <div class="flex flex-wrap gap-2">
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="0"> Sun</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="1"> Mon</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="2"> Tue</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="3"> Wed</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="4"> Thu</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="5"> Fri</label>
-                        <label class="text-sm"><input type="checkbox" name="weekDay" value="6"> Sat</label>
+                <div id="daysSelector" class="hidden mb-4 p-4 bg-gray-50 border rounded-2xl">
+                    <label class="mb-3 block font-bold text-dark" style="font-size:13px;">Select Scheduled Days:</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="0"> Sun</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="1"> Mon</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="2"> Tue</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="3"> Wed</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="4"> Thu</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="5"> Fri</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="6"> Sat</label>
                     </div>
                 </div>
 
-                <div class="flex gap-4">
+                <div class="flex gap-4 mb-5">
                     <div class="w-full">
                         <label>Notes</label>
                         <input type="text" id="medNotes" placeholder="Take with food...">

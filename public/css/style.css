@@ -945,10 +945,12 @@ td {
 
 .modal-card {
     background: var(--surface);
-    width: 540px; /* Slightly wider */
+    width: 540px;
     max-width: 95%;
-    padding: 60px 40px; /* More vertical breathing room */
-    border-radius: 40px; /* Even smoother */
+    max-height: 90vh; /* Prevent full-screen feel */
+    overflow-y: auto; /* Scroll if content exceeds height */
+    padding: 32px 40px; /* Reduced vertical padding */
+    border-radius: 32px; /* Slightly tighter corners for smaller footprint */
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
     animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);

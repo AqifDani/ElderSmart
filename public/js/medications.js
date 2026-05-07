@@ -97,14 +97,17 @@ function renderInventory() {
 
     sortedMeds.forEach((med, i) => {
         const c = pillColors[i % pillColors.length];
-        const freqDisplay = med.frequency === 'specific'
-            ? `On: ${formatDays(med.days)}`
-            : `Every Day`;
+        const freqDisplay = med.isPRN 
+            ? `<span class="badge" style="background:#fef3c7; color:#92400e;">AS NEEDED</span>`
+            : (med.frequency === 'specific' ? `On: ${formatDays(med.days)}` : `Every Day`);
 
         const stockPercent = med.stock ? Math.min((med.stock / 30) * 100, 100) : 0;
         const isLow = med.stock !== undefined && med.stock < 5;
         const stockBarColor = isLow ? '#ef4444' : '#22c55e';
-        const stockLabel = med.stock !== undefined ? `${med.stock} pills remaining` : 'Stock not tracked';
+        
+        const unitMap = { pill: 'pills', liquid: 'ml', inhaler: 'puffs', injection: 'ml/units', topical: 'apps', drops: 'drops' };
+        const unit = unitMap[med.formType || 'pill'];
+        const stockLabel = med.stock !== undefined ? `${med.stock} ${unit} remaining` : 'Stock not tracked';
 
         const actionsHtml = isCaregiver ? `
             <div style="display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top: 1px solid #f1f5f9;">
@@ -158,7 +161,7 @@ function renderInventory() {
                         ${med.elderName ? med.elderName[0].toUpperCase() : '?'}
                     </div>
                     <span style="font-size:13px; color:#4b5563; font-weight:600;">${med.elderName || 'Unknown Elder'}</span>
-                    <span style="margin-left:auto; font-size:12px; color:#6b7280;">💊 Take ${med.perDose || 1}</span>
+                    <span style="margin-left:auto; font-size:12px; color:#6b7280;">${med.formType === 'liquid' ? '💧' : '💊'} Take ${med.perDose || 1} ${unit}</span>
                 </div>
 
                 <!-- Stock Bar -->
@@ -243,21 +246,29 @@ function renderChecklist(dateStr) {
         scheduledMeds.forEach(med => {
             const isTaken = logs[med.id]; 
             const qty = med.perDose || 1;
+            
+            const unitMap = { pill: 'pills', liquid: 'ml', inhaler: 'puffs', injection: 'ml/units', topical: 'apps', drops: 'drops' };
+            const unit = unitMap[med.formType || 'pill'];
 
             let statusHtml, btnHtml, rowClass = "";
 
             if (isTaken) {
                 statusHtml = `<span class="status-taken">✔ Taken</span>`;
                 btnHtml = `<span class="text-xs text-muted">Completed</span>`;
-                rowClass = "row-taken"; // CSS class for green background
+                rowClass = "row-taken"; 
             } else {
                 statusHtml = `<span class="status-missed">Pending</span>`;
                 if (isFuture) {
                     btnHtml = `<button class="btn-xs btn-locked" disabled>Locked</button>`;
                 } else {
-                    btnHtml = `<button onclick="markTaken('${med.id}', '${med.name}', ${qty})" class="btn-xs btn-take">Take (${qty})</button>`;
+                    btnHtml = `<button onclick="markTaken('${med.id}', '${med.name}', ${qty})" class="btn-xs btn-take">Take (${qty} ${unit})</button>`;
                 }
             }
+
+            const instrMap = { before: 'Before Food', after: 'After Food', with: 'With Food', empty: 'Empty Stomach' };
+            const instruction = (med.instruction && med.instruction !== 'none') 
+                ? `<div style="font-size:10px; color:var(--primary); font-weight:700; margin-top:2px;">📍 ${instrMap[med.instruction]}</div>` 
+                : "";
 
             const reminderIcon = (med.reminderOffset && med.reminderOffset !== "none" && med.reminderOffset !== "0") 
                 ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert: ${med.reminderOffset}m before"></i>` 
@@ -268,8 +279,11 @@ function renderChecklist(dateStr) {
                     <td>${statusHtml}</td>
                     <td>${formatTime(med.time)} ${reminderIcon}</td>
                     <td><span class="badge" style="background:#eee; color:#333;">${med.elderName}</span></td>
-                    <td class="font-bold">${med.name}</td>
-                    <td>${med.dosage} <span class="text-xs text-muted">(x${qty})</span></td>
+                    <td class="font-bold">
+                        <div>${med.name}</div>
+                        ${instruction}
+                    </td>
+                    <td>${med.dosage} <span class="text-xs text-muted">(${qty} ${unit})</span></td>
                     <td>${btnHtml}</td>
                 </tr>`;
         });
@@ -279,12 +293,44 @@ function renderChecklist(dateStr) {
 
 window.toggleDaysSelector = function (val) {
     const el = document.getElementById("daysSelector");
-    if (val === 'specific') el.classList.remove('hidden');
+    if (val === 'specific' && !document.getElementById("isPRN").checked) el.classList.remove('hidden');
     else el.classList.add('hidden');
+};
+
+window.setDose = function(val) {
+    document.getElementById("medPerDose").value = val;
+};
+
+window.updateMedUnits = function(form) {
+    const unitMap = {
+        pill: 'pills',
+        liquid: 'ml',
+        inhaler: 'puffs',
+        injection: 'ml/units',
+        topical: 'apps',
+        drops: 'drops'
+    };
+    const unit = unitMap[form] || 'units';
+    document.getElementById("doseUnitLabel").innerText = unit;
+    document.getElementById("stockUnitLabel").innerText = unit;
+};
+
+window.toggleFrequency = function(isPRN) {
+    const freqSelect = document.getElementById("medFrequency");
+    const daysBox = document.getElementById("daysSelector");
+    if (isPRN) {
+        freqSelect.disabled = true;
+        freqSelect.value = "prn"; // Internal value
+        daysBox.classList.add('hidden');
+    } else {
+        freqSelect.disabled = false;
+        freqSelect.value = "daily";
+    }
 };
 
 window.markTaken = async function (id, name, qtyToTake) {
     const user = JSON.parse(localStorage.getItem('currentUser'));
+    const parsedQty = parseFloat(qtyToTake) || 1;
     try {
         await window.medicationService.markAsTaken(id, name, user.name, currentViewDate);
 
@@ -292,12 +338,12 @@ window.markTaken = async function (id, name, qtyToTake) {
         const medRef = firebase.firestore().collection("medications").doc(id);
         const doc = await medRef.get();
         if (doc.exists) {
-            const currentStock = doc.data().stock || 0;
-            const newStock = Math.max(0, currentStock - qtyToTake);
+            const currentStock = parseFloat(doc.data().stock) || 0;
+            const newStock = Math.max(0, currentStock - parsedQty);
             await medRef.update({ stock: newStock });
             
             if (newStock < 5 && window.showToast) {
-                showToast("Low Stock", `Only ${newStock} left of ${name}!`, "error");
+                showToast("Low Stock", `Only ${newStock.toFixed(1)} left of ${name}!`, "error");
             }
         }
         loadChecklist(currentViewDate);
@@ -334,13 +380,22 @@ window.openMedModal = async function (id = null) {
             document.getElementById("medElder").value = data.elderId;
             document.getElementById("medStock").value = data.stock || "";
             document.getElementById("medPerDose").value = data.perDose || 1;
+            document.getElementById("medFormType").value = data.formType || "pill";
+            updateMedUnits(data.formType || "pill");
+            document.getElementById("medInstruction").value = data.instruction || "none";
+            document.getElementById("isPRN").checked = data.isPRN || false;
+            
             if (medTimePicker && data.time) medTimePicker.setDate(data.time);
-            document.getElementById("medFrequency").value = data.frequency || 'daily';
+            
+            const freqSelect = document.getElementById("medFrequency");
+            freqSelect.disabled = data.isPRN || false;
+            freqSelect.value = data.isPRN ? "prn" : (data.frequency || 'daily');
+            
             document.getElementById("medReminder").value = data.reminderOffset || "0";
             
             // Handle Days Checkboxes
             document.querySelectorAll('input[name="weekDay"]').forEach(cb => cb.checked = false);
-            if (data.frequency === 'specific') {
+            if (data.frequency === 'specific' && !data.isPRN) {
                 document.getElementById("daysSelector").classList.remove('hidden');
                 if (data.days) data.days.forEach(d => {
                     const cb = document.querySelector(`input[name="weekDay"][value="${d}"]`);
@@ -356,6 +411,10 @@ window.openMedModal = async function (id = null) {
         document.getElementById("medForm").reset();
         document.getElementById("medId").value = "";
         document.getElementById("medPerDose").value = "1";
+        document.getElementById("medFormType").value = "pill";
+        updateMedUnits("pill");
+        document.getElementById("isPRN").checked = false;
+        document.getElementById("medFrequency").disabled = false;
         document.getElementById("daysSelector").classList.add('hidden');
         if (medTimePicker) { medTimePicker.clear(); medTimePicker.setDate("08:00"); }
         document.getElementById("medReminder").value = "0";
@@ -378,18 +437,23 @@ if (medForm) {
         const id = document.getElementById("medId").value;
         const elderSelect = document.getElementById("medElder");
         const freq = document.getElementById("medFrequency").value;
+        const isPRN = document.getElementById("isPRN").checked;
 
         let selectedDays = [];
-        if (freq === 'specific') {
+        if (freq === 'specific' && !isPRN) {
             document.querySelectorAll('input[name="weekDay"]:checked').forEach(cb => selectedDays.push(parseInt(cb.value)));
             if (selectedDays.length === 0) { alert("Select at least one day."); return; }
         }
 
         const data = {
-            name: nameVal, dosage: dosageVal, time: timeVal, frequency: freq,
-            days: (freq === 'specific') ? selectedDays : null,
-            stock: parseInt(document.getElementById("medStock").value) || 0,
-            perDose: parseInt(document.getElementById("medPerDose").value) || 1,
+            name: nameVal, dosage: dosageVal, time: timeVal, 
+            frequency: isPRN ? 'prn' : freq,
+            isPRN: isPRN,
+            formType: document.getElementById("medFormType").value,
+            instruction: document.getElementById("medInstruction").value,
+            days: (freq === 'specific' && !isPRN) ? selectedDays : null,
+            stock: parseFloat(document.getElementById("medStock").value) || 0,
+            perDose: parseFloat(document.getElementById("medPerDose").value) || 1,
             notes: document.getElementById("medNotes").value.trim(),
             elderId: elderSelect.value,
             elderName: elderSelect.options[elderSelect.selectedIndex].text,
