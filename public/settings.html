@@ -1,95 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Settings - ElderSmart</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Settings - ElderSmart</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Main Style -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body class="dashboard-page">
-
+    <div id="toast-container"></div>
     <div id="sidebar-container"></div>
 
     <main class="main-content">
         <div class="dashboard-container">
             <header class="dashboard-header stagger-1">
                 <div>
-                    <h1>Account Settings</h1>
-                    <p class="subtitle text-muted">Manage your profile and security preferences.</p>
+                    <h1>Settings</h1>
+                    <p class="subtitle text-muted">Manage your clinical profile and security preferences.</p>
                 </div>
             </header>
 
-            <!-- Profile Card -->
-            <div class="card stagger-2" style="max-width: 640px; margin-bottom: 30px;">
-                <div class="settings-profile-header">
-                    <div class="settings-avatar" id="settingsAvatar">U</div>
-                    <div>
-                        <h2 class="font-bold text-lg">Public Profile</h2>
-                        <p class="text-muted text-sm">This will be visible to other caregivers.</p>
+            <div class="settings-grid stagger-2">
+                <!-- Left Column: Profile & Network -->
+                <div class="settings-column">
+                    <!-- Profile Card -->
+                    <div class="card settings-card">
+                        <div class="card-header">
+                            <h3 class="font-bold">Public Profile</h3>
+                        </div>
+                        
+                        <div class="profile-upload-section mt-4">
+                            <div class="settings-avatar-wrapper">
+                                <div class="avatar-preview" id="settingsAvatarPreview">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <label for="settingsPhotoUpload" class="avatar-edit-btn">
+                                    <i class="fas fa-pen"></i>
+                                </label>
+                                <input type="file" id="settingsPhotoUpload" hidden accept="image/*">
+                            </div>
+                            <p class="upload-hint">Click the pen to update your photo.</p>
+                        </div>
+
+                        <form id="profileForm" class="settings-form">
+                            <div class="input-group">
+                                <label>DISPLAY NAME</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="displayName" placeholder="Your full name">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>EMAIL ADDRESS (Read-only)</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" id="displayEmail" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>CONTACT NUMBER</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-phone"></i>
+                                    <input type="tel" id="displayPhone" placeholder="+60 12-345 6789">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary w-100" id="saveProfileBtn">
+                                <i class="fas fa-save mr-2"></i> Save Profile Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Clinical Network Card -->
+                    <div class="card settings-card mt-4">
+                        <div class="card-header">
+                            <h3 class="font-bold">Clinical Network</h3>
+                        </div>
+                        <div class="network-info-box mt-4">
+                            <div class="info-row">
+                                <span class="label">Family ID</span>
+                                <div class="value-group">
+                                    <code id="displayFamilyId">---</code>
+                                    <button class="btn-icon-small" onclick="copyFamilyCode()" title="Copy Code">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Your Role</span>
+                                <span class="value badge-primary" id="displayRoleBadge">---</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <form id="profileForm" class="settings-form">
-                    <div class="form-group">
-                        <label class="form-label">Display Name</label>
-                        <input type="text" id="displayName" class="input-field" placeholder="e.g. Sarah Smith" required>
+                <!-- Right Column: Security & Privacy -->
+                <div class="settings-column">
+                    <!-- Security Card -->
+                    <div class="card settings-card">
+                        <div class="card-header">
+                            <h3 class="font-bold">Security</h3>
+                        </div>
+                        <p class="text-sm text-muted mb-4">Update your password to keep your clinical account secure.</p>
+
+                        <form id="passwordForm" class="settings-form">
+                            <div class="input-group">
+                                <label>NEW PASSWORD</label>
+                                <div class="password-field-container">
+                                    <input type="password" id="newPassword" class="input-field" placeholder="Enter new password">
+                                    <span class="password-toggle" onclick="togglePassword('newPassword', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>CONFIRM NEW PASSWORD</label>
+                                <div class="password-field-container">
+                                    <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm new password">
+                                    <span class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary w-100">
+                                <i class="fas fa-key mr-2"></i> Update Password
+                            </button>
+                        </form>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" id="displayEmail" class="input-field input-disabled" disabled>
-                        <p class="form-hint">Email cannot be changed.</p>
+                    <!-- Danger Zone -->
+                    <div class="card settings-card mt-4 border-danger">
+                        <div class="card-header text-danger">
+                            <h3 class="font-bold"><i class="fas fa-exclamation-triangle mr-2"></i> Danger Zone</h3>
+                        </div>
+                        <p class="text-sm text-muted mt-2">Once you delete your account, there is no going back. Please be certain.</p>
+                        <button class="btn-outline-danger w-100 mt-4" onclick="confirmDeleteAccount()">
+                            Delete My Clinical Account
+                        </button>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Role</label>
-                        <input type="text" id="displayRole" class="input-field input-disabled" disabled>
-                    </div>
-
-                    <button type="submit" class="btn-primary w-full mt-2">
-                        <i class="fas fa-save" style="margin-right: 8px;"></i> Save Profile Changes
-                    </button>
-                </form>
-            </div>
-
-            <!-- Security Card -->
-            <div class="card stagger-3" style="max-width: 640px; border-left: 4px solid var(--danger);">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="icon-box-sm bg-danger-light"><i class="fas fa-shield-alt"></i></div>
-                    <h2 class="font-bold text-lg">Security</h2>
                 </div>
-
-                <form id="passwordForm" class="settings-form">
-                    <div class="form-group">
-                        <label class="form-label">New Password</label>
-                        <input type="password" id="newPassword" class="input-field" placeholder="Minimum 6 characters" required minlength="6">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" id="confirmPassword" class="input-field" placeholder="Re-enter new password" required>
-                    </div>
-
-                    <button type="submit" class="btn-danger w-full mt-2">
-                        <i class="fas fa-key" style="margin-right: 8px;"></i> Update Password
-                    </button>
-                </form>
             </div>
-
         </div>
     </main>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script src="js/config.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/settings.js"></script>
 </body>
-
 </html>

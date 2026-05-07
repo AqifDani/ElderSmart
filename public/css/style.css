@@ -6405,3 +6405,138 @@ body.auth-split-page {
     box-shadow: 0 0 0 4px rgba(45, 90, 71, 0.05);
 }
 
+
+/* Premium Settings Styles */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.settings-card {
+    height: fit-content;
+}
+
+.settings-avatar-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--primary);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 3px solid white;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-md);
+}
+
+.avatar-edit-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark);
+}
+
+.network-info-box {
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-row .label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.value-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.value-group code {
+    background: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    color: var(--primary-dark);
+    border: 1px solid #e2e8f0;
+}
+
+.btn-icon-small {
+    background: white;
+    border: 1px solid #e2e8f0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.btn-icon-small:hover {
+    color: var(--primary);
+    border-color: var(--primary-light);
+}
+
+.badge-primary {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.border-danger {
+    border-top: 4px solid #ef4444 !important;
+}
+
+.btn-outline-danger {
+    background: transparent;
+    border: 2px solid #fee2e2;
+    color: #ef4444;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline-danger:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+@media (max-width: 992px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

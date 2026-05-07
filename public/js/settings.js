@@ -1,125 +1,170 @@
-// js/settings.js - FIXED (Preserves Family ID)
+// js/settings.js - PREMIUM CLINICAL SETTINGS
+let currentUserData = null;
 
-// 1. Auth Check & Load Data
+// 1. Auth Check & Initialization
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         loadUserSettings(user);
     } else {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
     }
 });
 
-// 2. Load User Data from Firestore
-function loadUserSettings(user) {
-    const db = firebase.firestore();
+// 2. Load User Data
+async function loadUserSettings(user) {
+    try {
+        const doc = await firebase.firestore().collection("users").doc(user.uid).get();
+        if (!doc.exists) return;
 
-    // Set basic email from Auth
-    const emailField = document.getElementById("displayEmail");
-    if (emailField) emailField.value = user.email;
+        currentUserData = doc.data();
+        
+        // Fill Fields
+        document.getElementById("displayName").value = currentUserData.name || "";
+        document.getElementById("displayEmail").value = user.email;
+        document.getElementById("displayPhone").value = currentUserData.phone || "";
+        document.getElementById("displayFamilyId").innerText = currentUserData.familyId || "---";
+        
+        const roleBadge = document.getElementById("displayRoleBadge");
+        roleBadge.innerText = currentUserData.role ? currentUserData.role.replace('_', ' ').toUpperCase() : "CAREGIVER";
 
-    document.getElementById("settingsAvatar").innerText = user.email.charAt(0).toUpperCase();
+        // Update Avatar Preview
+        updateAvatarUI(currentUserData.photo, currentUserData.name);
 
-    // Fetch detailed profile (Name, Role)
-    db.collection("users").doc(user.uid).get().then((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            const nameField = document.getElementById("displayName");
-            const roleField = document.getElementById("displayRole");
-
-            if (nameField) nameField.value = data.name || "";
-            if (roleField) roleField.value = data.role || "Caregiver";
-
-            // Update Avatar if name exists
-            if (data.name) {
-                const initial = data.name.charAt(0).toUpperCase();
-                document.getElementById("settingsAvatar").innerText = initial;
-
-                // Also update the sidebar avatar immediately if it exists
-                const sidebarAvatar = document.getElementById("userAvatar");
-                if (sidebarAvatar) sidebarAvatar.innerText = initial;
-            }
-        }
-    }).catch(err => console.error(err));
+    } catch (e) {
+        console.error("Error loading settings:", e);
+        if (window.showToast) showToast("Error", "Could not load profile data.", "error");
+    }
 }
 
-// 3. Update Profile (Name)
-const profileForm = document.getElementById("profileForm");
-if (profileForm) {
-    profileForm.addEventListener("submit", function (e) {
-        e.preventDefault();
+function updateAvatarUI(photoUrl, name) {
+    const preview = document.getElementById("settingsAvatarPreview");
+    if (photoUrl) {
+        preview.innerHTML = `<img src="${photoUrl}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
+    } else {
+        const initial = (name || "U").charAt(0).toUpperCase();
+        preview.innerHTML = `<span style="font-size: 40px; font-weight: 800; color: #cbd5e1;">${initial}</span>`;
+    }
+}
 
-        const user = firebase.auth().currentUser;
-        const newName = document.getElementById("displayName").value;
-        const roleVal = document.getElementById("displayRole").value.toLowerCase();
-        const db = firebase.firestore();
+// 3. Handle Photo Upload
+document.getElementById("settingsPhotoUpload").addEventListener("change", async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        if (!user) return;
+    // Validation: 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        if (window.showToast) showToast("File Too Large", "Photo must be under 5MB.", "error");
+        return;
+    }
+
+    const user = firebase.auth().currentUser;
+    const preview = document.getElementById("settingsAvatarPreview");
+    const originalContent = preview.innerHTML;
+    
+    // Show loading state in avatar
+    preview.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary);"></i>`;
+
+    try {
+        const storageRef = firebase.storage().ref(`profiles/${user.uid}/${file.name}`);
+        const snapshot = await storageRef.put(file);
+        const photoUrl = await snapshot.ref.getDownloadURL();
 
         // Update Firestore
-        db.collection("users").doc(user.uid).set({
-            name: newName,
-            email: user.email,
-            role: roleVal
-        }, { merge: true })
-            .then(() => {
-                // ✅ FIX: Get existing data FIRST to preserve familyId
-                const existingData = JSON.parse(localStorage.getItem('currentUser')) || {};
+        await firebase.firestore().collection("users").doc(user.uid).update({ photo: photoUrl });
 
-                const updatedUser = {
-                    ...existingData, // Keep familyId and other hidden fields
-                    name: newName,
-                    email: user.email
-                };
-
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-
-                // Update Sidebar Name immediately
-                const nameDisplay = document.getElementById("userName");
-                const avatarDisplay = document.getElementById("userAvatar");
-                const settingsAvatar = document.getElementById("settingsAvatar");
-
-                if (nameDisplay) nameDisplay.innerText = newName;
-                if (avatarDisplay) avatarDisplay.innerText = newName.charAt(0).toUpperCase();
-                if (settingsAvatar) settingsAvatar.innerText = newName.charAt(0).toUpperCase();
-
-                showToast("Success", "Profile updated successfully", "success");
-            })
-            .catch((error) => {
-                console.error(error);
-                showToast("Error", error.message, "error");
-            });
-    });
-}
-
-// 4. Change Password
-const passForm = document.getElementById("passwordForm");
-if (passForm) {
-    passForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        const newPass = document.getElementById("newPassword").value;
-        const confirmPass = document.getElementById("confirmPassword").value;
-        const user = firebase.auth().currentUser;
-
-        if (newPass !== confirmPass) {
-            showToast("Error", "Passwords do not match", "error");
-            return;
+        // Update Local State & UI
+        updateAvatarUI(photoUrl, currentUserData.name);
+        syncLocalStorage({ photo: photoUrl });
+        
+        // Update Sidebar immediately if it exists
+        const sidebarAvatar = document.getElementById("userAvatar");
+        if (sidebarAvatar) {
+            sidebarAvatar.innerHTML = `<img src="${photoUrl}" alt="U" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
         }
 
-        user.updatePassword(newPass).then(() => {
-            showToast("Success", "Password changed. Please login again.", "success");
-            document.getElementById("passwordForm").reset();
+        if (window.showToast) showToast("Success", "Profile photo updated.", "success");
+    } catch (error) {
+        console.error(error);
+        preview.innerHTML = originalContent;
+        if (window.showToast) showToast("Upload Failed", error.message, "error");
+    }
+});
 
-            // Optional: Force logout for security
-            setTimeout(() => {
-                firebase.auth().signOut().then(() => window.location.href = "index.html");
-            }, 2000);
-        }).catch((error) => {
-            if (error.code === 'auth/requires-recent-login') {
-                showToast("Security Alert", "Please log out and log back in to change password.", "error");
-            } else {
-                showToast("Error", error.message, "error");
-            }
+// 4. Update Profile Form
+document.getElementById("profileForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("saveProfileBtn");
+    const originalText = btn.innerHTML;
+    
+    const newName = document.getElementById("displayName").value.trim();
+    const newPhone = document.getElementById("displayPhone").value.trim();
+
+    if (!newName) return showToast("Required", "Display name is required.", "warning");
+
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Saving...`;
+
+    try {
+        const user = firebase.auth().currentUser;
+        await firebase.firestore().collection("users").doc(user.uid).update({
+            name: newName,
+            phone: newPhone
         });
-    });
+
+        // Sync and Update UI
+        syncLocalStorage({ name: newName });
+        
+        const nameDisplay = document.getElementById("userName");
+        if (nameDisplay) nameDisplay.innerText = newName;
+        
+        if (window.showToast) showToast("Success", "Profile details saved.", "success");
+    } catch (error) {
+        console.error(error);
+        if (window.showToast) showToast("Save Failed", error.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// 5. Password Change
+document.getElementById("passwordForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const newPass = document.getElementById("newPassword").value;
+    const confirmPass = document.getElementById("confirmPassword").value;
+
+    if (newPass.length < 6) return showToast("Security", "Password must be at least 6 characters.", "warning");
+    if (newPass !== confirmPass) return showToast("Error", "Passwords do not match.", "error");
+
+    try {
+        await firebase.auth().currentUser.updatePassword(newPass);
+        showToast("Success", "Password updated successfully.", "success");
+        e.target.reset();
+    } catch (error) {
+        if (error.code === 'auth/requires-recent-login') {
+            showToast("Security Re-auth", "Please logout and login again to change password.", "error");
+        } else {
+            showToast("Error", error.message, "error");
+        }
+    }
+});
+
+// Helper: Sync LocalStorage
+function syncLocalStorage(newData) {
+    const stored = JSON.parse(localStorage.getItem('currentUser')) || {};
+    const updated = { ...stored, ...newData };
+    localStorage.setItem('currentUser', JSON.stringify(updated));
 }
+
+// Global: Copy Code (exposed for onclick)
+window.copyFamilyCode = function() {
+    const code = document.getElementById("displayFamilyId").innerText;
+    if (code === "---") return;
+    navigator.clipboard.writeText(code);
+    if (window.showToast) showToast("Copied", "Family code copied to clipboard.", "success");
+};
+
+// Placeholder for Delete Account
+window.confirmDeleteAccount = function() {
+    if (window.showToast) showToast("System Alert", "Account deletion requires clinical authorization. Contact support.", "warning");
+};
