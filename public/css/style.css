@@ -221,11 +221,13 @@ body {
 }
 
 /* Form Interactivity Refinements */
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
     transition: color 0.3s ease;
 }
 
-input:focus::placeholder, textarea:focus::placeholder {
+input:focus::placeholder,
+textarea:focus::placeholder {
     color: transparent;
 }
 
@@ -976,10 +978,14 @@ td {
     background: var(--surface);
     width: 540px;
     max-width: 95%;
-    max-height: 90vh; /* Prevent full-screen feel */
-    overflow-y: auto; /* Scroll if content exceeds height */
-    padding: 32px 40px; /* Reduced vertical padding */
-    border-radius: 32px; /* Slightly tighter corners for smaller footprint */
+    max-height: 90vh;
+    /* Prevent full-screen feel */
+    overflow-y: auto;
+    /* Scroll if content exceeds height */
+    padding: 32px 40px;
+    /* Reduced vertical padding */
+    border-radius: 32px;
+    /* Slightly tighter corners for smaller footprint */
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
     animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -990,6 +996,7 @@ td {
         transform: scale(0.9) translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: scale(1) translateY(0);
         opacity: 1;
@@ -1004,8 +1011,10 @@ td {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px; /* Larger icon */
-    margin: 0 auto 32px; /* More gap below icon */
+    font-size: 40px;
+    /* Larger icon */
+    margin: 0 auto 32px;
+    /* More gap below icon */
     transition: all 0.3s ease;
 }
 
@@ -1029,7 +1038,8 @@ td {
 
 .confirm-title {
     font-family: 'Outfit', sans-serif;
-    font-size: 32px; /* More prominent */
+    font-size: 32px;
+    /* More prominent */
     font-weight: 900;
     color: var(--text-main);
     letter-spacing: -0.04em;
@@ -1040,7 +1050,8 @@ td {
     font-size: 17px;
     line-height: 1.7;
     color: var(--text-muted);
-    margin-bottom: 40px; /* Much more gap before buttons */
+    margin-bottom: 40px;
+    /* Much more gap before buttons */
     max-width: 90%;
     margin-left: auto;
     margin-right: auto;
@@ -3859,8 +3870,10 @@ body.auth-split-page {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Start from top to prevent clipping */
-    padding: 60px 40px; /* Generous vertical padding for scrolling */
+    align-items: flex-start;
+    /* Start from top to prevent clipping */
+    padding: 60px 40px;
+    /* Generous vertical padding for scrolling */
     background: white;
     overflow-y: auto;
 }
@@ -3882,8 +3895,8 @@ body.auth-split-page {
     color: inherit !important;
 }
 
-.logo-header:visited, 
-.logo-header:active, 
+.logo-header:visited,
+.logo-header:active,
 .logo-header:hover {
     color: inherit !important;
     text-decoration: none !important;
@@ -5464,6 +5477,7 @@ body.auth-split-page {
         margin-top: 2px;
     }
 }
+
 /* Notification Feed Enhancements */
 .notification-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -5634,7 +5648,7 @@ body.auth-split-page {
     z-index: 0;
 }
 
-.role-option > * {
+.role-option>* {
     position: relative;
     z-index: 1;
 }
@@ -5663,7 +5677,7 @@ body.auth-split-page {
 .role-option:hover {
     transform: translateY(-8px);
     border-color: var(--primary-light);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 .role-option.active {
@@ -5702,13 +5716,13 @@ body.auth-split-page {
     color: #cbd5e1;
     overflow: hidden;
     border: 6px solid white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .avatar-preview:hover {
     transform: scale(1.02);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .btn-upload-trigger {
@@ -5877,7 +5891,7 @@ body.auth-split-page {
 .btn-modal-confirm {
     background: #ef4444;
     color: white;
-    padding: 14px;       
+    padding: 14px;
     border-radius: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -5906,7 +5920,8 @@ body.auth-split-page {
 .password-toggle {
     position: absolute;
     right: 18px;
-    top: 25px; /* Manually center relative to input height */
+    top: 25px;
+    /* Manually center relative to input height */
     transform: translateY(-50%);
     cursor: pointer;
     color: var(--text-muted);
@@ -5958,9 +5973,17 @@ body.auth-split-page {
     transform: translateX(0);
 }
 
-.toast.success { border-left-color: #10b981; }
-.toast.error { border-left-color: #ef4444; }
-.toast.warning { border-left-color: #f59e0b; }
+.toast.success {
+    border-left-color: #10b981;
+}
+
+.toast.error {
+    border-left-color: #ef4444;
+}
+
+.toast.warning {
+    border-left-color: #f59e0b;
+}
 
 .toast-content {
     flex-grow: 1;
@@ -6189,13 +6212,16 @@ body.auth-split-page {
     .onboarding-container {
         flex-direction: column;
     }
+
     .onboarding-sidebar {
         width: 100%;
         padding: 40px;
     }
+
     .onboarding-main {
         padding: 20px;
     }
+
     .onboarding-card {
         padding: 30px;
     }
@@ -6209,7 +6235,8 @@ body.auth-split-page {
     gap: 16px;
     opacity: 0.4;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    background: none !important; /* Override old circle style */
+    background: none !important;
+    /* Override old circle style */
     width: auto !important;
     height: auto !important;
     border: none !important;
@@ -6341,7 +6368,7 @@ body.auth-split-page {
     z-index: 0;
 }
 
-.onboarding-sidebar > * {
+.onboarding-sidebar>* {
     position: relative;
     z-index: 1;
 }
@@ -6539,4 +6566,120 @@ body.auth-split-page {
         grid-template-columns: 1fr;
     }
 }
+/* ============================================================
+   STABLE MOBILE OVERRIDES (CONSOLIDATED)
+   ============================================================ */
+@media (max-width: 768px) {
+    /* 1. Global Page Flow */
+    body.dashboard-page {
+        overflow-x: hidden !important;
+        display: block !important;
+        height: auto !important;
+    }
 
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    .dashboard-container {
+        padding: 80px 15px 40px 15px !important; /* Top space for menu button */
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    /* 2. Grid & Panel Stacking */
+    .dashboard-layout-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    .left-panel, .right-panel {
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    .grid-2-col, .grid-3-col, .stats-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+        width: 100% !important;
+    }
+
+    /* 3. Hero Banner Scaling */
+    .hero-banner {
+        padding: 25px 20px !important;
+        flex-direction: column !important;
+        text-align: left !important;
+        gap: 20px !important;
+        border-radius: 20px !important;
+    }
+
+    .hero-text h2 {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+    }
+
+    .hero-icon {
+        position: absolute !important;
+        font-size: 80px !important;
+        right: -10px !important;
+        bottom: -10px !important;
+        opacity: 0.1 !important;
+    }
+
+    /* 4. Table & Overflow Control (Crucial) */
+    .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    .table-container, 
+    div[style*="overflow-x:auto"] {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+    }
+
+    table {
+        min-width: 600px !important; /* Allow the table to be wide INTERNALLY */
+    }
+
+    /* 5. UI Elements Fix */
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+    }
+
+    .dashboard-header h1 {
+        font-size: 22px !important;
+    }
+
+    .mini-stat-card {
+        padding: 15px !important;
+    }
+
+    /* Fix for health status cards */
+    #elderHealthList > div {
+        width: 100% !important;
+    }
+}
+
+/* Specific fix for ultra-small screens */
+@media (max-width: 400px) {
+    .dashboard-container {
+        padding-top: 70px !important;
+    }
+    
+    .hero-text h2 {
+        font-size: 18px !important;
+    }
+}

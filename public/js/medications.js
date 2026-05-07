@@ -39,8 +39,8 @@ function initPickers() {
 function updateScheduleTitle(dateObj) {
     const title = document.getElementById("scheduleTitle");
     const todayStr = new Date().toDateString();
-    title.innerText = (dateObj.toDateString() === todayStr) 
-        ? "Today's Schedule" 
+    title.innerText = (dateObj.toDateString() === todayStr)
+        ? "Today's Schedule"
         : `Schedule for ${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 }
 
@@ -69,8 +69,8 @@ function renderInventory() {
     });
     const el = (id) => document.getElementById(id);
     if (el('statTotalMeds')) el('statTotalMeds').innerText = meds.length;
-    if (el('statDueToday'))  el('statDueToday').innerText  = dueToday;
-    if (el('statLowStock'))  el('statLowStock').innerText  = lowStock;
+    if (el('statDueToday')) el('statDueToday').innerText = dueToday;
+    if (el('statLowStock')) el('statLowStock').innerText = lowStock;
     if (el('medsCabinetCount')) el('medsCabinetCount').innerText = `${meds.length} medications`;
     if (el('statLowStockCard') && lowStock > 0) el('statLowStockCard').style.borderLeft = '4px solid var(--warning)';
 
@@ -97,14 +97,14 @@ function renderInventory() {
     let html = "";
     sortedMeds.forEach((med, i) => {
         const c = pillColors[i % pillColors.length];
-        const freqDisplay = med.isPRN 
+        const freqDisplay = med.isPRN
             ? `<span class="badge" style="background:#fef3c7; color:#92400e;">AS NEEDED</span>`
             : (med.frequency === 'specific' ? `On: ${formatDays(med.days)}` : `Every Day`);
 
         const stockPercent = med.stock ? Math.min((med.stock / 30) * 100, 100) : 0;
         const isLow = med.stock !== undefined && med.stock < 5;
         const stockBarColor = isLow ? '#ef4444' : '#22c55e';
-        
+
         const unitMap = { pill: 'pills', liquid: 'ml', inhaler: 'puffs', injection: 'ml/units', topical: 'apps', drops: 'drops' };
         const unit = unitMap[med.formType || 'pill'];
         const stockLabel = med.stock !== undefined ? `${med.stock} ${unit} remaining` : 'Stock not tracked';
@@ -200,7 +200,7 @@ function initMedsListener() {
 
 function loadChecklist(dateStr) {
     if (unsubscribeLogs) unsubscribeLogs();
-    
+
     unsubscribeLogs = window.medicationService.listenLogsByDate(dateStr, (logs) => {
         currentLogs = logs;
         renderChecklist(dateStr);
@@ -210,7 +210,7 @@ function loadChecklist(dateStr) {
 function renderChecklist(dateStr) {
     const tableBody = document.getElementById("checklistBody");
     if (!tableBody) return;
-    
+
     if (currentMeds.length === 0 && Object.keys(currentLogs).length === 0) {
         tableBody.innerHTML = "<tr><td colspan='6' class='text-center p-4 text-muted'>Loading...</td></tr>";
         // Wait for listeners to fire
@@ -220,59 +220,59 @@ function renderChecklist(dateStr) {
     const meds = currentMeds;
     const logs = currentLogs;
 
-        const [y, m, d] = dateStr.split('-').map(Number);
-        const targetDate = new Date(y, m - 1, d);
-        const dayIndex = targetDate.getDay();
-        const todayStr = new Date().toISOString().split('T')[0];
-        const isFuture = dateStr > todayStr;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const targetDate = new Date(y, m - 1, d);
+    const dayIndex = targetDate.getDay();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isFuture = dateStr > todayStr;
 
-        const scheduledMeds = meds.filter(m => {
-            if (m.startDate && dateStr < m.startDate) return false;
-            if (m.frequency === 'daily') return true;
-            if (m.frequency === 'specific' && m.days && m.days.includes(dayIndex)) return true;
-            return false;
-        });
+    const scheduledMeds = meds.filter(m => {
+        if (m.startDate && dateStr < m.startDate) return false;
+        if (m.frequency === 'daily') return true;
+        if (m.frequency === 'specific' && m.days && m.days.includes(dayIndex)) return true;
+        return false;
+    });
 
-        if (scheduledMeds.length === 0) {
-            tableBody.innerHTML = "<tr><td colspan='6' class='text-center p-4 text-muted'>No meds scheduled for this day.</td></tr>";
-            return;
+    if (scheduledMeds.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='6' class='text-center p-4 text-muted'>No meds scheduled for this day.</td></tr>";
+        return;
+    }
+
+    const sortedMeds = scheduledMeds.sort((a, b) => a.time.localeCompare(b.time));
+
+    let html = "";
+    sortedMeds.forEach(med => {
+        const isTaken = logs[med.id];
+        const qty = med.perDose || 1;
+
+        const unitMap = { pill: 'pills', liquid: 'ml', inhaler: 'puffs', injection: 'ml/units', topical: 'apps', drops: 'drops' };
+        const unit = unitMap[med.formType || 'pill'];
+
+        let statusHtml, btnHtml, rowClass = "";
+
+        if (isTaken) {
+            statusHtml = `<span class="status-taken">✔ Taken</span>`;
+            btnHtml = `<span class="text-xs text-muted">Completed</span>`;
+            rowClass = "row-taken";
+        } else {
+            statusHtml = `<span class="status-missed">Pending</span>`;
+            if (isFuture) {
+                btnHtml = `<button class="btn-xs btn-locked" disabled>Locked</button>`;
+            } else {
+                btnHtml = `<button onclick="markTaken('${med.id}', '${med.name}', ${qty})" class="btn-xs btn-take">Take (${qty} ${unit})</button>`;
+            }
         }
 
-        const sortedMeds = scheduledMeds.sort((a, b) => a.time.localeCompare(b.time));
+        const instrMap = { before: 'Before Food', after: 'After Food', with: 'With Food', empty: 'Empty Stomach' };
+        const instruction = (med.instruction && med.instruction !== 'none')
+            ? `<div style="font-size:10px; color:var(--primary); font-weight:700; margin-top:2px;">📍 ${instrMap[med.instruction]}</div>`
+            : "";
 
-        let html = "";
-        sortedMeds.forEach(med => {
-            const isTaken = logs[med.id]; 
-            const qty = med.perDose || 1;
-            
-            const unitMap = { pill: 'pills', liquid: 'ml', inhaler: 'puffs', injection: 'ml/units', topical: 'apps', drops: 'drops' };
-            const unit = unitMap[med.formType || 'pill'];
+        const reminderIcon = (med.reminderOffset && med.reminderOffset !== "none" && med.reminderOffset !== "0")
+            ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert: ${med.reminderOffset}m before"></i>`
+            : "";
 
-            let statusHtml, btnHtml, rowClass = "";
-
-            if (isTaken) {
-                statusHtml = `<span class="status-taken">✔ Taken</span>`;
-                btnHtml = `<span class="text-xs text-muted">Completed</span>`;
-                rowClass = "row-taken"; 
-            } else {
-                statusHtml = `<span class="status-missed">Pending</span>`;
-                if (isFuture) {
-                    btnHtml = `<button class="btn-xs btn-locked" disabled>Locked</button>`;
-                } else {
-                    btnHtml = `<button onclick="markTaken('${med.id}', '${med.name}', ${qty})" class="btn-xs btn-take">Take (${qty} ${unit})</button>`;
-                }
-            }
-
-            const instrMap = { before: 'Before Food', after: 'After Food', with: 'With Food', empty: 'Empty Stomach' };
-            const instruction = (med.instruction && med.instruction !== 'none') 
-                ? `<div style="font-size:10px; color:var(--primary); font-weight:700; margin-top:2px;">📍 ${instrMap[med.instruction]}</div>` 
-                : "";
-
-            const reminderIcon = (med.reminderOffset && med.reminderOffset !== "none" && med.reminderOffset !== "0") 
-                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert: ${med.reminderOffset}m before"></i>` 
-                : "";
-
-            html += `
+        html += `
                 <tr class="${rowClass}">
                     <td>${statusHtml}</td>
                     <td>${formatTime(med.time)} ${reminderIcon}</td>
@@ -284,8 +284,8 @@ function renderChecklist(dateStr) {
                     <td>${med.dosage} <span class="text-xs text-muted">(${qty} ${unit})</span></td>
                     <td>${btnHtml}</td>
                 </tr>`;
-        });
-        tableBody.innerHTML = html;
+    });
+    tableBody.innerHTML = html;
 }
 
 // ... (Helpers: formatTime, formatDays remain the same) ...
@@ -296,11 +296,11 @@ window.toggleDaysSelector = function (val) {
     else el.classList.add('hidden');
 };
 
-window.setDose = function(val) {
+window.setDose = function (val) {
     document.getElementById("medPerDose").value = val;
 };
 
-window.updateMedUnits = function(form) {
+window.updateMedUnits = function (form) {
     const unitMap = {
         pill: 'pills',
         liquid: 'ml',
@@ -314,7 +314,7 @@ window.updateMedUnits = function(form) {
     document.getElementById("stockUnitLabel").innerText = unit;
 };
 
-window.toggleFrequency = function(isPRN) {
+window.toggleFrequency = function (isPRN) {
     const freqSelect = document.getElementById("medFrequency");
     const daysBox = document.getElementById("daysSelector");
     if (isPRN) {
@@ -340,7 +340,7 @@ window.markTaken = async function (id, name, qtyToTake) {
             const currentStock = parseFloat(doc.data().stock) || 0;
             const newStock = Math.max(0, currentStock - parsedQty);
             await medRef.update({ stock: newStock });
-            
+
             if (newStock < 5 && window.showToast) {
                 showToast("Low Stock", `Only ${newStock.toFixed(1)} left of ${name}!`, "error");
             }
@@ -353,7 +353,7 @@ window.markTaken = async function (id, name, qtyToTake) {
 window.openMedModal = async function (id = null) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    
+
     const modal = document.getElementById("medModal");
     const saveBtn = document.getElementById("saveMedBtn");
     const title = document.getElementById("medModalTitle");
@@ -383,15 +383,15 @@ window.openMedModal = async function (id = null) {
             updateMedUnits(data.formType || "pill");
             document.getElementById("medInstruction").value = data.instruction || "none";
             document.getElementById("isPRN").checked = data.isPRN || false;
-            
+
             if (medTimePicker && data.time) medTimePicker.setDate(data.time);
-            
+
             const freqSelect = document.getElementById("medFrequency");
             freqSelect.disabled = data.isPRN || false;
             freqSelect.value = data.isPRN ? "prn" : (data.frequency || 'daily');
-            
+
             document.getElementById("medReminder").value = data.reminderOffset || "0";
-            
+
             // Handle Days Checkboxes
             document.querySelectorAll('input[name="weekDay"]').forEach(cb => cb.checked = false);
             if (data.frequency === 'specific' && !data.isPRN) {
@@ -429,7 +429,7 @@ if (medForm) {
         e.preventDefault();
         const role = localStorage.getItem('userRole');
         if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-        
+
         const nameVal = document.getElementById("medName").value.trim();
         const dosageVal = document.getElementById("medDosage").value.trim();
         const timeVal = document.getElementById("medTime").value;
@@ -445,7 +445,7 @@ if (medForm) {
         }
 
         const data = {
-            name: nameVal, dosage: dosageVal, time: timeVal, 
+            name: nameVal, dosage: dosageVal, time: timeVal,
             frequency: isPRN ? 'prn' : freq,
             isPRN: isPRN,
             formType: document.getElementById("medFormType").value,
@@ -466,11 +466,11 @@ if (medForm) {
 
         try {
             await window.medicationService.save(data, id || null);
-            if(window.showToast) showToast("Success", "Medication Saved", "success");
+            if (window.showToast) showToast("Success", "Medication Saved", "success");
             closeMedModal();
             loadInventory('caregiver');
             loadChecklist(currentViewDate);
-        } catch(e) { alert(e.message); }
+        } catch (e) { alert(e.message); }
     });
 }
 window.deleteMed = function (id) {

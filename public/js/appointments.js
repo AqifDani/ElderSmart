@@ -44,20 +44,20 @@ async function checkShiftAvailability(fullDateStr) {
             const onDutyPerson = shifts[0].caregiver;
             assignedInput.value = onDutyPerson;
             assignedInput.classList.add("input-success");
-            if(window.showToast) showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
+            if (window.showToast) showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
         } else {
             // CALL THE STRICT FAIRNESS ENGINE
             const priorityResult = await window.scheduleService.calculateFairnessPriority(currentUser.familyId, dateStr);
-            
+
             if (priorityResult) {
                 assignedInput.value = priorityResult.name;
                 assignedInput.classList.add("input-warning");
-                if(window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized.`, "default");
+                if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized.`, "default");
             } else {
                 // FALLBACK: Everyone busy or unassigned
                 if (currentUser) assignedInput.value = currentUser.name;
                 assignedInput.classList.add("input-auto");
-                if(window.showToast) showToast("Notice", "No available caregivers found. Self-assigning.", "default");
+                if (window.showToast) showToast("Notice", "No available caregivers found. Self-assigning.", "default");
             }
         }
     } catch (error) {
@@ -133,8 +133,8 @@ function loadAppointments(userRole) {
             const rowClass = isCompleted ? "row-completed" : "";
             const textClass = isCompleted ? "text-strike" : "";
 
-            const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0") 
-                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${data.reminderOffset}m before"></i>` 
+            const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0")
+                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${data.reminderOffset}m before"></i>`
                 : "";
 
             tableBody.innerHTML += `
@@ -211,28 +211,28 @@ window.openApptModal = async function (id = null) {
 window.closeApptModal = function () { document.getElementById("apptModal").style.display = "none"; };
 
 // --- Confirmation Modal Logic ---
-window.showConfirmModal = function({ title, message, iconClass, wrapperClass, btnText, btnClass, onConfirm }) {
+window.showConfirmModal = function ({ title, message, iconClass, wrapperClass, btnText, btnClass, onConfirm }) {
     const modal = document.getElementById("confirmModal");
     document.getElementById("confirmTitle").innerText = title;
     document.getElementById("confirmMessage").innerText = message;
-    
+
     const iconWrapper = document.getElementById("confirmIconWrapper");
     iconWrapper.innerHTML = `<i class="${iconClass}"></i>`;
     iconWrapper.className = `confirm-icon-wrapper mb-6 ${wrapperClass}`;
-    
+
     const actionBtn = document.getElementById("confirmActionBtn");
     actionBtn.innerText = btnText;
     actionBtn.className = `btn-primary w-full ${btnClass}`;
-    
+
     actionBtn.onclick = () => {
         onConfirm();
         closeConfirmModal();
     };
-    
+
     modal.style.display = "flex";
 };
 
-window.closeConfirmModal = function() {
+window.closeConfirmModal = function () {
     document.getElementById("confirmModal").style.display = "none";
 };
 
@@ -240,7 +240,7 @@ window.closeConfirmModal = function() {
 window.deleteAppt = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    
+
     showConfirmModal({
         title: "Delete Appointment?",
         message: "Are you sure you want to remove this schedule? This action cannot be reversed.",
@@ -260,7 +260,7 @@ window.deleteAppt = function (id) {
 window.completeAppt = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    
+
     showConfirmModal({
         title: "Complete Visit?",
         message: "Mark this appointment as successfully completed? This will update the elder's timeline.",

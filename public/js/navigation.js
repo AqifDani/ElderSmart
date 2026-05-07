@@ -196,11 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ==============================
    3. UTILS (Logout, Role, Toast)
    ============================= */
-window.closeLogoutModal = function() {
+window.closeLogoutModal = function () {
     document.getElementById('logoutModal').classList.remove('active');
 }
 
-window.confirmLogout = function() {
+window.confirmLogout = function () {
     firebase.auth().signOut().then(() => {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('userRole');
@@ -258,14 +258,14 @@ window.checkUserRole = async function () {
 
             const role = localStorage.getItem('userRole');
             const path = window.location.pathname.toLowerCase();
-            
+
             // STRICT RBAC ROUTING
             const CAREGIVER_ONLY = ['caregiver-dashboard.html', 'notifications.html', 'elder_profiles.html', 'schedule.html'];
             const ELDER_ONLY = ['elder-dashboard.html'];
-            
+
             const isCaregiverPage = CAREGIVER_ONLY.some(p => path.includes(p));
             const isElderPage = ELDER_ONLY.some(p => path.includes(p));
-            
+
             if (role === 'elder' && isCaregiverPage) {
                 window.location.href = 'elder-dashboard.html';
                 return resolve(null);
@@ -299,10 +299,10 @@ window.showToast = function (title, message, type = 'default') {
         setTimeout(() => toast.remove(), 500);
     }, 3000);
 };
-window.togglePassword = function(inputId, iconElement) {
+window.togglePassword = function (inputId, iconElement) {
     const input = document.getElementById(inputId);
     const icon = iconElement.querySelector('i');
-    
+
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.remove('fa-eye');

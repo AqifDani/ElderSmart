@@ -18,17 +18,18 @@
 
     <main class="main-content">
         <div class="dashboard-container">
-            
+
             <header class="dashboard-header stagger-1">
                 <div>
                     <h1>Hello, <span id="welcomeName">Friend</span> 👋</h1>
                     <p class="subtitle text-muted">Here is your plan for today.</p>
                 </div>
-                
+
                 <div class="family-code-pill">
                     <span>Family Code:</span>
                     <span id="displayFamilyId" class="code-text">LOADING</span>
-                    <button onclick="copyFamilyCode()" class="text-link" style="background:none; border:none; cursor:pointer;" title="Copy">
+                    <button onclick="copyFamilyCode()" class="text-link"
+                        style="background:none; border:none; cursor:pointer;" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
@@ -69,7 +70,8 @@
                         </thead>
                         <tbody id="scheduleBody">
                             <tr>
-                                <td colspan="3" class="text-center p-4 text-muted skeleton skeleton-text" style="height:40px;">Loading schedule...</td>
+                                <td colspan="3" class="text-center p-4 text-muted skeleton skeleton-text"
+                                    style="height:40px;">Loading schedule...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -84,4 +86,5 @@
     <script src="js/services.js"></script>
     <script src="js/elder-dashboard.js"></script>
 </body>
+
 </html>

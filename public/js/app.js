@@ -16,7 +16,7 @@ async function login(event) {
 
     try {
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        await handleUserRedirect(userCredential.user); 
+        await handleUserRedirect(userCredential.user);
     } catch (error) {
         console.error(error);
         if (window.showToast) {
@@ -48,7 +48,7 @@ async function registerUser(event) {
         }
         return;
     }
-    
+
     const btn = document.getElementById('regBtn');
     const originalText = btn.innerText;
     btn.innerText = "Creating Account...";
@@ -75,7 +75,7 @@ async function registerUser(event) {
         } else {
             alert("Account Created! Please verify your email.");
         }
-        
+
         await handleUserRedirect(user);
 
     } catch (error) {
@@ -100,7 +100,7 @@ async function registerUser(event) {
 async function handleUserRedirect(user) {
     try {
         const doc = await firebase.firestore().collection("users").doc(user.uid).get();
-        
+
         if (!doc.exists) {
             if (window.showToast) {
                 showToast("Error", "User profile not found.", "error");
@@ -133,8 +133,8 @@ async function handleUserRedirect(user) {
 
         // 3. AUTH & ONBOARDING ROUTING
         if (!user.emailVerified) {
-             // Optional: Allow them to see a "Please verify" message/page
-             // window.location.href = 'verify-email.html'; 
+            // Optional: Allow them to see a "Please verify" message/page
+            // window.location.href = 'verify-email.html'; 
         }
 
         if (!userData.onboardingComplete) {
@@ -152,4 +152,4 @@ async function handleUserRedirect(user) {
     } catch (error) {
         console.error("Redirect Error:", error);
     }
-}
+}
