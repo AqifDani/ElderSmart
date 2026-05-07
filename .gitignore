@@ -1,7 +1,7 @@
 # ==============================================
 # SECRET CONFIGURATION — never commit real keys
 # ==============================================
-js/config.js
+public/js/config.js
 
 # Backup folder (contains previously exposed keys)
 js_backup/
