@@ -3797,6 +3797,15 @@ body.auth-split-page {
     align-items: center;
     gap: 12px;
     margin-bottom: 40px;
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+.logo-header:visited, 
+.logo-header:active, 
+.logo-header:hover {
+    color: inherit !important;
+    text-decoration: none !important;
 }
 
 .auth-title {
