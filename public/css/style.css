@@ -3776,14 +3776,12 @@ body.auth-split-page {
 /* Right Side: Form Container */
 .auth-form-container {
     flex: 1;
-    /* Takes remaining space */
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 40px;
+    align-items: flex-start; /* Start from top to prevent clipping */
+    padding: 60px 40px; /* Generous vertical padding for scrolling */
     background: white;
     overflow-y: auto;
-    /* Scrolls if form is tall */
 }
 
 .auth-card-modern {
