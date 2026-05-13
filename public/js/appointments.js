@@ -46,13 +46,13 @@ async function checkShiftAvailability(fullDateStr) {
             assignedInput.classList.add("input-success");
             if (window.showToast) showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
         } else {
-            // CALL THE STRICT FAIRNESS ENGINE
-            const priorityResult = await window.scheduleService.calculateFairnessPriority(currentUser.familyId, dateStr);
+            // CALL THE O(1) FAIRNESS ENGINE v2
+            const priorityResult = await window.scheduleService.getLeastBusyCaregiver(currentUser.familyId);
 
             if (priorityResult) {
                 assignedInput.value = priorityResult.name;
                 assignedInput.classList.add("input-warning");
-                if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized.`, "default");
+                if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized (${priorityResult.totalShiftsCompleted} shifts).`, "default");
             } else {
                 // FALLBACK: Everyone busy or unassigned
                 if (currentUser) assignedInput.value = currentUser.name;
@@ -268,11 +268,23 @@ window.completeAppt = function (id) {
         wrapperClass: "success",
         btnText: "Confirm Completion",
         btnClass: "bg-success",
-        onConfirm: () => {
-            window.appointmentService.markComplete(id).then(() => {
+        onConfirm: async () => {
+            try {
+                // Resolve assigned caregiver UID from appointment document
+                const apptDoc = await firebase.firestore().collection('appointments').doc(id).get();
+                const apptData = apptDoc.exists ? apptDoc.data() : null;
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+                // Use assigned UID if exists, otherwise use current user UID
+                const caregiverUid = (apptData && apptData.assignedToId) ? apptData.assignedToId : currentUser.uid;
+
+                await window.appointmentService.markShiftCompleted(id, caregiverUid);
                 showToast("Success", "Appointment completed!", "success");
                 loadAppointments('caregiver');
-            });
+            } catch (error) {
+                console.error('Complete appointment error:', error);
+                showToast("Error", "Could not complete appointment.", "error");
+            }
         }
     });
 };

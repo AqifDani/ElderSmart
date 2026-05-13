@@ -6683,3 +6683,45 @@ body.auth-split-page {
         font-size: 18px !important;
     }
 }
+
+/* --- Clinical Chart (View Profile) Mobile Fixes --- */
+@media (max-width: 768px) {
+    .clinical-workspace-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    .clinical-sidebar {
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+    }
+
+    .clinical-main-content {
+        width: 100% !important;
+    }
+
+    .clinical-tabs {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+
+    .clinical-tab {
+        padding: 8px 12px !important;
+        font-size: 11px !important;
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+    }
+
+    .chart-container-large {
+        height: 220px !important; /* Slightly smaller charts for mobile */
+    }
+    
+    /* Ensure the print/share buttons don't overlap tabs */
+    .clinical-main-content .flex.justify-between {
+        flex-direction: column !important;
+        gap: 15px !important;
+        align-items: center !important;
+    }
+}

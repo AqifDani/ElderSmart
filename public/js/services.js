@@ -195,6 +195,31 @@ class AppointmentService extends BaseService {
         });
         return true;
     }
+
+    /**
+     * FAIRNESS ENGINE — Atomic Write.
+     * Marks the shift as completed and increments the caregiver's counter by +1 in a single batch operation.
+     * This ensures consistency: if one write fails, both fail.
+     */
+    async markShiftCompleted(appointmentId, caregiverUid) {
+        const batch = this.db.batch();
+
+        // Operation 1: Mark appointment as completed
+        const appointmentRef = this.collection.doc(appointmentId);
+        batch.update(appointmentRef, {
+            status: 'completed',
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Operation 2: Atomic increment of the caregiver's counter
+        const userRef = this.db.collection('users').doc(caregiverUid);
+        batch.update(userRef, {
+            totalShiftsCompleted: firebase.firestore.FieldValue.increment(1)
+        });
+
+        await batch.commit();
+        return true;
+    }
 }
 
 class HealthService extends BaseService {
@@ -377,89 +402,35 @@ class ScheduleService extends BaseService {
     }
 
     /**
-     * THE STRICT FAIRNESS ENGINE
-     * Determines which caregiver is prioritized for a shift based on deficit, workload, and recency.
+     * THE O(1) FAIRNESS ENGINE (v2)
+     * Direct query to the totalShiftsCompleted field in the user profile.
+     * No longer downloads historical appointments — single document read.
+     * 
+     * REQUIRES composite index in Firestore:
+     * Collection: users | Fields: familyId ASC, role ASC, totalShiftsCompleted ASC
      */
-    async calculateFairnessPriority(familyId, targetDate) {
+    async getLeastBusyCaregiver(familyId) {
         try {
-            // 1. Fetch all potential caregivers (Both roles)
-            const caregiversSnap = await this.usersCollection
-                .where("familyId", "==", familyId)
-                .where("role", "in", ["caregiver", "primary_caregiver"])
+            const snap = await this.usersCollection
+                .where('familyId', '==', familyId)
+                .where('role', 'in', ['caregiver', 'primary_caregiver'])
+                .orderBy('totalShiftsCompleted', 'asc')
+                .limit(1)
                 .get();
 
-            if (caregiversSnap.empty) return null;
+            if (snap.empty) return null;
 
-            let caregivers = caregiversSnap.docs.map(doc => ({
+            const doc = snap.docs[0];
+            const data = doc.data();
+
+            return {
                 uid: doc.id,
-                name: doc.data().name,
-                deficitScore: doc.data().deficitScore || 0
-            }));
-
-            // 2. FILTER: Explicitly Busy
-            const busySnap = await this.availabilityCollection
-                .where("familyId", "==", familyId)
-                .where("date", "==", targetDate)
-                .where("status", "==", "busy")
-                .get();
-
-            const busyIds = new Set(busySnap.docs.map(doc => doc.data().caregiverId));
-            let eligibleCaregivers = caregivers.filter(c => !busyIds.has(c.uid));
-
-            if (eligibleCaregivers.length === 0) return null;
-
-            // 3. ENRICH DATA: Fetch monthly totals and recency
-            const enrichmentPromises = eligibleCaregivers.map(async (caregiver) => {
-                const stats = await this._getCaregiverWorkloadStats(caregiver.uid);
-                return { ...caregiver, ...stats };
-            });
-
-            const enrichedCaregivers = await Promise.all(enrichmentPromises);
-
-            // 4. THE ALGORITHMIC SORT
-            enrichedCaregivers.sort((a, b) => {
-                // Priority 1: Deficit Score (Lowest owes shifts)
-                if (a.deficitScore !== b.deficitScore) return a.deficitScore - b.deficitScore;
-
-                // Priority 2: Monthly Total (Tie-breaker 1)
-                if (a.monthlyTotal !== b.monthlyTotal) return a.monthlyTotal - b.monthlyTotal;
-
-                // Priority 3: Recency (Tie-breaker 2: oldest timestamp first)
-                return a.lastShiftTimestamp - b.lastShiftTimestamp;
-            });
-
-            return { uid: enrichedCaregivers[0].uid, name: enrichedCaregivers[0].name };
+                name: data.name,
+                totalShiftsCompleted: data.totalShiftsCompleted || 0
+            };
         } catch (error) {
-            console.error("Fairness Engine Error:", error);
+            console.error('Fairness Engine v2 Error:', error);
             return null;
-        }
-    }
-
-    async _getCaregiverWorkloadStats(caregiverId) {
-        const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        
-        try {
-            const apptsSnap = await this.appointmentsCollection
-                .where("assignedToId", "==", caregiverId)
-                .where("status", "==", "completed")
-                .where("date", ">=", thirtyDaysAgo) // ROLLLING WINDOW OPTIMIZATION
-                .get();
-
-            let monthlyTotal = 0;
-            let lastShiftTimestamp = 0;
-
-            apptsSnap.forEach(doc => {
-                const apptDate = doc.data().date;
-                if (apptDate >= startOfMonth) monthlyTotal++;
-                const ts = new Date(apptDate).getTime();
-                if (ts > lastShiftTimestamp) lastShiftTimestamp = ts;
-            });
-
-            return { monthlyTotal, lastShiftTimestamp };
-        } catch (e) {
-            return { monthlyTotal: 0, lastShiftTimestamp: 0 };
         }
     }
 

@@ -220,6 +220,11 @@ window.finishOnboarding = async function() {
             onboardedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
+        // Initialize shift counter for caregiver roles (Fairness Engine)
+        if (selectedRole === 'caregiver' || selectedRole === 'primary_caregiver') {
+            updateData.totalShiftsCompleted = 0;
+        }
+
         if (photoUrl) updateData.photo = photoUrl;
 
         // 4. Sync to LocalStorage (CRITICAL for sidebar injection)
