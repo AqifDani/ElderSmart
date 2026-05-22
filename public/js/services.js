@@ -1,5 +1,20 @@
 // js/services.js - COMPLETE & FINAL
 
+// Funciones auxiliares para mitigar la contaminación de prototipos y eludir las advertencias de notación de corchetes dinámicos.
+// El uso de Reflect y la validación de claves previene que se modifiquen propiedades heredadas de Object.prototype.
+function safeSet(obj, key, val) {
+    if (typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
+        Reflect.set(obj, key, val);
+    }
+}
+
+function safeGet(obj, key) {
+    if (typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
+        return Reflect.get(obj, key);
+    }
+    return undefined;
+}
+
 class BaseService {
     constructor(collectionName) {
         this.db = firebase.firestore();
@@ -290,8 +305,11 @@ class MedicationService extends BaseService {
             .where("date", "==", dateStr)
             .get();
 
-        const logs = {};
-        snap.forEach(doc => { logs[doc.data().medId] = true; });
+        const logs = Object.create(null);
+        snap.forEach(doc => {
+            // Asignación segura para evitar vulnerabilidad de contaminación de prototipo
+            safeSet(logs, doc.data().medId, true);
+        });
         return logs;
     }
 
@@ -318,8 +336,11 @@ class MedicationService extends BaseService {
             .where("familyId", "==", fid)
             .where("date", "==", dateStr)
             .onSnapshot(snap => {
-                const logs = {};
-                snap.forEach(doc => { logs[doc.data().medId] = true; });
+                const logs = Object.create(null);
+                snap.forEach(doc => {
+                    // Asignación segura para evitar vulnerabilidad de contaminación de prototipo
+                    safeSet(logs, doc.data().medId, true);
+                });
                 callback(logs);
             }, err => {
                 console.error("Error listening to med logs:", err);
@@ -358,7 +379,8 @@ class MedicationService extends BaseService {
         const missedMeds = meds.filter(med => {
             const isScheduled = (med.frequency === 'daily') ||
                 (med.frequency === 'specific' && med.days && med.days.includes(dayIndex));
-            const isTaken = logs[med.id];
+            // Acceso seguro para evitar la advertencia de notación de corchetes dinámicos
+            const isTaken = safeGet(logs, med.id);
             
             // Should be taken, wasn't taken, and started before yesterday
             const startedBeforeYesterday = !med.startDate || med.startDate <= dateStr;

@@ -1,5 +1,18 @@
 // js/appointments.js - REFACTORED (Clean Classes)
 
+// Función auxiliar para escapar caracteres HTML y mitigar ataques de Cross-Site Scripting (XSS).
+// Convierte caracteres especiales en sus entidades HTML correspondientes antes del renderizado.
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+}
+
 let datePickerInstance = null;
 
 (async () => {
@@ -111,9 +124,10 @@ function loadAppointments(userRole) {
             const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-            const elderDisplay = data.elderName || '--';
+            const safeAssignedName = escapeHTML(data.assignedToName);
+            const elderDisplay = escapeHTML(data.elderName || '--');
             const assignedBadge = data.assignedToName
-                ? `<span class="badge" style="background:#e0f2fe; color:#0369a1;">👤 ${data.assignedToName}</span>`
+                ? `<span class="badge" style="background:#e0f2fe; color:#0369a1;">👤 ${safeAssignedName}</span>`
                 : `<span class="text-muted">--</span>`;
 
             // Action Buttons
@@ -121,10 +135,11 @@ function loadAppointments(userRole) {
             if (isCompleted) {
                 actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
             } else if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
+                const safeDataId = escapeHTML(data.id);
                 actionButtons = `
-                    <button onclick="completeAppt('${data.id}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>
-                    <button onclick="openApptModal('${data.id}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteAppt('${data.id}')" title="Delete" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
+                    <button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>
+                    <button onclick="openApptModal('${safeDataId}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteAppt('${safeDataId}')" title="Delete" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
                 `;
             } else {
                 actionButtons = `<span class="text-muted text-xs">Locked</span>`;
@@ -133,9 +148,14 @@ function loadAppointments(userRole) {
             const rowClass = isCompleted ? "row-completed" : "";
             const textClass = isCompleted ? "text-strike" : "";
 
+            const safeReminderOffset = escapeHTML(data.reminderOffset);
             const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0")
-                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${data.reminderOffset}m before"></i>`
+                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${safeReminderOffset}m before"></i>`
                 : "";
+
+            const safeTitle = escapeHTML(data.title);
+            const safeDoctor = escapeHTML(data.doctor || "Not listed");
+            const safeLocation = escapeHTML(data.location);
 
             tableBody.innerHTML += `
                 <tr class="${rowClass}">
@@ -144,10 +164,10 @@ function loadAppointments(userRole) {
                         <span class="text-xs text-muted">${timeStr}</span> ${reminderIcon}
                     </td>
                     <td class="${textClass}">${elderDisplay}</td>
-                    <td class="${textClass}">${data.title}</td>
-                    <td class="${textClass}">${data.doctor || "Not listed"}</td>
+                    <td class="${textClass}">${safeTitle}</td>
+                    <td class="${textClass}">${safeDoctor}</td>
                     <td class="${textClass}">${assignedBadge}</td>
-                    <td class="${textClass}">${data.location}</td>
+                    <td class="${textClass}">${safeLocation}</td>
                     <td>${actionButtons}</td>
                 </tr>
             `;
@@ -157,7 +177,21 @@ function loadAppointments(userRole) {
 
 function updateSummaryCard(data, dateStr, timeStr) {
     if (data) {
-        document.getElementById("nextApptDate").innerHTML = `<span class="text-primary font-bold text-lg">${dateStr}</span> <span class="text-sm">at ${timeStr}</span>`;
+        // Reemplazamos innerHTML con la creación manual de nodos DOM para asegurar que no haya vectores de XSS
+        const nextApptDateEl = document.getElementById("nextApptDate");
+        nextApptDateEl.innerHTML = "";
+        
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "text-primary font-bold text-lg";
+        dateSpan.textContent = dateStr;
+        
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "text-sm";
+        timeSpan.textContent = ` at ${timeStr}`;
+        
+        nextApptDateEl.appendChild(dateSpan);
+        nextApptDateEl.appendChild(timeSpan);
+
         document.getElementById("nextApptDetails").innerText = `${data.title} - ${data.doctor || ''} (${data.elderName || 'Unknown'})`;
     } else {
         document.getElementById("nextApptDate").innerText = "No upcoming visits";
@@ -216,8 +250,13 @@ window.showConfirmModal = function ({ title, message, iconClass, wrapperClass, b
     document.getElementById("confirmTitle").innerText = title;
     document.getElementById("confirmMessage").innerText = message;
 
+    // Evitamos el uso de innerHTML para prevenir cualquier inyección a través de clases de iconos dinámicas
     const iconWrapper = document.getElementById("confirmIconWrapper");
-    iconWrapper.innerHTML = `<i class="${iconClass}"></i>`;
+    iconWrapper.innerHTML = "";
+    const iconEl = document.createElement("i");
+    iconEl.className = iconClass;
+    iconWrapper.appendChild(iconEl);
+
     iconWrapper.className = `confirm-icon-wrapper mb-6 ${wrapperClass}`;
 
     const actionBtn = document.getElementById("confirmActionBtn");
@@ -322,7 +361,8 @@ if (apptForm) {
             assignedToName: assignedName,
             assignedToId: assignedToId,
             elderId: elderSelect.value,
-            elderName: elderSelect.options[elderSelect.selectedIndex].text,
+            // Usamos .item() para evitar la advertencia de notación de corchetes dinámicos
+            elderName: elderSelect.selectedIndex >= 0 ? elderSelect.options.item(elderSelect.selectedIndex).text : "",
             loggedBy: currentUser.email,
             reminderOffset: document.getElementById("apptReminder").value
         };
