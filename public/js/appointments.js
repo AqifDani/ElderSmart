@@ -308,7 +308,7 @@ window.showConfirmModal = function ({ title, message, iconClass, wrapperClass, b
     document.getElementById("confirmTitle").innerText = title;
     document.getElementById("confirmMessage").innerText = message;
 
-    // Evitamos el uso de innerHTML para prevenir cualquier inyección a través de clases de iconos dinámicas
+    // We avoid using innerHTML to prevent any injection through dynamic icon classes
     const iconWrapper = document.getElementById("confirmIconWrapper");
     iconWrapper.innerHTML = "";
     const iconEl = document.createElement("i");
