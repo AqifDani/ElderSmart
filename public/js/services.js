@@ -173,10 +173,18 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return [];
 
-        const now = new Date().toISOString();
+        // Obtener la fecha y hora local del sistema para una consulta precisa que evite desfases de zona horaria
+        const localNow = new Date();
+        const year = localNow.getFullYear();
+        const month = String(localNow.getMonth() + 1).padStart(2, '0');
+        const day = String(localNow.getDate()).padStart(2, '0');
+        const hours = String(localNow.getHours()).padStart(2, '0');
+        const minutes = String(localNow.getMinutes()).padStart(2, '0');
+        const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
         const snap = await this.collection
             .where("familyId", "==", fid)
-            .where("date", ">=", now)
+            .where("date", ">=", localNowStr)
             .orderBy("date", "asc")
             .get();
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -186,10 +194,18 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
 
-        const now = new Date().toISOString();
+        // Obtener la fecha y hora local del sistema para una escucha en tiempo real precisa sin problemas de desfase
+        const localNow = new Date();
+        const year = localNow.getFullYear();
+        const month = String(localNow.getMonth() + 1).padStart(2, '0');
+        const day = String(localNow.getDate()).padStart(2, '0');
+        const hours = String(localNow.getHours()).padStart(2, '0');
+        const minutes = String(localNow.getMinutes()).padStart(2, '0');
+        const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
         return this.collection
             .where("familyId", "==", fid)
-            .where("date", ">=", now)
+            .where("date", ">=", localNowStr)
             .orderBy("date", "asc")
             .onSnapshot(snap => {
                 callback(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -443,10 +459,18 @@ class ScheduleService extends BaseService {
                 });
             });
 
-            const now = new Date().toISOString();
+            // Obtener fecha y hora local del sistema para consultas de fecha precisas sin sesgo de UTC
+            const localNow = new Date();
+            const year = localNow.getFullYear();
+            const month = String(localNow.getMonth() + 1).padStart(2, '0');
+            const day = String(localNow.getDate()).padStart(2, '0');
+            const hours = String(localNow.getHours()).padStart(2, '0');
+            const minutes = String(localNow.getMinutes()).padStart(2, '0');
+            const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
             const apptsSnap = await this.appointmentsCollection
                 .where('familyId', '==', familyId)
-                .where('date', '>=', now)
+                .where('date', '>=', localNowStr)
                 .get();
 
             apptsSnap.forEach(doc => {
@@ -459,24 +483,28 @@ class ScheduleService extends BaseService {
                 }
             });
 
+            // Asignar un factor aleatorio estable por ejecución para la resolución de empates consistentes
             const enriched = caregivers.map(c => ({
                 uid: c.uid,
                 name: c.name,
                 totalShiftsCompleted: c.totalShiftsCompleted,
                 pendingShifts: c.pendingShifts,
-                effectiveWorkload: c.totalShiftsCompleted + c.pendingShifts
+                effectiveWorkload: c.totalShiftsCompleted + c.pendingShifts,
+                randomTieBreaker: Math.random()
             }));
 
             enriched.sort((a, b) => {
                 if (a.effectiveWorkload !== b.effectiveWorkload) {
                     return a.effectiveWorkload - b.effectiveWorkload;
                 }
-                return Math.random() - 0.5;
+                return a.randomTieBreaker - b.randomTieBreaker;
             });
 
             return {
                 uid: enriched[0].uid,
                 name: enriched[0].name,
+                totalShiftsCompleted: enriched[0].totalShiftsCompleted,
+                pendingShifts: enriched[0].pendingShifts,
                 effectiveWorkload: enriched[0].effectiveWorkload
             };
         } catch (error) {

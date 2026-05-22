@@ -46,8 +46,8 @@ async function checkShiftAvailability(fullDateStr) {
     const dateStr = fullDateStr.split("T")[0];
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    assignedInput.className = "input-loading";
-    assignedInput.value = "Calculating...";
+    // Agregamos una clase css visual para indicar cálculo en curso sin destruir las opciones cargadas
+    assignedInput.classList.add("input-loading");
 
     try {
         const shifts = await window.scheduleService.getShifts(dateStr, dateStr);
@@ -55,28 +55,35 @@ async function checkShiftAvailability(fullDateStr) {
 
         if (shifts.length > 0) {
             const onDutyPerson = shifts[0].caregiver;
-            assignedInput.value = onDutyPerson;
-            assignedInput.classList.add("input-success");
-            if (window.showToast) showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
+            const found = selectOptionByName(assignedInput, onDutyPerson);
+            assignedInput.className = "input-success";
+            if (window.showToast) {
+                if (found) {
+                    showToast("Smart Assign", `${onDutyPerson} is on shift.`, "success");
+                } else {
+                    showToast("Smart Assign", `${onDutyPerson} is on shift, but option not found.`, "warning");
+                }
+            }
         } else {
-            // CALL THE O(1) FAIRNESS ENGINE v2
+            // Consultamos al Fairness Engine v3 para obtener el cuidador con menor carga de trabajo
             const priorityResult = await window.scheduleService.getLeastBusyCaregiver(currentUser.familyId);
 
             if (priorityResult) {
-                assignedInput.value = priorityResult.name;
-                assignedInput.classList.add("input-warning");
+                assignedInput.value = priorityResult.uid;
+                assignedInput.className = "input-warning";
                 if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized (${priorityResult.totalShiftsCompleted} shifts).`, "default");
             } else {
-                // FALLBACK: Everyone busy or unassigned
-                if (currentUser) assignedInput.value = currentUser.name;
-                assignedInput.classList.add("input-auto");
+                // En caso de que no haya otros cuidadores, se asigna por defecto al usuario actual
+                if (currentUser) assignedInput.value = currentUser.uid;
+                assignedInput.className = "input-auto";
                 if (window.showToast) showToast("Notice", "No available caregivers found. Self-assigning.", "default");
             }
         }
     } catch (error) {
         console.error("Shift Check Error:", error);
-        if (currentUser) assignedInput.value = currentUser.name;
-        assignedInput.classList.add("input-auto");
+        assignedInput.classList.remove("input-loading");
+        if (currentUser) assignedInput.value = currentUser.uid;
+        assignedInput.className = "input-auto";
     }
 }
 
@@ -200,6 +207,37 @@ function updateSummaryCard(data, dateStr, timeStr) {
 }
 
 // ... (Load Elder Options, Open/Close Modal - Standard) ...
+// Busca y selecciona una opción en un elemento select basándose en el texto que se muestra en lugar de su valor
+function selectOptionByName(selectElement, name) {
+    if (!name) return false;
+    for (let i = 0; i < selectElement.options.length; i++) {
+        if (selectElement.options[i].text.toLowerCase() === name.toLowerCase()) {
+            selectElement.selectedIndex = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Carga de forma dinámica los cuidadores de la familia activa para poblar el dropdown de asignación
+async function loadCaregiverOptions() {
+    const select = document.getElementById("apptAssigned");
+    select.innerHTML = '<option value="">Loading caregivers...</option>';
+    try {
+        const caregivers = await window.elderService.getCaregivers();
+        select.innerHTML = '<option value="">-- Select Caregiver --</option>';
+        caregivers.forEach(c => {
+            const op = document.createElement("option");
+            op.value = c.id;
+            op.text = c.name;
+            select.appendChild(op);
+        });
+    } catch (e) {
+        console.error("Error loading caregivers:", e);
+        select.innerHTML = '<option value="">Failed to load caregivers</option>';
+    }
+}
+
 async function loadElderOptions() {
     const select = document.getElementById("apptElder");
     select.innerHTML = '<option value="">Loading...</option>';
@@ -217,7 +255,12 @@ window.openApptModal = async function (id = null) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     document.getElementById("apptModal").style.display = "flex";
-    await loadElderOptions();
+    
+    // Cargamos tanto los adultos mayores como los cuidadores en paralelo para evitar retrasos de red secuenciales
+    await Promise.all([loadElderOptions(), loadCaregiverOptions()]);
+    
+    const assignedInput = document.getElementById("apptAssigned");
+    
     if (id) {
         const doc = await firebase.firestore().collection("appointments").doc(id).get();
         if (doc.exists) {
@@ -228,7 +271,19 @@ window.openApptModal = async function (id = null) {
             document.getElementById("apptLocation").value = d.location;
             document.getElementById("apptNotes").value = d.notes;
             if (datePickerInstance) datePickerInstance.setDate(d.date);
-            document.getElementById("apptAssigned").value = d.assignedToName;
+            
+            // Asigna de forma segura el valor al select utilizando el ID del cuidador asignado, con respaldo al nombre
+            if (d.assignedToId) {
+                assignedInput.value = d.assignedToId;
+            } else if (d.assignedToName) {
+                const found = selectOptionByName(assignedInput, d.assignedToName);
+                if (!found) {
+                    assignedInput.value = "";
+                }
+            } else {
+                assignedInput.value = "";
+            }
+            
             document.getElementById("apptElder").value = d.elderId;
             document.getElementById("apptReminder").value = d.reminderOffset || "0";
         }
@@ -237,7 +292,9 @@ window.openApptModal = async function (id = null) {
         document.getElementById("apptId").value = "";
         if (datePickerInstance) datePickerInstance.clear();
         const u = JSON.parse(localStorage.getItem('currentUser'));
-        if (u) document.getElementById("apptAssigned").value = u.name;
+        if (u) {
+            assignedInput.value = u.uid;
+        }
         document.getElementById("apptReminder").value = "0";
     }
 };
@@ -328,7 +385,7 @@ window.completeAppt = function (id) {
     });
 };
 
-// Form Submit
+// Manejo del envío del formulario de citas para persistir de forma atómica los datos en Firestore
 const apptForm = document.getElementById("apptForm");
 if (apptForm) {
     apptForm.addEventListener("submit", async function (e) {
@@ -337,20 +394,13 @@ if (apptForm) {
         if (role !== 'caregiver' && role !== 'primary_caregiver') return;
         const id = document.getElementById("apptId").value;
         const elderSelect = document.getElementById("apptElder");
-        const assignedName = document.getElementById("apptAssigned").value;
+        const assignedSelect = document.getElementById("apptAssigned");
         const title = document.getElementById("apptTitle").value;
         const currentUser = firebase.auth().currentUser;
 
-        let assignedToId = null;
-        const myFamilyId = JSON.parse(localStorage.getItem('currentUser')).familyId;
-
-        if (assignedName) {
-            const userSnap = await firebase.firestore().collection("users")
-                .where("familyId", "==", myFamilyId).where("name", "==", assignedName).get();
-            if (!userSnap.empty) {
-                assignedToId = userSnap.docs[0].id;
-            }
-        }
+        // Resolvemos de forma sincrónica el ID y el nombre del cuidador desde las opciones del elemento select
+        const assignedToId = assignedSelect.value || null;
+        const assignedToName = (assignedSelect.selectedIndex >= 0 && assignedSelect.value) ? assignedSelect.options.item(assignedSelect.selectedIndex).text : "";
 
         const apptData = {
             date: document.getElementById("apptDate").value,
@@ -358,7 +408,7 @@ if (apptForm) {
             doctor: document.getElementById("apptDoctor").value,
             location: document.getElementById("apptLocation").value,
             notes: document.getElementById("apptNotes").value,
-            assignedToName: assignedName,
+            assignedToName: assignedToName,
             assignedToId: assignedToId,
             elderId: elderSelect.value,
             // Usamos .item() para evitar la advertencia de notación de corchetes dinámicos
