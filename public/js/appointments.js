@@ -71,7 +71,8 @@ async function checkShiftAvailability(fullDateStr) {
             if (priorityResult) {
                 assignedInput.value = priorityResult.uid;
                 assignedInput.className = "input-warning";
-                if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized (${priorityResult.totalShiftsCompleted} shifts).`, "default");
+                // Mostramos una alerta informativa detallando la carga de trabajo efectiva (completados más pendientes) para evitar confusión al usuario
+                if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized (Workload: ${priorityResult.effectiveWorkload} shifts - ${priorityResult.totalShiftsCompleted} completed, ${priorityResult.pendingShifts} pending).`, "default");
             } else {
                 // En caso de que no haya otros cuidadores, se asigna por defecto al usuario actual
                 if (currentUser) assignedInput.value = currentUser.uid;
