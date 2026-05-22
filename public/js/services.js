@@ -1,7 +1,7 @@
 // js/services.js - COMPLETE & FINAL
 
-// Funciones auxiliares para mitigar la contaminación de prototipos y eludir las advertencias de notación de corchetes dinámicos.
-// El uso de Reflect y la validación de claves previene que se modifiquen propiedades heredadas de Object.prototype.
+// Helper functions to mitigate prototype pollution and bypass dynamic bracket notation warnings.
+// Using Reflect and key validation prevents modification of inherited Object.prototype properties.
 function safeSet(obj, key, val) {
     if (typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
         Reflect.set(obj, key, val);
@@ -173,7 +173,7 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return [];
 
-        // Obtener la fecha y hora local del sistema para una consulta precisa que evite desfases de zona horaria
+        // Get local system date and time for a precise query that avoids timezone offsets
         const localNow = new Date();
         const year = localNow.getFullYear();
         const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -194,7 +194,7 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
 
-        // Obtener la fecha y hora local del sistema para una escucha en tiempo real precisa sin problemas de desfase
+        // Get local system date and time for a precise real-time listener without offset issues
         const localNow = new Date();
         const year = localNow.getFullYear();
         const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -323,7 +323,7 @@ class MedicationService extends BaseService {
 
         const logs = Object.create(null);
         snap.forEach(doc => {
-            // Asignación segura para evitar vulnerabilidad de contaminación de prototipo
+            // Safe assignment to avoid prototype pollution vulnerability
             safeSet(logs, doc.data().medId, true);
         });
         return logs;
@@ -354,7 +354,7 @@ class MedicationService extends BaseService {
             .onSnapshot(snap => {
                 const logs = Object.create(null);
                 snap.forEach(doc => {
-                    // Asignación segura para evitar vulnerabilidad de contaminación de prototipo
+                    // Safe assignment to avoid prototype pollution vulnerability
                     safeSet(logs, doc.data().medId, true);
                 });
                 callback(logs);
@@ -395,7 +395,7 @@ class MedicationService extends BaseService {
         const missedMeds = meds.filter(med => {
             const isScheduled = (med.frequency === 'daily') ||
                 (med.frequency === 'specific' && med.days && med.days.includes(dayIndex));
-            // Acceso seguro para evitar la advertencia de notación de corchetes dinámicos
+            // Safe access to avoid dynamic bracket notation warnings
             const isTaken = safeGet(logs, med.id);
             
             // Should be taken, wasn't taken, and started before yesterday
@@ -459,7 +459,7 @@ class ScheduleService extends BaseService {
                 });
             });
 
-            // Obtener fecha y hora local del sistema para consultas de fecha precisas sin sesgo de UTC
+            // Get local system date and time for precise date queries without UTC bias
             const localNow = new Date();
             const year = localNow.getFullYear();
             const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -483,7 +483,7 @@ class ScheduleService extends BaseService {
                 }
             });
 
-            // Asignar un factor aleatorio estable por ejecución para la resolución de empates consistentes
+            // Assign a stable random factor per execution for consistent tie-breaking resolution
             const enriched = caregivers.map(c => ({
                 uid: c.uid,
                 name: c.name,
