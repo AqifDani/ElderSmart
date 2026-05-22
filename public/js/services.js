@@ -401,37 +401,70 @@ class ScheduleService extends BaseService {
         this.availabilityCollection = this.db.collection("availability");
     }
 
-    /**
-     * THE O(1) FAIRNESS ENGINE (v2)
-     * Direct query to the totalShiftsCompleted field in the user profile.
-     * No longer downloads historical appointments — single document read.
-     * 
-     * REQUIRES composite index in Firestore:
-     * Collection: users | Fields: familyId ASC, role ASC, totalShiftsCompleted ASC
-     */
     async getLeastBusyCaregiver(familyId) {
         try {
             const snap = await this.usersCollection
                 .where('familyId', '==', familyId)
                 .where('role', 'in', ['caregiver', 'primary_caregiver'])
-                .orderBy('totalShiftsCompleted', 'asc')
-                .limit(1)
                 .get();
 
             if (snap.empty) return null;
 
-            const doc = snap.docs[0];
-            const data = doc.data();
+            let caregivers = [];
+            snap.forEach(doc => {
+                const data = doc.data();
+                caregivers.push({
+                    uid: doc.id,
+                    name: data.name,
+                    totalShiftsCompleted: data.totalShiftsCompleted || 0,
+                    pendingShifts: 0
+                });
+            });
+
+            const now = new Date().toISOString();
+            const apptsSnap = await this.appointmentsCollection
+                .where('familyId', '==', familyId)
+                .where('date', '>=', now)
+                .get();
+
+            apptsSnap.forEach(doc => {
+                const appt = doc.data();
+                if (appt.status !== 'completed' && appt.assignedToName) {
+                    const caregiver = caregivers.find(c => c.name === appt.assignedToName || c.uid === appt.assignedToId);
+                    if (caregiver) {
+                        caregiver.pendingShifts += 1;
+                    }
+                }
+            });
+
+            const enriched = caregivers.map(c => ({
+                uid: c.uid,
+                name: c.name,
+                totalShiftsCompleted: c.totalShiftsCompleted,
+                pendingShifts: c.pendingShifts,
+                effectiveWorkload: c.totalShiftsCompleted + c.pendingShifts
+            }));
+
+            enriched.sort((a, b) => {
+                if (a.effectiveWorkload !== b.effectiveWorkload) {
+                    return a.effectiveWorkload - b.effectiveWorkload;
+                }
+                return Math.random() - 0.5;
+            });
 
             return {
-                uid: doc.id,
-                name: data.name,
-                totalShiftsCompleted: data.totalShiftsCompleted || 0
+                uid: enriched[0].uid,
+                name: enriched[0].name,
+                effectiveWorkload: enriched[0].effectiveWorkload
             };
         } catch (error) {
-            console.error('Fairness Engine v2 Error:', error);
+            console.error('Fairness Engine v3 Error:', error);
             return null;
         }
+    }
+
+    async calculateFairnessPriority(familyId, targetDate) {
+        return this.getLeastBusyCaregiver(familyId);
     }
 
     async getShifts(startDate, endDate) {

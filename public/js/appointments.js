@@ -302,6 +302,17 @@ if (apptForm) {
         const title = document.getElementById("apptTitle").value;
         const currentUser = firebase.auth().currentUser;
 
+        let assignedToId = null;
+        const myFamilyId = JSON.parse(localStorage.getItem('currentUser')).familyId;
+
+        if (assignedName) {
+            const userSnap = await firebase.firestore().collection("users")
+                .where("familyId", "==", myFamilyId).where("name", "==", assignedName).get();
+            if (!userSnap.empty) {
+                assignedToId = userSnap.docs[0].id;
+            }
+        }
+
         const apptData = {
             date: document.getElementById("apptDate").value,
             title: title,
@@ -309,6 +320,7 @@ if (apptForm) {
             location: document.getElementById("apptLocation").value,
             notes: document.getElementById("apptNotes").value,
             assignedToName: assignedName,
+            assignedToId: assignedToId,
             elderId: elderSelect.value,
             elderName: elderSelect.options[elderSelect.selectedIndex].text,
             loggedBy: currentUser.email,
@@ -317,20 +329,13 @@ if (apptForm) {
 
         try {
             await window.appointmentService.save(apptData, id || null);
-            // Notify Logic
-            if (assignedName) {
-                const myFamilyId = JSON.parse(localStorage.getItem('currentUser')).familyId;
-                const userSnap = await firebase.firestore().collection("users")
-                    .where("familyId", "==", myFamilyId).where("name", "==", assignedName).get();
-
-                if (!userSnap.empty && userSnap.docs[0].id !== currentUser.uid) {
-                    await window.notificationService.save({
-                        recipientId: userSnap.docs[0].id,
-                        title: "New Appointment",
-                        message: `You have been assigned to: ${title}`,
-                        type: "urgent", isRead: false
-                    });
-                }
+            if (assignedToId && assignedToId !== currentUser.uid) {
+                await window.notificationService.save({
+                    recipientId: assignedToId,
+                    title: "New Appointment",
+                    message: `You have been assigned to: ${title}`,
+                    type: "urgent", isRead: false
+                });
             }
             showToast("Success", "Appointment saved!", "success");
             closeApptModal();
