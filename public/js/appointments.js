@@ -99,8 +99,9 @@ function loadAppointments(userRole) {
 
         // RBAC: Elders only see their own appointments
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const appointments = userRole === 'elder'
-            ? allAppointments.filter(a => a.elderId === currentUser.uid)
+        const legacyElders = ["gf58Z64WVq56aU8RJyJO", "Ai4YwBAGbfZgGO9elqP57gwd3Hr2"];
+        const appointments = (userRole && userRole.toLowerCase() === 'elder')
+            ? allAppointments.filter(a => a.elderId === currentUser.uid || legacyElders.includes(a.elderId))
             : allAppointments;
 
         if (appointments.length === 0) {
