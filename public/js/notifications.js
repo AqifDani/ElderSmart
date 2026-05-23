@@ -205,6 +205,72 @@ function filterNotifications(type, btnElement) {
     renderNotifications();
 }
 
+/* ============================================================
+   CUSTOM CONFIRMATION DIALOG (Serenity Modal Implementation)
+   ============================================================ */
+function showCustomConfirm(title, message, type, onConfirm) {
+    const modal = document.getElementById("confirmModal");
+    const iconBox = document.getElementById("confirmIconBox");
+    const icon = document.getElementById("confirmIcon");
+    const titleEl = document.getElementById("confirmTitle");
+    const msgEl = document.getElementById("confirmMessage");
+    const okBtn = document.getElementById("confirmOkBtn");
+    const cancelBtn = document.getElementById("confirmCancelBtn");
+
+    if (!modal) return;
+
+    // Reset styles
+    iconBox.className = "";
+    icon.className = "";
+    okBtn.style.background = "";
+
+    // Set dynamic properties based on type
+    if (type === 'danger') {
+        iconBox.style.background = "var(--danger-bg)";
+        iconBox.style.color = "var(--danger)";
+        icon.className = "fas fa-trash-alt animate__animated animate__shakeX";
+        okBtn.style.background = "var(--danger)";
+        okBtn.style.color = "white";
+    } else if (type === 'warning') {
+        iconBox.style.background = "var(--warning-bg)";
+        iconBox.style.color = "var(--warning)";
+        icon.className = "fas fa-exclamation-triangle animate__animated animate__pulse animate__infinite";
+        okBtn.style.background = "var(--secondary)"; // Gold/Brass Accent
+        okBtn.style.color = "white";
+    } else { // info / success
+        iconBox.style.background = "var(--primary-light)";
+        iconBox.style.color = "var(--primary)";
+        icon.className = "fas fa-check-double animate__animated animate__bounceIn";
+        okBtn.style.background = "var(--primary)";
+        okBtn.style.color = "white";
+    }
+
+    titleEl.innerText = title;
+    msgEl.innerText = message;
+
+    // Open modal
+    modal.style.display = "flex";
+
+    // Setup action handlers
+    const cleanUp = () => {
+        modal.style.display = "none";
+        // Remove event listeners by cloning elements
+        const newOkBtn = okBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    };
+
+    document.getElementById("confirmOkBtn").addEventListener("click", () => {
+        cleanUp();
+        onConfirm();
+    });
+
+    document.getElementById("confirmCancelBtn").addEventListener("click", () => {
+        cleanUp();
+    });
+}
+
 /* ============================
    ACTIONS
    ============================ */
@@ -213,26 +279,28 @@ function filterNotifications(type, btnElement) {
 window.clearAllNotifications = async function() {
     if(allNotifications.length === 0) return;
     
-    if(!confirm("Are you sure you want to clear ALL notifications? This cannot be undone.")) {
-        return;
-    }
+    showCustomConfirm(
+        "Clear All History?",
+        "Are you sure you want to permanently delete all notifications? This cannot be undone.",
+        "danger",
+        async () => {
+            const db = firebase.firestore();
+            const batch = db.batch();
+            
+            allNotifications.forEach(n => {
+                const ref = db.collection('notifications').doc(n.id);
+                batch.delete(ref);
+            });
 
-    const db = firebase.firestore();
-    const batch = db.batch();
-    
-    // Deleting from memory list IDs is safer since we already filtered them
-    allNotifications.forEach(n => {
-        const ref = db.collection('notifications').doc(n.id);
-        batch.delete(ref);
-    });
-
-    try {
-        await batch.commit();
-        if(window.showToast) showToast("Cleared", "All notifications have been deleted.", "success");
-    } catch (error) {
-        console.error("Error clearing notifications:", error);
-        if(window.showToast) showToast("Error", "Could not clear notifications.", "error");
-    }
+            try {
+                await batch.commit();
+                if(window.showToast) showToast("Cleared", "All notifications have been deleted.", "success");
+            } catch (error) {
+                console.error("Error clearing notifications:", error);
+                if(window.showToast) showToast("Error", "Could not clear notifications.", "error");
+            }
+        }
+    );
 };
 
 // 2. Mark as Read (Single Update)
@@ -260,26 +328,31 @@ window.markAllAsRead = async function() {
         return;
     }
     
-    if(!confirm("Mark all notifications as read?")) return;
+    showCustomConfirm(
+        "Mark All as Read?",
+        "Would you like to mark all notifications as read?",
+        "info",
+        async () => {
+            const db = firebase.firestore();
+            const batch = db.batch();
+            
+            allNotifications.forEach(n => {
+                const isRead = n.isRead !== undefined ? n.isRead : n.read;
+                if (!isRead) {
+                    const ref = db.collection('notifications').doc(n.id);
+                    batch.update(ref, { isRead: true, read: true });
+                }
+            });
 
-    const db = firebase.firestore();
-    const batch = db.batch();
-    
-    allNotifications.forEach(n => {
-        const isRead = n.isRead !== undefined ? n.isRead : n.read;
-        if (!isRead) {
-            const ref = db.collection('notifications').doc(n.id);
-            batch.update(ref, { isRead: true, read: true });
+            try {
+                await batch.commit();
+                if(window.showToast) showToast("Success", "All notifications marked as read.", "success");
+            } catch (error) {
+                console.error("Error marking all read:", error);
+                if(window.showToast) showToast("Error", "Could not update status", "error");
+            }
         }
-    });
-
-    try {
-        await batch.commit();
-        if(window.showToast) showToast("Success", "All marked as read", "success");
-    } catch (error) {
-        console.error("Error marking all read:", error);
-        if(window.showToast) showToast("Error", "Could not update status", "error");
-    }
+    );
 };
 
 // 4. Delete Single
@@ -288,26 +361,31 @@ window.deleteNotification = function(event, id) {
     const btn = event.currentTarget;
     const card = btn.closest('.notification-card');
 
-    if(!confirm("Delete this notification?")) return;
+    showCustomConfirm(
+        "Dismiss Notification?",
+        "Are you sure you want to delete this notification?",
+        "warning",
+        () => {
+            if(card) {
+                card.style.transform = 'scale(0.9)';
+                card.style.opacity = '0';
+            }
 
-    if(card) {
-        card.style.transform = 'scale(0.9)';
-        card.style.opacity = '0';
-    }
-
-    setTimeout(() => {
-        firebase.firestore().collection('notifications').doc(id).delete()
-            .then(() => {
-                if(window.showToast) showToast("Deleted", "Notification removed.");
-            })
-            .catch(err => {
-                console.error("Error deleting:", err);
-                if(card) {
-                    card.style.transform = 'none';
-                    card.style.opacity = '1';
-                }
-            });
-    }, 300);
+            setTimeout(() => {
+                firebase.firestore().collection('notifications').doc(id).delete()
+                    .then(() => {
+                        if(window.showToast) showToast("Deleted", "Notification removed.");
+                    })
+                    .catch(err => {
+                        console.error("Error deleting:", err);
+                        if(card) {
+                            card.style.transform = 'none';
+                            card.style.opacity = '1';
+                        }
+                    });
+            }, 300);
+        }
+    );
 };
 
 /* ============================

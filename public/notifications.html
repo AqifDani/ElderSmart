@@ -104,6 +104,21 @@
         </div>
     </main>
 
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-card animate__animated animate__fadeInUp" style="width: 420px; max-width: 90%; text-align: center; border-radius: 28px; padding: 32px 28px;">
+            <div id="confirmIconBox" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 28px; transition: all 0.3s ease;">
+                <i id="confirmIcon" class="fas fa-question-circle"></i>
+            </div>
+            <h3 id="confirmTitle" style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Are you sure?</h3>
+            <p id="confirmMessage" style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 28px;">This action cannot be undone.</p>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" id="confirmCancelBtn" class="btn-secondary w-full" style="width: 50%; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border-strong);">Cancel</button>
+                <button type="button" id="confirmOkBtn" class="btn-primary w-full" style="width: 50%; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; color: white;">Proceed</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/guard.js"></script>
