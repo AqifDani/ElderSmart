@@ -111,7 +111,9 @@ service cloud.firestore {
 
     // --- 7. MEDICATIONS ---
     match /medications/{docId} {
-      allow read: if isFamilyMember(resource.data.familyId);
+      allow read: if isFamilyMember(resource.data.familyId) && (
+        isCaregiver() || resource.data.elderId == request.auth.uid
+      );
 
       allow create: if isSignedIn() &&
                     isCaregiver() &&

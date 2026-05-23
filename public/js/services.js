@@ -307,7 +307,15 @@ class MedicationService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return [];
 
-        const snap = await this.collection.where("familyId", "==", fid).get();
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const isCaregiver = user && (user.role === 'caregiver' || user.role === 'primary_caregiver');
+
+        let query = this.collection.where("familyId", "==", fid);
+        if (!isCaregiver && user) {
+            query = query.where("elderId", "==", user.uid);
+        }
+
+        const snap = await query.get();
         let meds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         return meds.sort((a, b) => (a.time > b.time) ? 1 : -1);
@@ -333,8 +341,15 @@ class MedicationService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
 
-        return this.collection.where("familyId", "==", fid)
-            .onSnapshot(snap => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const isCaregiver = user && (user.role === 'caregiver' || user.role === 'primary_caregiver');
+
+        let query = this.collection.where("familyId", "==", fid);
+        if (!isCaregiver && user) {
+            query = query.where("elderId", "==", user.uid);
+        }
+
+        return query.onSnapshot(snap => {
                 let meds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 meds.sort((a, b) => (a.time > b.time) ? 1 : -1);
                 callback(meds);
