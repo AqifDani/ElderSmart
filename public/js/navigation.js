@@ -138,11 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. INJECT MOBILE HAMBURGER BUTTON (New)
     // We add this dynamically so it appears on all pages without editing HTML
-    const isAuthPage = window.location.pathname.includes('login.html') ||
+    const isNoSidebarPage = window.location.pathname.includes('login.html') ||
         window.location.pathname.includes('register.html') ||
-        window.location.pathname.includes('index.html');
+        window.location.pathname.includes('index.html') ||
+        window.location.pathname.includes('report.html');
 
-    if (!document.getElementById('mobile-menu-btn') && !isAuthPage) {
+    if (!document.getElementById('mobile-menu-btn') && !isNoSidebarPage) {
         const btn = document.createElement('button');
         btn.id = 'mobile-menu-btn';
         btn.innerHTML = '<i class="fas fa-bars"></i>';
