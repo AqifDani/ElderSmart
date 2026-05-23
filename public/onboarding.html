@@ -147,6 +147,25 @@
                         </div>
                     </div>
 
+                    <!-- PDPA PRIVACY & TRUST CARD -->
+                    <div class="pdpa-trust-card" id="pdpaTrustCard" style="background: var(--primary-light); border: 1.5px solid var(--primary); border-radius: var(--radius-sm); padding: 18px; margin: 24px 0 16px 0; text-align: left; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+                        <div style="display: flex; gap: 14px; align-items: flex-start;">
+                            <div style="font-size: 24px; color: var(--primary); margin-top: 2px;"><i class="fas fa-shield-halved"></i></div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px;">PDPA & Privacy Protection</h4>
+                                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px;">
+                                    Your personal information is secure and managed in compliance with Malaysia's <strong>Personal Data Protection Act 2010 (PDPA)</strong>.
+                                </p>
+                                <button type="button" id="reviewConsentBtn" onclick="openConsentModal()" class="btn-primary" style="padding: 8px 14px; font-size: 12px; border-radius: 8px; width: auto; background: var(--primary); color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-weight: 600;">
+                                    Review & Authorize Consent <i class="fas fa-arrow-right" style="font-size: 10px;"></i>
+                                </button>
+                                <div id="consentStatusSuccess" style="display: none; align-items: center; gap: 8px; color: var(--success); font-weight: 700; font-size: 13px; animation: fadeIn 0.3s ease;">
+                                    <i class="fas fa-check-circle"></i> Consent Authorized (PDPA-2010-v1)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="onboarding-actions">
                         <button class="btn-ghost" onclick="nextStep(2)"><i class="fas fa-arrow-left mr-2"></i> Back</button>
                         <button class="btn-primary" id="finishOnboardingBtn" onclick="finishOnboarding()">
@@ -154,6 +173,34 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONSENT MODAL -->
+    <div id="consentModal" class="modal">
+        <div class="modal-card" style="width: 580px; max-width: 95%;">
+            <h2 class="text-primary mb-4" style="font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-shield-halved"></i> Terms & PDPA Consent
+            </h2>
+            <div style="font-size: 14px; color: var(--text-main); margin-bottom: 24px; text-align: left; max-height: 50vh; overflow-y: auto; padding-right: 12px; line-height: 1.6;">
+                <p class="mb-4" style="color: var(--text-muted); font-size: 13px;">In compliance with Malaysia's <strong>Personal Data Protection Act 2010 (PDPA)</strong>, this document outlines how ElderSmart secures, stores, and processes your personal care data.</p>
+                
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">1. Consent & Collection (PDPA 2010 Notice)</h3>
+                <p class="mb-4">By authorizing this consent, you permit ElderSmart to collect and process your full name, email address, contact number, uploaded profile picture, role type, and relationship status. These elements are required to perform vital care tasks, including scheduling care shifts and logging clinical events within your family circle.</p>
+
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">2. Confidential Family Disclosure</h3>
+                <p class="mb-4">ElderSmart protects your data using strict sandbox boundaries. All logged details, medical schedules, and contact metrics are visible strictly to verified members of your private Family Circle. Under no circumstances do we disclose, rent, or sell your personal details to any commercial third parties.</p>
+
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">3. Data Security & Storage</h3>
+                <p class="mb-4">Your personal details are secured inside certified, access-restricted datastores and protected by rigorous rules. Under Malaysian PDPA guidelines, you retain the legal right to request access to, copy, modify, or completely delete your personal details at any moment.</p>
+
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px;">4. Platform Rules of Use</h3>
+                <p class="mb-4">ElderSmart is a home care coordination platform and does not offer professional clinical advice or emergency dispatching services. You agree to use the platform in good faith and solely for authorized care support.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeConsentModal()" class="btn-secondary w-full" style="width: 50%; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border-strong);">Decline</button>
+                <button type="button" onclick="authorizeConsent()" class="btn-primary w-full" style="width: 50%; background: var(--primary); color: white; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none;">Authorize & Agree</button>
             </div>
         </div>
     </div>
@@ -168,5 +215,36 @@
     <script src="js/firebase.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/onboarding.js"></script>
+
+    <script>
+        window.pdpaConsentAgreed = false;
+
+        function openConsentModal() {
+            document.getElementById("consentModal").style.display = "flex";
+        }
+
+        function closeConsentModal() {
+            document.getElementById("consentModal").style.display = "none";
+        }
+
+        function authorizeConsent() {
+            window.pdpaConsentAgreed = true;
+            closeConsentModal();
+            
+            // Visual transition on the Trust Card
+            const card = document.getElementById("pdpaTrustCard");
+            const reviewBtn = document.getElementById("reviewConsentBtn");
+            const successBlock = document.getElementById("consentStatusSuccess");
+            
+            card.style.background = "var(--success-bg)";
+            card.style.borderColor = "var(--success)";
+            reviewBtn.style.display = "none";
+            successBlock.style.display = "flex";
+            
+            if (window.showToast) {
+                showToast("Consent Authorized", "PDPA 2010 agreement registered.", "success");
+            }
+        }
+    </script>
 </body>
 </html>

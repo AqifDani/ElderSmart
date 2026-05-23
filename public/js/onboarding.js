@@ -176,6 +176,18 @@ window.finishOnboarding = async function() {
     btn.disabled = true;
     btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Saving...`;
 
+    // --- Validation: PDPA Privacy Consent ---
+    if (!window.pdpaConsentAgreed) {
+        if (window.showToast) {
+            showToast("Consent Required", "Please review and authorize the PDPA Privacy Notice before completing setup.", "warning");
+        } else {
+            alert("Please review and authorize the PDPA Privacy Notice before completing setup.");
+        }
+        btn.disabled = false;
+        btn.innerHTML = `Complete Setup <i class="fas fa-check-circle ml-2"></i>`;
+        return;
+    }
+
     const phone = document.getElementById('onboardingPhone').value;
     const photoFile = document.getElementById('photoUpload').files[0];
 
@@ -217,6 +229,9 @@ window.finishOnboarding = async function() {
             role: selectedRole,
             familyId: familyId,
             onboardingComplete: true,
+            pdpaConsentAgreed: true,
+            pdpaConsentVersion: "PDPA-2010-v1",
+            pdpaConsentTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             onboardedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
