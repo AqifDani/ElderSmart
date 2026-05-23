@@ -61,15 +61,15 @@ Follow these steps to deploy a local development instance of the platform:
    cd ElderSmart
 
 2. Initialize your local environment variables by setting up your Firebase configuration object within your application initialization script:
-```bash
+   ```bash
    const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+   apiKey: "YOUR_API_KEY",
+   authDomain: "YOUR_AUTH_DOMAIN",
+   projectId: "YOUR_PROJECT_ID",
+   storageBucket: "YOUR_STORAGE_BUCKET",
+   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+   appId: "YOUR_APP_ID"
+   };
 
 3. Serve the directory using a local development server (Live Server in VS Code
 
