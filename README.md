@@ -61,7 +61,8 @@ Follow these steps to deploy a local development instance of the platform:
    cd ElderSmart
 
 2. Initialize your local environment variables by setting up your Firebase configuration object within your application initialization script:
-const firebaseConfig = {
+```bash
+   const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "YOUR_PROJECT_ID",
