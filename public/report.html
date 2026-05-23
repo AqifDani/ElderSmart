@@ -10,16 +10,23 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         /* Print optimizations */
         @media print {
             .no-print { display: none !important; }
-            body { background: #fff; }
-            .card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
-            .dashboard-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; }
+            .dashboard-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; border: none !important; box-shadow: none !important; }
             .cards { display: flex !important; flex-wrap: nowrap !important; }
-            .cards > div { flex: 1 !important; margin: 0 10px !important; }
+            .cards > div { flex: 1 !important; margin: 0 5px !important; padding: 10px !important; }
+            canvas { max-width: 100% !important; page-break-inside: avoid; }
+            table { page-break-inside: avoid; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
         }
         
         .report-header {
@@ -34,6 +41,12 @@
         .report-table th, .report-table td {
             padding: 16px;
             border-bottom: 1px solid var(--border);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
     </style>
 </head>
@@ -53,7 +66,7 @@
     </nav>
 
     <main class="main-content" style="margin-left: 0; width: 100%; padding: 40px 20px;">
-        <div class="dashboard-container" style="max-width: 1000px; padding: 32px; background: white; border-radius: 12px; box-shadow: var(--shadow-md); margin: 0 auto;">
+        <div class="dashboard-container" style="max-width: 1100px; padding: 32px; background: white; border-radius: 12px; box-shadow: var(--shadow-md); margin: 0 auto;">
             
             <div class="report-header">
                 <div>
@@ -62,7 +75,7 @@
                 </div>
                 <div class="no-print flex gap-2" style="align-items: center; gap: 10px;">
                     <select id="reportMonthSelect" style="width: auto; margin-bottom: 0; padding: 10px 40px 10px 16px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-weight: 600; cursor: pointer;">
-                        <!-- Dynamically populated in report.js -->
+                        <!-- Dynamically populated -->
                     </select>
                     <button class="btn-secondary" onclick="window.print()" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--secondary); color: white; font-weight: bold; cursor: pointer; white-space: nowrap;">
                         <i class="fas fa-file-pdf"></i> Export to PDF
@@ -70,8 +83,8 @@
                 </div>
             </div>
 
-            <!-- Metrics Grid -->
-            <div class="cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 40px;">
+            <!-- Top Grid: 4 Metric Cards -->
+            <div class="cards" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 40px;">
                 <div class="card card-primary text-center" style="display: flex; flex-direction: column; align-items: center;">
                     <div class="icon-box-sm bg-primary-light" style="width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:20px; margin-bottom: 12px;"><i class="fas fa-calendar-check"></i></div>
                     <p class="text-xs font-bold text-muted uppercase">Appointments Completed</p>
@@ -92,26 +105,87 @@
                     <h2 id="metricHealthLogs" class="text-3xl font-bold mt-2 skeleton skeleton-text-short">--</h2>
                     <p class="text-xs text-muted mt-1">This month</p>
                 </div>
+
+                <div class="card card-success text-center" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="icon-box-sm" style="background: #e6f4ea; color: #137333; width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom: 12px;"><i class="fas fa-pills"></i></div>
+                    <p class="text-xs font-bold text-muted uppercase">Medical Adherence</p>
+                    <h2 id="metricAdherence" class="text-3xl font-bold mt-2 skeleton skeleton-text-short" style="color: #137333;">--%</h2>
+                    <p class="text-xs text-muted mt-1">Overall percentage</p>
+                </div>
             </div>
 
-            <!-- Leaderboard Table -->
-            <div class="section-title mb-4">
-                <h3 class="font-bold text-xl">Caregiver Lifetime Contribution</h3>
-                <p class="text-sm text-muted mt-1">Sorted by historical shifts completed.</p>
+            <!-- Visual Data Section (Graphs) -->
+            <div class="grid-2 mb-8">
+                <div class="card" style="padding: 20px;">
+                    <h3 class="font-bold text-lg mb-4 text-center">Blood Pressure Trends</h3>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="healthTrendsChart"></canvas>
+                    </div>
+                </div>
+                <div class="card" style="padding: 20px;">
+                    <h3 class="font-bold text-lg mb-4 text-center">Medical Adherence Breakdown</h3>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="adherenceChart"></canvas>
+                    </div>
+                </div>
             </div>
-            
+
+            <!-- Critical Incident Breakdown Table -->
+            <div class="section-title mb-4">
+                <h3 class="font-bold text-xl">Critical Incident Breakdown</h3>
+                <p class="text-sm text-muted mt-1">Health records flagged for BP >= 140/90.</p>
+            </div>
+            <div class="card mb-8" style="padding:0; overflow:hidden;">
+                <table class="w-full report-table" style="border-collapse: collapse; text-align: left;">
+                    <thead style="background: var(--bg-body);">
+                        <tr>
+                            <th class="text-xs font-bold text-muted uppercase">Date</th>
+                            <th class="text-xs font-bold text-muted uppercase">Reading</th>
+                            <th class="text-xs font-bold text-muted uppercase">Logged By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportIncidentsBody">
+                        <tr><td colspan="3" class="text-center text-muted">Generating report data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Missed Appointments Table -->
+            <div class="section-title mb-4">
+                <h3 class="font-bold text-xl">Missed / Incomplete Appointments</h3>
+                <p class="text-sm text-muted mt-1">Appointments that passed their scheduled time without completion.</p>
+            </div>
+            <div class="card mb-8" style="padding:0; overflow:hidden;">
+                <table class="w-full report-table" style="border-collapse: collapse; text-align: left;">
+                    <thead style="background: var(--bg-body);">
+                        <tr>
+                            <th class="text-xs font-bold text-muted uppercase">Date & Time</th>
+                            <th class="text-xs font-bold text-muted uppercase">Title</th>
+                            <th class="text-xs font-bold text-muted uppercase">Assigned To</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportMissedAppointmentsBody">
+                        <tr><td colspan="3" class="text-center text-muted">Generating report data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Caregiver Contribution Table -->
+            <div class="section-title mb-4">
+                <h3 class="font-bold text-xl">Caregiver Contribution</h3>
+                <p class="text-sm text-muted mt-1">Overview of completed shifts.</p>
+            </div>
             <div class="card" style="padding:0; overflow:hidden;">
                 <table class="w-full report-table" style="border-collapse: collapse; text-align: left;">
                     <thead style="background: var(--bg-body);">
                         <tr>
                             <th class="text-xs font-bold text-muted uppercase">Caregiver Name</th>
-                            <th class="text-xs font-bold text-muted uppercase text-right">Total Shifts Completed</th>
+                            <th class="text-xs font-bold text-muted uppercase text-center">Shifts This Month</th>
+                            <th class="text-xs font-bold text-muted uppercase text-right">Lifetime Shifts</th>
                         </tr>
                     </thead>
                     <tbody id="reportLeaderboardBody">
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">Generating report data...</td>
-                        </tr>
+                        <tr><td colspan="3" class="text-center text-muted">Generating report data...</td></tr>
                     </tbody>
                 </table>
             </div>

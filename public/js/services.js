@@ -627,9 +627,11 @@ class ReportService extends BaseService {
         this.usersCollection = this.db.collection("users");
         this.appointmentsCollection = this.db.collection("appointments");
         this.healthCollection = this.db.collection("health_records");
+        this.medicationsCollection = this.db.collection("medications");
+        this.medicationLogsCollection = this.db.collection("medication_logs");
     }
 
-    async getMonthlySummary(year, month) {
+    async getComprehensiveMonthlySummary(year, month) {
         // Security Rule Validation: Strictly Caregivers Only
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (!user || (user.role !== 'caregiver' && user.role !== 'primary_caregiver')) {
@@ -649,45 +651,139 @@ class ReportService extends BaseService {
         const startTimestamp = new Date(startDateStr);
         const endTimestamp = new Date(endDateStr);
 
+        const dateOnlyStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const dateOnlyEnd = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-01`;
+
         // Concurrent reads for maximum performance with optimized query constraints
-        const [usersSnap, apptsSnap, healthSnap] = await Promise.all([
-            this.usersCollection.where("familyId", "==", fid).get(),
+        // EXACTLY 5 QUERIES using Promise.all
+        const [usersSnap, apptsSnap, healthSnap, medsSnap, medLogsSnap] = await Promise.all([
+            this.usersCollection.where("familyId", "==", fid).where("role", "in", ["caregiver", "primary_caregiver"]).get(),
             this.appointmentsCollection.where("familyId", "==", fid).where("date", ">=", startDateStr).where("date", "<", endDateStr).get(),
-            this.healthCollection.where("familyId", "==", fid).where("timestamp", ">=", startTimestamp).where("timestamp", "<", endTimestamp).get()
+            this.healthCollection.where("familyId", "==", fid).where("timestamp", ">=", startTimestamp).where("timestamp", "<", endTimestamp).get(),
+            this.medicationsCollection.where("familyId", "==", fid).get(),
+            this.medicationLogsCollection.where("familyId", "==", fid).where("date", ">=", dateOnlyStart).where("date", "<", dateOnlyEnd).get()
         ]);
         
-        // Filter caregiver roles in-memory to prevent rules engine index limitations
-        const caregivers = usersSnap.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(u => u.role === 'caregiver' || u.role === 'primary_caregiver')
-            .map(u => ({
-                name: u.name,
-                totalShiftsCompleted: u.totalShiftsCompleted || 0
-            }))
-            .sort((a, b) => b.totalShiftsCompleted - a.totalShiftsCompleted);
-
-        let totalAppointments = 0;
-        let completedAppointments = 0;
-        apptsSnap.forEach(doc => {
-            totalAppointments++;
-            if (doc.data().status === 'completed') completedAppointments++;
+        // 1. Caregiver Accountability (In-Memory Processing)
+        const caregiversMap = new Map();
+        usersSnap.forEach(doc => {
+            const data = doc.data();
+            caregiversMap.set(doc.id, {
+                id: doc.id,
+                name: data.name,
+                lifetimeShifts: data.totalShiftsCompleted || 0,
+                shiftsThisMonth: 0
+            });
         });
 
+        // 2. Appointments & Missed Appointments
+        let missedAppointments = [];
+        const now = new Date();
+        let totalAppointments = 0;
+        let completedAppointments = 0;
+
+        apptsSnap.forEach(doc => {
+            const appt = { id: doc.id, ...doc.data() };
+            totalAppointments++;
+            
+            if (appt.status === 'completed') {
+                completedAppointments++;
+                if (appt.assignedToId && caregiversMap.has(appt.assignedToId)) {
+                    caregiversMap.get(appt.assignedToId).shiftsThisMonth++;
+                }
+            } else {
+                const apptDate = new Date(appt.date);
+                if (apptDate < now) {
+                    missedAppointments.push(appt);
+                }
+            }
+        });
+
+        const caregivers = Array.from(caregiversMap.values()).sort((a, b) => b.lifetimeShifts - a.lifetimeShifts);
+
+        // 3. Clinical Averages & Incident Breakdown
+        let sysSum = 0, diaSum = 0, hrSum = 0, bpCount = 0, hrCount = 0;
+        let bpReadings = [];
+        let criticalIncidents = [];
         let totalHealthLogs = 0;
-        let criticalAlerts = 0;
+
         healthSnap.forEach(doc => {
             totalHealthLogs++;
             const data = doc.data();
-            if ((data.systolic && data.systolic >= 140) || (data.diastolic && data.diastolic >= 90)) {
-                criticalAlerts++;
+            const recordDate = data.date || (data.timestamp ? data.timestamp.toDate().toISOString().split('T')[0] : '');
+
+            if (data.bp && data.bp.includes('/')) {
+                const [sys, dia] = data.bp.split('/').map(Number);
+                sysSum += sys;
+                diaSum += dia;
+                bpCount++;
+
+                bpReadings.push({ date: recordDate, sys, dia });
+
+                if (sys >= 140 || dia >= 90) {
+                    criticalIncidents.push({
+                        date: recordDate,
+                        reading: data.bp,
+                        logger: data.loggedBy || data.recordedBy || 'System/Team'
+                    });
+                }
+            }
+
+            if (data.hr) {
+                hrSum += Number(data.hr);
+                hrCount++;
             }
         });
+
+        bpReadings.sort((a, b) => a.date.localeCompare(b.date));
+
+        const clinicalAverages = {
+            sys: bpCount > 0 ? Math.round(sysSum / bpCount) : 0,
+            dia: bpCount > 0 ? Math.round(diaSum / bpCount) : 0,
+            hr: hrCount > 0 ? Math.round(hrSum / hrCount) : 0
+        };
+
+        // 4. Medical Adherence
+        const meds = medsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const medLogs = medLogsSnap.docs.map(doc => doc.data());
+        
+        let expectedDoses = 0;
+        let takenDoses = 0;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const d = new Date(year, month, day);
+            const dayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const dayIndex = d.getDay();
+            
+            meds.forEach(med => {
+                if (med.startDate && dayStr < med.startDate) return;
+                if (med.endDate && dayStr > med.endDate) return;
+                
+                let isScheduled = false;
+                if (med.frequency === 'daily') isScheduled = true;
+                if (med.frequency === 'specific' && med.days && med.days.includes(dayIndex)) isScheduled = true;
+                
+                if (isScheduled) {
+                    expectedDoses++;
+                    const hasLog = medLogs.some(l => l.medId === med.id && l.date === dayStr);
+                    if (hasLog) takenDoses++;
+                }
+            });
+        }
+
+        const medicalAdherence = expectedDoses === 0 ? 100 : Math.round((takenDoses / expectedDoses) * 100);
 
         return {
             totalAppointments,
             completedAppointments,
             totalHealthLogs,
-            criticalAlerts,
+            criticalAlerts: criticalIncidents.length,
+            medicalAdherence,
+            clinicalAverages,
+            bpReadings,
+            criticalIncidents,
+            missedAppointments,
             caregivers
         };
     }
