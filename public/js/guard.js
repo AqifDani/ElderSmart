@@ -23,7 +23,7 @@
         }
 
         // --- SMART CACHE OPTIMIZATION ---
-        const CACHE_DURATION = 10 * 60 * 1000; // 10 Minutes
+        const CACHE_DURATION = 5 * 60 * 1000; // 5 Minutes
         const now = Date.now();
         const stored = JSON.parse(localStorage.getItem('currentUser'));
 

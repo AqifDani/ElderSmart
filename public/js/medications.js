@@ -27,7 +27,7 @@ function initPickers() {
 
     historyPicker = flatpickr("#historyDate", {
         defaultDate: "today", dateFormat: "Y-m-d", altInput: true, altFormat: "F j, Y",
-        maxDate: new Date().fp_incr(30),
+        maxDate: "today",
         onChange: function (selectedDates, dateStr) {
             currentViewDate = dateStr;
             updateScheduleTitle(selectedDates[0]);
@@ -329,6 +329,11 @@ window.toggleFrequency = function (isPRN) {
 
 window.markTaken = async function (id, name, qtyToTake) {
     const user = JSON.parse(localStorage.getItem('currentUser'));
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (currentViewDate > todayStr) {
+        if (window.showToast) showToast("Error", "Cannot log medication for a future date.", "error");
+        return;
+    }
     const parsedQty = parseFloat(qtyToTake) || 1;
     try {
         await window.medicationService.markAsTaken(id, name, user.name, currentViewDate);

@@ -5271,15 +5271,19 @@ body.auth-split-page {
         min-height: auto;
         gap: 30px;
     }
-
     .hero-content h1 {
-        font-size: 32px !important;
+        font-size: clamp(28px, 8vw, 32px) !important;
         line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
 
     .hero-content p {
-        font-size: 16px;
+        font-size: clamp(14px, 4vw, 16px);
         margin-bottom: 25px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .hero-buttons {
@@ -6747,5 +6751,27 @@ body.auth-split-page {
         flex-direction: column !important;
         gap: 15px !important;
         align-items: center !important;
+    }
+}
+
+/* --- Split Section Mobile Fixes --- */
+@media (max-width: 900px) {
+    .split-section, .split-section.reverse {
+        flex-direction: column !important;
+        padding: 60px 20px !important;
+        gap: 40px !important;
+        text-align: center;
+    }
+
+    .split-content h3 {
+        font-size: clamp(32px, 8vw, 40px) !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .split-content .clinical-label {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 }

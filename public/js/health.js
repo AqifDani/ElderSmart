@@ -7,6 +7,11 @@ let miniChartInstance = null;
     const userRole = await window.checkUserRole();
     if (!userRole) return;
     
+    if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
+        const btn = document.getElementById("addHealthBtn");
+        if (btn) btn.classList.remove("hidden");
+    }
+    
     firebase.auth().onAuthStateChanged((user) => {
         if (user) loadMedicalFeed(userRole);
     });
@@ -213,7 +218,10 @@ window.loadElderOptions = async function () {
 
 window.openHealthModal = function () {
     document.getElementById("healthModal").style.display = "flex";
-    document.getElementById("visitDate").valueAsDate = new Date();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const visitDateInput = document.getElementById("visitDate");
+    visitDateInput.max = todayStr;
+    visitDateInput.value = todayStr;
     loadElderOptions();
 };
 window.closeHealthModal = function () { document.getElementById("healthModal").style.display = "none"; };
@@ -242,9 +250,19 @@ const healthForm = document.getElementById("healthForm");
 if (healthForm) {
     healthForm.addEventListener("submit", async function (e) {
         e.preventDefault();
+        const role = localStorage.getItem('userRole');
+        if (role !== 'caregiver' && role !== 'primary_caregiver') return;
+
+        const visitDateStr = document.getElementById("visitDate").value;
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (visitDateStr > todayStr) {
+            showToast("Error", "Cannot log a visit for a future date.", "error");
+            return;
+        }
+
         const elderSelect = document.getElementById("visitElder");
         const visitData = {
-            date: document.getElementById("visitDate").value,
+            date: visitDateStr,
             location: document.getElementById("visitLocation").value.trim(),
             bp: document.getElementById("visitBP").value.trim(),
             hr: document.getElementById("visitHR").value,

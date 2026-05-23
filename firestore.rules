@@ -20,17 +20,18 @@ service cloud.firestore {
       return role == 'caregiver' || role == 'primary_caregiver';
     }
 
+    function isPrimary() {
+      return getMyData().role == 'primary_caregiver';
+    }
+
     // --- 1. FAMILY CODES (Public Verification) ---
     match /families/{code} {
-      // Allow single lookups to verify if a code exists before registration
       allow get: if true;
-      // Creation happens during registration
       allow create: if isSignedIn(); 
     }
 
     // --- 2. USER PROFILES ---
     match /users/{userId} {
-      // Restricted Read: Only own profile or same family members
       allow read: if isSignedIn() && (
         request.auth.uid == userId || 
         resource.data.familyId == getMyData().familyId
@@ -44,24 +45,138 @@ service cloud.firestore {
       );
     }
 
-    // --- 3. SHARED FAMILY DATA ---
-    match /{collection}/{docId} {
-      function isFamilyCollection() {
-        return collection in [
-          'shifts', 'appointments', 'elder_profiles', 
-          'health_records', 'medications', 'medication_logs', 'notifications', 'availability'
-        ];
-      }
+    // --- 3. APPOINTMENTS ---
+    match /appointments/{docId} {
+      // Any family member can read their family's appointments
+      allow read: if isFamilyMember(resource.data.familyId);
 
-      allow read: if isFamilyCollection() && isFamilyMember(resource.data.familyId);
-
-      allow create: if isFamilyCollection() && 
-                    isSignedIn() && 
+      // Only caregivers can create appointments, and the date must be present or future
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
                     request.resource.data.familyId == getMyData().familyId;
 
-      allow update, delete: if isFamilyCollection() && 
-                            isCaregiver() && 
-                            resource.data.familyId == getMyData().familyId;
+      // Any caregiver of the family can update (assign shifts, mark complete)
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      // Only the primary caregiver can delete appointments
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 4. SHIFTS ---
+    match /shifts/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 5. ELDER PROFILES ---
+    match /elder_profiles/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 6. HEALTH RECORDS ---
+    match /health_records/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 7. MEDICATIONS ---
+    match /medications/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 8. MEDICATION LOGS ---
+    // Exception: any family member can create logs (elders register their own intake)
+    match /medication_logs/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
+    }
+
+    // --- 9. NOTIFICATIONS ---
+    // Any member can create (for elders' SOS). Read/update only by recipient or caregivers. Delete only by recipient or primary caregiver.
+    match /notifications/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId) && (
+        resource.data.recipientId == request.auth.uid ||
+        !resource.data.recipientId ||
+        isCaregiver()
+      );
+
+      allow create: if isSignedIn() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      // Only the recipient can mark as read, or any caregiver of the family
+      allow update: if isSignedIn() && resource.data.familyId == getMyData().familyId && (
+        resource.data.recipientId == request.auth.uid ||
+        isCaregiver()
+      );
+
+      // Only the recipient or the primary caregiver can delete
+      allow delete: if isSignedIn() && resource.data.familyId == getMyData().familyId && (
+        resource.data.recipientId == request.auth.uid ||
+        isPrimary()
+      );
+    }
+
+    // --- 10. AVAILABILITY ---
+    match /availability/{docId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+
+      allow create: if isSignedIn() &&
+                    isCaregiver() &&
+                    request.resource.data.familyId == getMyData().familyId;
+
+      allow update: if isCaregiver() &&
+                    resource.data.familyId == getMyData().familyId;
+
+      allow delete: if isPrimary() &&
+                    resource.data.familyId == getMyData().familyId;
     }
   }
 }

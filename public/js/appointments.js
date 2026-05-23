@@ -144,8 +144,13 @@ function loadAppointments(userRole) {
                 actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
             } else if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
                 const safeDataId = escapeHTML(data.id);
+                const isFuture = new Date(data.date) > new Date();
+                const completeBtn = isFuture
+                    ? `<button title="Available after scheduled time" class="btn-icon text-muted" disabled style="opacity: 0.5; cursor: not-allowed;"><i class="fas fa-check-circle"></i></button>`
+                    : `<button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>`;
+
                 actionButtons = `
-                    <button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>
+                    ${completeBtn}
                     <button onclick="openApptModal('${safeDataId}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>
                     <button onclick="deleteAppt('${safeDataId}')" title="Delete" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
                 `;
@@ -370,6 +375,12 @@ window.completeAppt = function (id) {
                 // Resolve assigned caregiver UID from appointment document
                 const apptDoc = await firebase.firestore().collection('appointments').doc(id).get();
                 const apptData = apptDoc.exists ? apptDoc.data() : null;
+
+                if (apptData && new Date(apptData.date) > new Date()) {
+                    showToast("Error", "Cannot complete a future appointment.", "error");
+                    return;
+                }
+
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
                 // Use assigned UID if exists, otherwise use current user UID

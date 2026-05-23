@@ -43,6 +43,7 @@ function loadElders() {
             return;
         }
 
+        const userRole = localStorage.getItem('userRole');
         let html = "";
         elders.forEach((data, index) => {
             const avatarUrl = data.photo
@@ -79,9 +80,10 @@ function loadElders() {
                         <button onclick="viewProfile('${data.id}')" class="btn-primary w-full shadow-md" style="justify-content:center; padding: 12px; font-weight:700;">
                             <i class="fas fa-file-medical" style="margin-right:8px;"></i> View Clinical Chart
                         </button>
+                        ${userRole === 'caregiver' || userRole === 'primary_caregiver' ? `
                         <button onclick="editElder('${data.id}')" class="btn-ghost w-full text-xs" style="justify-content:center; padding: 8px; opacity:0.7;">
                              Edit Basic Info
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
             `;
@@ -166,6 +168,9 @@ window.viewProfile = function(id) {
 };
 
 window.editElder = async function (id) {
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
+
     try {
         const data = await window.elderService.getById(id);
         if (data) {
@@ -201,6 +206,8 @@ window.editElder = async function (id) {
 
 window.saveElderProfile = async function (event) {
     event.preventDefault();
+    const role = localStorage.getItem('userRole');
+    if (role !== 'caregiver' && role !== 'primary_caregiver') return;
 
     const id = document.getElementById('editElderId').value;
     const btn = document.getElementById('submitBtn');

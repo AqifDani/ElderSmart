@@ -135,7 +135,9 @@ async function loadAppointmentLogistics(userRole) {
                 let actionHtml = "";
                 const isPrimary = userRole === 'primary_caregiver';
 
-                if (isAssigned) {
+                if (a.status === 'completed') {
+                    actionHtml = `<div class="flex items-center justify-center w-full"><span class="text-success text-xs font-bold">✔ Completed</span></div>`;
+                } else if (isAssigned) {
                     const initials = a.assignedToName.substring(0,2).toUpperCase();
                     const titleEsc = a.title.replace(/'/g, "\\'");
                     actionHtml = `
@@ -258,6 +260,13 @@ window.confirmAssignment = async function() {
 
     if (!name) return showToast("Missing", "Please select a caregiver.", "error");
 
+    const apptDoc = await firebase.firestore().collection("appointments").doc(apptId).get();
+    if (apptDoc.exists && apptDoc.data().status === 'completed') {
+        if (window.showToast) showToast("Error", "Cannot assign a completed shift.", "error");
+        closeAssignModal();
+        return;
+    }
+
     const updatePayload = {
         assignedToName: name,
         lastModifiedBy: currentUser.name,
@@ -300,6 +309,13 @@ window.confirmDropShift = async function() {
         return;
     }
     if (errMsg) errMsg.classList.add("hidden");
+
+    const apptDoc = await firebase.firestore().collection("appointments").doc(apptId).get();
+    if (apptDoc.exists && apptDoc.data().status === 'completed') {
+        if (window.showToast) showToast("Error", "Cannot drop a completed shift.", "error");
+        closeDropModal();
+        return;
+    }
 
     await firebase.firestore().collection("appointments").doc(apptId).update({
         assignedToName: "",
@@ -356,6 +372,13 @@ window.confirmOverride = async function() {
     if (!name) return showToast("Required", "Select a caregiver to override.", "error");
 
     try {
+        const apptDoc = await firebase.firestore().collection("appointments").doc(apptId).get();
+        if (apptDoc.exists && apptDoc.data().status === 'completed') {
+            if (window.showToast) showToast("Error", "Cannot override a completed shift.", "error");
+            closeOverrideModal();
+            return;
+        }
+
         await firebase.firestore().collection("appointments").doc(apptId).update({
             assignedToName: name,
             lastModifiedBy: currentUser.name + " (Admin Override)",
