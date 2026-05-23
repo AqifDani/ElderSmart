@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Care Report - ElderSmart</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Print optimizations */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
+            .dashboard-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            .cards { display: flex !important; flex-wrap: nowrap !important; }
+            .cards > div { flex: 1 !important; margin: 0 10px !important; }
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .report-table th, .report-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="dashboard-page flex-col">
+
+    <!-- Minimal Navbar -->
+    <nav class="landing-nav no-print" style="padding: 16px 40px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <div class="logo" style="display: flex; align-items: center; gap: 10px;">
+            <div class="logo-icon" style="width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fas fa-heartbeat"></i></div>
+            <span style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 900; color: var(--primary);">ElderSmart</span>
+        </div>
+        <div>
+            <button onclick="window.location.href='caregiver-dashboard.html'" class="btn-ghost" style="padding: 8px 16px; color: var(--text-main); border: 1.5px solid var(--border-strong); border-radius: 20px; background: transparent; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content" style="margin-left: 0; width: 100%; padding: 40px 20px;">
+        <div class="dashboard-container" style="max-width: 1000px; padding: 32px; background: white; border-radius: 12px; box-shadow: var(--shadow-md); margin: 0 auto;">
+            
+            <div class="report-header">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary" style="margin-bottom: 4px;">Monthly Care Report</h1>
+                    <p class="text-muted" id="reportMonthLabel">Loading data...</p>
+                </div>
+                <div class="no-print flex gap-2" style="align-items: center; gap: 10px;">
+                    <select id="reportMonthSelect" style="width: auto; margin-bottom: 0; padding: 10px 40px 10px 16px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-weight: 600; cursor: pointer;">
+                        <!-- Dynamically populated in report.js -->
+                    </select>
+                    <button class="btn-secondary" onclick="window.print()" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--secondary); color: white; font-weight: bold; cursor: pointer; white-space: nowrap;">
+                        <i class="fas fa-file-pdf"></i> Export to PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 40px;">
+                <div class="card card-primary text-center" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="icon-box-sm bg-primary-light" style="width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:20px; margin-bottom: 12px;"><i class="fas fa-calendar-check"></i></div>
+                    <p class="text-xs font-bold text-muted uppercase">Appointments Completed</p>
+                    <h2 id="metricAppointments" class="text-3xl font-bold mt-2 skeleton skeleton-text-short">--</h2>
+                    <p id="totalAppointmentsLabel" class="text-xs text-muted mt-1">out of -- total</p>
+                </div>
+                
+                <div class="card card-danger text-center" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="icon-box-sm bg-danger-light" style="width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--danger); font-size:20px; margin-bottom: 12px;"><i class="fas fa-exclamation-triangle"></i></div>
+                    <p class="text-xs font-bold text-muted uppercase">Critical Health Alerts</p>
+                    <h2 id="metricAlerts" class="text-3xl font-bold mt-2 text-danger skeleton skeleton-text-short">--</h2>
+                    <p class="text-xs text-muted mt-1">BP >= 140/90</p>
+                </div>
+                
+                <div class="card card-info text-center" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="icon-box-sm bg-info-light" style="width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--info); font-size:20px; margin-bottom: 12px;"><i class="fas fa-file-medical-alt"></i></div>
+                    <p class="text-xs font-bold text-muted uppercase">Health Logs Recorded</p>
+                    <h2 id="metricHealthLogs" class="text-3xl font-bold mt-2 skeleton skeleton-text-short">--</h2>
+                    <p class="text-xs text-muted mt-1">This month</p>
+                </div>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div class="section-title mb-4">
+                <h3 class="font-bold text-xl">Caregiver Lifetime Contribution</h3>
+                <p class="text-sm text-muted mt-1">Sorted by historical shifts completed.</p>
+            </div>
+            
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table class="w-full report-table" style="border-collapse: collapse; text-align: left;">
+                    <thead style="background: var(--bg-body);">
+                        <tr>
+                            <th class="text-xs font-bold text-muted uppercase">Caregiver Name</th>
+                            <th class="text-xs font-bold text-muted uppercase text-right">Total Shifts Completed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportLeaderboardBody">
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">Generating report data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-8 text-center no-print">
+                <p class="text-xs text-muted">This report is strictly for authorized caregivers within the family network.</p>
+            </div>
+            
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/guard.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/report.js"></script>
+</body>
+</html>

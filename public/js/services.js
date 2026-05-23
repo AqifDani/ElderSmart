@@ -621,6 +621,78 @@ class NotificationService extends BaseService {
     }
 }
 
+class ReportService extends BaseService {
+    constructor() { 
+        super("reporting_dummy");
+        this.usersCollection = this.db.collection("users");
+        this.appointmentsCollection = this.db.collection("appointments");
+        this.healthCollection = this.db.collection("health_records");
+    }
+
+    async getMonthlySummary(year, month) {
+        // Security Rule Validation: Strictly Caregivers Only
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user || (user.role !== 'caregiver' && user.role !== 'primary_caregiver')) {
+            throw new Error("Access Denied: Reports are strictly for caregivers.");
+        }
+        
+        const fid = this.getFamilyId();
+        if (!fid) return null;
+
+        // Optimization: Strict bounding of date ranges directly in queries 
+        // to prevent over-fetching and minimize Firebase read quotas.
+        const startDateStr = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00`;
+        const nextMonth = month === 11 ? 0 : month + 1;
+        const nextYear = month === 11 ? year + 1 : year;
+        const endDateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-01T00:00`;
+        
+        const startTimestamp = new Date(startDateStr);
+        const endTimestamp = new Date(endDateStr);
+
+        // Concurrent reads for maximum performance with optimized query constraints
+        const [usersSnap, apptsSnap, healthSnap] = await Promise.all([
+            this.usersCollection.where("familyId", "==", fid).get(),
+            this.appointmentsCollection.where("familyId", "==", fid).where("date", ">=", startDateStr).where("date", "<", endDateStr).get(),
+            this.healthCollection.where("familyId", "==", fid).where("timestamp", ">=", startTimestamp).where("timestamp", "<", endTimestamp).get()
+        ]);
+        
+        // Filter caregiver roles in-memory to prevent rules engine index limitations
+        const caregivers = usersSnap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(u => u.role === 'caregiver' || u.role === 'primary_caregiver')
+            .map(u => ({
+                name: u.name,
+                totalShiftsCompleted: u.totalShiftsCompleted || 0
+            }))
+            .sort((a, b) => b.totalShiftsCompleted - a.totalShiftsCompleted);
+
+        let totalAppointments = 0;
+        let completedAppointments = 0;
+        apptsSnap.forEach(doc => {
+            totalAppointments++;
+            if (doc.data().status === 'completed') completedAppointments++;
+        });
+
+        let totalHealthLogs = 0;
+        let criticalAlerts = 0;
+        healthSnap.forEach(doc => {
+            totalHealthLogs++;
+            const data = doc.data();
+            if ((data.systolic && data.systolic >= 140) || (data.diastolic && data.diastolic >= 90)) {
+                criticalAlerts++;
+            }
+        });
+
+        return {
+            totalAppointments,
+            completedAppointments,
+            totalHealthLogs,
+            criticalAlerts,
+            caregivers
+        };
+    }
+}
+
 // ---------------------------------------------------------
 // INITIALIZE ALL SERVICES
 // ---------------------------------------------------------
@@ -630,3 +702,4 @@ window.healthService = new HealthService();
 window.medicationService = new MedicationService();
 window.scheduleService = new ScheduleService();
 window.notificationService = new NotificationService();
+window.reportService = new ReportService();

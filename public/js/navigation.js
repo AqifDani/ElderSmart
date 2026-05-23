@@ -35,6 +35,10 @@ const CAREGIVER_SIDEBAR_HTML = `
                 <span class="nav-icon"><i class="fas fa-calendar-week"></i></span>
                 <span>Shift Schedule</span>
             </a>
+            <a href="report.html" class="nav-item">
+                <span class="nav-icon"><i class="fas fa-file-invoice"></i></span>
+                <span>Monthly Report</span>
+            </a>
         </div>
 
         <div class="nav-section" style="margin-top: 20px;">
@@ -260,7 +264,7 @@ window.checkUserRole = async function () {
             const path = window.location.pathname.toLowerCase();
 
             // STRICT RBAC ROUTING
-            const CAREGIVER_ONLY = ['caregiver-dashboard.html', 'notifications.html', 'elder_profiles.html', 'schedule.html'];
+            const CAREGIVER_ONLY = ['caregiver-dashboard.html', 'notifications.html', 'elder_profiles.html', 'schedule.html', 'report.html'];
             const ELDER_ONLY = ['elder-dashboard.html'];
 
             const isCaregiverPage = CAREGIVER_ONLY.some(p => path.includes(p));
