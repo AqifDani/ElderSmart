@@ -85,9 +85,17 @@ class BaseService {
 
 class ElderService extends BaseService {
     // ✅ FIX: Point to 'users' collection so edits sync with Login
-    constructor() { super("users"); }
+    constructor() {
+        super("users");
+        this.cachedElders = null;
+        this.cachedCaregivers = null;
+    }
 
     async getAll() {
+        if (this.cachedElders) {
+            return this.cachedElders;
+        }
+
         const fid = this.getFamilyId();
         if (!fid) return [];
 
@@ -97,7 +105,8 @@ class ElderService extends BaseService {
                 .where("familyId", "==", fid)
                 .where("role", "==", "elder")
                 .get();
-            return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.cachedElders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return this.cachedElders;
         } catch (error) {
             console.error("Error fetching elders:", error);
             return [];
@@ -105,6 +114,10 @@ class ElderService extends BaseService {
     }
 
     async getCaregivers() {
+        if (this.cachedCaregivers) {
+            return this.cachedCaregivers;
+        }
+
         const fid = this.getFamilyId();
         if (!fid) return [];
 
@@ -113,7 +126,8 @@ class ElderService extends BaseService {
                 .where("familyId", "==", fid)
                 .where("role", "in", ["caregiver", "primary_caregiver"])
                 .get();
-            return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.cachedCaregivers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return this.cachedCaregivers;
         } catch (error) {
             console.error("Error fetching caregivers:", error);
             return [];

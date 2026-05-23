@@ -17,13 +17,20 @@ let miniChartInstance = null;
     });
 })();
 
-function loadMedicalFeed(userRole) {
+async function loadMedicalFeed(userRole) {
     const feed = document.getElementById("healthFeed");
     const criticalAlerts = document.getElementById("criticalAlerts");
     const criticalList = document.getElementById("criticalList");
     const criticalCount = document.getElementById("criticalCount");
     const visitsTodayEl = document.getElementById("visitsToday");
     const checkupsDueEl = document.getElementById("checkupsDue");
+
+    let allElders = [];
+    try {
+        allElders = await window.elderService.getAll();
+    } catch (error) {
+        console.error("Failed to load elders during medical feed init:", error);
+    }
 
     window.healthService.listenRecent(async (records) => {
         feed.innerHTML = "";
@@ -32,8 +39,6 @@ function loadMedicalFeed(userRole) {
         let todayCount = 0;
         let criticalElders = new Map(); // Map to keep latest high reading per elder
 
-        // Get total elders for "Due" calculation
-        const allElders = await window.elderService.getAll();
         const eldersWithRecentLog = new Set();
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -209,11 +214,15 @@ async function updateAdherenceChart() {
 }
 
 // ... MODAL & DELETE LOGIC (Same as previous but with improved services calls) ...
+let cachedElderOptions = null;
+
 window.loadElderOptions = async function () {
     const select = document.getElementById("visitElder");
     if(!select) return;
-    const elders = await window.elderService.getAll();
-    select.innerHTML = elders.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+    if (!cachedElderOptions) {
+        cachedElderOptions = await window.elderService.getAll();
+    }
+    select.innerHTML = cachedElderOptions.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
 };
 
 window.openHealthModal = function () {

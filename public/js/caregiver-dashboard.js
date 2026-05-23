@@ -89,15 +89,9 @@ async function loadFamilyLeaderboard() {
         const familyId = currentUser.familyId;
 
         // Fetch all caregivers in the family
-        const [usersSnap, apptsSnap] = await Promise.all([
-            firebase.firestore().collection("users")
-                .where("familyId", "==", familyId)
-                .get(),
-            firebase.firestore().collection("appointments")
-                .where("familyId", "==", familyId)
-                .where("status", "==", "completed")
-                .get()
-        ]);
+        const usersSnap = await firebase.firestore().collection("users")
+            .where("familyId", "==", familyId)
+            .get();
 
         const caregivers = [];
         usersSnap.forEach(doc => {
@@ -107,18 +101,11 @@ async function loadFamilyLeaderboard() {
             }
         });
 
-        const shiftCounts = {};
-        apptsSnap.forEach(doc => {
-            const data = doc.data();
-            const name = data.assignedToName;
-            if (name) shiftCounts[name] = (shiftCounts[name] || 0) + 1;
-        });
-
         const minDeficit = Math.min(...caregivers.map(c => c.deficitScore || 0));
 
         tableBody.innerHTML = caregivers.sort((a, b) => (a.deficitScore || 0) - (b.deficitScore || 0)).map(c => {
             const isTarget = (c.deficitScore || 0) === minDeficit;
-            const completed = shiftCounts[c.name] || 0;
+            const completed = c.totalShiftsCompleted || 0;
             const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
             const score = c.deficitScore || 0;
             
