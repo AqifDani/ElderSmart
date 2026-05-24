@@ -27,6 +27,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthSelect = document.getElementById('reportMonthSelect');
+        const elderSelect = document.getElementById('reportElderSelect');
+
+        // Dynamically populate the elder selector
+        try {
+            if (window.elderService) {
+                const elders = await window.elderService.getAll();
+                elders.forEach(elder => {
+                    const opt = document.createElement('option');
+                    opt.value = elder.id;
+                    opt.textContent = elder.name;
+                    elderSelect.appendChild(opt);
+                });
+            }
+        } catch (err) {
+            console.error("Error loading elders for report:", err);
+        }
 
         // 3. Dynamically populate the selector with the last 12 calendar months
         const now = new Date();
@@ -130,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // 6. Function to fetch and render report data
-        async function loadReportForMonth(year, month) {
+        async function loadReportForMonth(year, month, elderId = null) {
             showSkeletons();
             document.getElementById('reportMonthLabel').textContent = `${monthNames[month]} ${year}`;
 
@@ -139,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error("ReportService not initialized.");
                 }
                 
-                const summary = await window.reportService.getComprehensiveMonthlySummary(year, month);
+                const summary = await window.reportService.getComprehensiveMonthlySummary(year, month, elderId);
                 
                 if (!summary) throw new Error("Failed to load summary data.");
 
@@ -241,13 +257,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // 7. Bind dropdown change listener
-        monthSelect.addEventListener('change', (e) => {
-            const [year, month] = e.target.value.split('-').map(Number);
-            loadReportForMonth(year, month);
-        });
+        function handleFilterChange() {
+            const [year, month] = monthSelect.value.split('-').map(Number);
+            const elderId = elderSelect.value || null;
+            loadReportForMonth(year, month, elderId);
+        }
+
+        monthSelect.addEventListener('change', handleFilterChange);
+        elderSelect.addEventListener('change', handleFilterChange);
 
         // 8. Load default first option (current month)
         const [defaultYear, defaultMonth] = monthSelect.value.split('-').map(Number);
-        loadReportForMonth(defaultYear, defaultMonth);
+        const defaultElderId = elderSelect.value || null;
+        loadReportForMonth(defaultYear, defaultMonth, defaultElderId);
     });
 });

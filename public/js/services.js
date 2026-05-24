@@ -630,7 +630,7 @@ class ReportService extends BaseService {
         this.medicationLogsCollection = this.db.collection("medication_logs");
     }
 
-    async getComprehensiveMonthlySummary(year, month) {
+    async getComprehensiveMonthlySummary(year, month, elderId = null) {
         // Security Rule Validation: Strictly Caregivers Only
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (!user || (user.role !== 'caregiver' && user.role !== 'primary_caregiver')) {
@@ -683,6 +683,7 @@ class ReportService extends BaseService {
 
         apptsSnap.forEach(doc => {
             const appt = { id: doc.id, ...doc.data() };
+            if (elderId && appt.elderId !== elderId) return;
             totalAppointments++;
             
             if (appt.status === 'completed') {
@@ -707,8 +708,9 @@ class ReportService extends BaseService {
         let totalHealthLogs = 0;
 
         healthSnap.forEach(doc => {
-            totalHealthLogs++;
             const data = doc.data();
+            if (elderId && data.elderId !== elderId) return;
+            totalHealthLogs++;
             const recordDate = data.date || (data.timestamp ? data.timestamp.toDate().toISOString().split('T')[0] : '');
 
             if (data.bp && data.bp.includes('/')) {
@@ -743,7 +745,7 @@ class ReportService extends BaseService {
         };
 
         // 4. Medical Adherence
-        const meds = medsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const meds = medsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(med => !elderId || med.elderId === elderId);
         const medLogs = medLogsSnap.docs.map(doc => doc.data());
         
         let expectedDoses = 0;
