@@ -79,20 +79,6 @@ service cloud.firestore {
                     resource.data.familyId == getMyData().familyId;
     }
 
-    // --- 5. ELDER PROFILES ---
-    match /elder_profiles/{docId} {
-      allow read: if isFamilyMember(resource.data.familyId);
-
-      allow create: if isSignedIn() &&
-                    isCaregiver() &&
-                    request.resource.data.familyId == getMyData().familyId;
-
-      allow update: if isCaregiver() &&
-                    resource.data.familyId == getMyData().familyId;
-
-      allow delete: if isPrimary() &&
-                    resource.data.familyId == getMyData().familyId;
-    }
 
     // --- 6. HEALTH RECORDS ---
     match /health_records/{docId} {
@@ -166,19 +152,6 @@ service cloud.firestore {
       );
     }
 
-    // --- 10. AVAILABILITY ---
-    match /availability/{docId} {
-      allow read: if isFamilyMember(resource.data.familyId);
 
-      allow create: if isSignedIn() &&
-                    isCaregiver() &&
-                    request.resource.data.familyId == getMyData().familyId;
-
-      allow update: if isCaregiver() &&
-                    resource.data.familyId == getMyData().familyId;
-
-      allow delete: if isPrimary() &&
-                    resource.data.familyId == getMyData().familyId;
-    }
   }
 }

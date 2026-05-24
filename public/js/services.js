@@ -465,7 +465,6 @@ class ScheduleService extends BaseService {
         super("shifts"); 
         this.usersCollection = this.db.collection("users");
         this.appointmentsCollection = this.db.collection("appointments");
-        this.availabilityCollection = this.db.collection("availability");
     }
 
     async getLeastBusyCaregiver(familyId) {
