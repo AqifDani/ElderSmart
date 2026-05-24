@@ -242,6 +242,9 @@ window.finishOnboarding = async function() {
 
         if (photoUrl) updateData.photo = photoUrl;
 
+        // Write completed onboarding data to Firestore
+        await firebase.firestore().collection("users").doc(currentUser.uid).update(updateData);
+
         // 4. Sync to LocalStorage (CRITICAL for sidebar injection)
         const storedUser = JSON.parse(localStorage.getItem('currentUser')) || {};
         storedUser.role = selectedRole;
