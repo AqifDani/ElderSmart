@@ -101,13 +101,28 @@ async function loadFamilyLeaderboard() {
             }
         });
 
-        const minDeficit = Math.min(...caregivers.map(c => c.deficitScore || 0));
+        /* ========================================================================
+         * [ARCHIVED] Legacy deficitScore logic — retained for potential future use.
+         * The deficitScore field on user documents is no longer computed or updated
+         * by any active system logic. To reactivate, uncomment this block and
+         * comment out the totalShiftsCompleted replacement below.
+         * ======================================================================== 
+         * const minDeficit = Math.min(...caregivers.map(c => c.deficitScore || 0));
+         *
+         * tableBody.innerHTML = caregivers.sort((a, b) => (a.deficitScore || 0) - (b.deficitScore || 0)).map(c => {
+         *     const isTarget = (c.deficitScore || 0) === minDeficit;
+         *     const completed = c.totalShiftsCompleted || 0;
+         *     const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
+         *     const score = c.deficitScore || 0;
+         * ======================================================================== */
 
-        tableBody.innerHTML = caregivers.sort((a, b) => (a.deficitScore || 0) - (b.deficitScore || 0)).map(c => {
-            const isTarget = (c.deficitScore || 0) === minDeficit;
+        // Active logic: sort and display using totalShiftsCompleted (Fairness Engine v3)
+        const minShifts = Math.min(...caregivers.map(c => c.totalShiftsCompleted || 0));
+
+        tableBody.innerHTML = caregivers.sort((a, b) => (a.totalShiftsCompleted || 0) - (b.totalShiftsCompleted || 0)).map(c => {
+            const isTarget = (c.totalShiftsCompleted || 0) === minShifts;
             const completed = c.totalShiftsCompleted || 0;
             const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
-            const score = c.deficitScore || 0;
             
             return `
                 <tr class="leaderboard-row">
@@ -126,7 +141,7 @@ async function loadFamilyLeaderboard() {
                         <div class="text-sm font-bold text-dark">${completed} <span class="text-xs text-muted font-normal">Shifts</span></div>
                     </td>
                     <td class="p-4">
-                        <span class="font-bold text-sm ${score < 0 ? 'text-danger' : 'text-success'}">${score > 0 ? '+' : ''}${score}</span>
+                        <span class="font-bold text-sm text-dark">${completed}</span>
                     </td>
                     <td class="p-4 text-right">
                         ${isTarget ? '<span class="badge badge-stock-low">Next In Line</span>' : '<span class="badge badge-stock-ok">Stable</span>'}
