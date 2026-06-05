@@ -95,6 +95,10 @@
                 <button onclick="closeHealthModal()" class="btn-icon-hover"><i class="fas fa-times"></i></button>
             </div>
             <form id="healthForm">
+                <div id="modalError" class="hidden bg-danger-light p-4 rounded-xl text-sm mb-4 flex items-center gap-2" style="border: 1.5px solid var(--accent);">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="modalErrorText"></span>
+                </div>
                 <div class="grid grid-2 gap-4 mb-4">
                     <div>
                         <label class="text-xs font-bold uppercase text-muted">Date of Visit</label>
@@ -136,6 +140,21 @@
                     <button type="submit" class="btn-primary w-full shadow-md">Save Record</button>
                 </div>
             </form>
+        </div>
+    </div>
+    
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-card bounce-in" style="max-width: 400px; text-align: center; border-top: 5px solid var(--danger);">
+            <div class="text-danger mb-4" style="font-size: 48px;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="text-xl font-bold text-dark mb-2">Delete Medical Record?</h3>
+            <p class="text-sm text-muted mb-6">Are you sure you want to permanently delete this medical record? This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="btn-ghost w-full">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-primary w-full shadow-md" style="background-color: var(--danger); border-color: var(--danger);">Delete</button>
+            </div>
         </div>
     </div>
 

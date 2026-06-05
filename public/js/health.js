@@ -226,6 +226,12 @@ window.loadElderOptions = async function () {
 };
 
 window.openHealthModal = function () {
+    const errorDiv = document.getElementById("modalError");
+    if (errorDiv) {
+        errorDiv.classList.add("hidden");
+        const errorText = document.getElementById("modalErrorText");
+        if (errorText) errorText.innerText = "";
+    }
     document.getElementById("healthModal").style.display = "flex";
     const todayStr = new Date().toISOString().split('T')[0];
     const visitDateInput = document.getElementById("visitDate");
@@ -235,11 +241,38 @@ window.openHealthModal = function () {
 };
 window.closeHealthModal = function () { document.getElementById("healthModal").style.display = "none"; };
 
-window.deleteHealthRecord = async function (id) {
-    if (confirm("Delete this medical record from the master log?")) {
-        await window.healthService.delete(id);
+let recordIdToDelete = null;
+
+window.deleteHealthRecord = function (id) {
+    recordIdToDelete = id;
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    if (deleteModal) {
+        deleteModal.style.display = "flex";
     }
 };
+
+window.closeDeleteModal = function () {
+    recordIdToDelete = null;
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    if (deleteModal) {
+        deleteModal.style.display = "none";
+    }
+};
+
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", async function () {
+        if (recordIdToDelete) {
+            try {
+                await window.healthService.delete(recordIdToDelete);
+                showToast("Success", "Medical record deleted from master log", "success");
+            } catch (error) {
+                showToast("Error", "Could not delete record", "error");
+            }
+            closeDeleteModal();
+        }
+    });
+}
 
 window.acknowledgeAlert = async function (recordId) {
     try {
@@ -262,21 +295,74 @@ if (healthForm) {
         const role = localStorage.getItem('userRole');
         if (role !== 'caregiver' && role !== 'primary_caregiver') return;
 
+        const errorDiv = document.getElementById("modalError");
+        const errorText = document.getElementById("modalErrorText");
+        if (errorDiv) errorDiv.classList.add("hidden");
+
+        const showError = (message) => {
+            if (errorDiv && errorText) {
+                errorText.innerText = message;
+                errorDiv.classList.remove("hidden");
+            } else {
+                showToast("Error", message, "error");
+            }
+        };
+
         const visitDateStr = document.getElementById("visitDate").value;
         const todayStr = new Date().toISOString().split('T')[0];
         if (visitDateStr > todayStr) {
-            showToast("Error", "Cannot log a visit for a future date.", "error");
+            showError("Cannot log a visit for a future date.");
             return;
+        }
+
+        const locationVal = document.getElementById("visitLocation").value.trim();
+        const bpVal = document.getElementById("visitBP").value.trim();
+        const hrVal = document.getElementById("visitHR").value.trim();
+        const weightVal = document.getElementById("visitWeight").value.trim();
+        const notesVal = document.getElementById("visitNotes").value.trim();
+
+        if (!locationVal) {
+            showError("Clinic/Location is required.");
+            return;
+        }
+
+        if (!bpVal && !hrVal && !weightVal && !notesVal) {
+            showError("Please enter at least one clinical detail (BP, Pulse, Weight, or Notes).");
+            return;
+        }
+
+        if (bpVal) {
+            const bpRegex = /^\d{2,3}\/\d{2,3}$/;
+            if (!bpRegex.test(bpVal)) {
+                showError("Blood pressure must be in Sys/Dia format (e.g., 120/80).");
+                return;
+            }
+        }
+
+        if (hrVal) {
+            const hrNum = Number(hrVal);
+            if (!Number.isInteger(hrNum) || hrNum < 30 || hrNum > 250) {
+                showError("Pulse must be a valid integer between 30 and 250 bpm.");
+                return;
+            }
+        }
+
+        if (weightVal) {
+            const weightNum = Number(weightVal);
+            if (isNaN(weightNum) || weightNum < 10 || weightNum > 300) {
+                showError("Weight must be a valid number between 10 and 300 kg.");
+                return;
+            }
         }
 
         const elderSelect = document.getElementById("visitElder");
         const visitData = {
             date: visitDateStr,
-            location: document.getElementById("visitLocation").value.trim(),
-            bp: document.getElementById("visitBP").value.trim(),
-            hr: document.getElementById("visitHR").value,
-            weight: document.getElementById("visitWeight").value,
-            notes: document.getElementById("visitNotes").value.trim(),
+            location: locationVal,
+            bp: bpVal,
+            hr: hrVal,
+            weight: weightVal,
+            notes: notesVal,
             elderId: elderSelect.value,
             elderName: elderSelect.options[elderSelect.selectedIndex].text
         };
@@ -285,6 +371,6 @@ if (healthForm) {
             await window.healthService.logVisit(visitData);
             showToast("Success", "Medical record added to feed", "success");
             closeHealthModal();
-        } catch (error) { showToast("Error", "Save failed", "error"); }
+        } catch (error) { showError("Save failed"); }
     });
 }
