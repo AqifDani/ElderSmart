@@ -80,23 +80,53 @@ async function loadFamilyLeaderboard() {
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const familyId = currentUser.familyId;
 
-        const usersSnap = await firebase.firestore().collection("users")
-            .where("familyId", "==", familyId)
-            .get();
+        const [usersSnap, appointmentsSnap] = await Promise.all([
+            firebase.firestore().collection("users")
+                .where("familyId", "==", familyId)
+                .get(),
+            firebase.firestore().collection("appointments")
+                .where("familyId", "==", familyId)
+                .get()
+        ]);
 
         const caregivers = [];
         usersSnap.forEach(doc => {
             const data = doc.data();
             if (data.role === 'caregiver' || data.role === 'primary_caregiver') {
-                caregivers.push({ id: doc.id, ...data });
+                caregivers.push({
+                    id: doc.id,
+                    name: data.name,
+                    role: data.role,
+                    totalShiftsCompleted: data.totalShiftsCompleted || 0,
+                    pendingShifts: 0
+                });
             }
         });
 
-        const minShifts = Math.min(...caregivers.map(c => c.totalShiftsCompleted || 0));
+        appointmentsSnap.forEach(doc => {
+            const appt = doc.data();
+            if (appt.status !== 'completed' && appt.assignedToName) {
+                const caregiver = caregivers.find(c => c.name === appt.assignedToName || c.id === appt.assignedToId);
+                if (caregiver) {
+                    caregiver.pendingShifts++;
+                }
+            }
+        });
 
-        tableBody.innerHTML = caregivers.sort((a, b) => (a.totalShiftsCompleted || 0) - (b.totalShiftsCompleted || 0)).map(c => {
-            const isTarget = (c.totalShiftsCompleted || 0) === minShifts;
-            const completed = c.totalShiftsCompleted || 0;
+        const enrichedCaregivers = caregivers.map(c => {
+            const completed = c.totalShiftsCompleted;
+            const total = completed + c.pendingShifts;
+            return {
+                ...c,
+                completed,
+                total
+            };
+        });
+
+        const minShifts = enrichedCaregivers.length > 0 ? Math.min(...enrichedCaregivers.map(c => c.total)) : 0;
+
+        tableBody.innerHTML = enrichedCaregivers.sort((a, b) => a.total - b.total).map(c => {
+            const isTarget = c.total === minShifts;
             const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
             
             return `
@@ -113,10 +143,10 @@ async function loadFamilyLeaderboard() {
                         </div>
                     </td>
                     <td class="p-4">
-                        <div class="text-sm font-bold text-dark">${completed} <span class="text-xs text-muted font-normal">Shifts</span></div>
+                        <div class="text-sm font-bold text-dark">${c.total} <span class="text-xs text-muted font-normal">Shifts</span></div>
                     </td>
                     <td class="p-4">
-                        <span class="font-bold text-sm text-dark">${completed}</span>
+                        <span class="font-bold text-sm text-dark">${c.completed}</span>
                     </td>
                     <td class="p-4 text-right">
                         ${isTarget ? '<span class="badge badge-stock-low">Next In Line</span>' : '<span class="badge badge-stock-ok">Stable</span>'}
