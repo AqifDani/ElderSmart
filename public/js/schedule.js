@@ -13,7 +13,6 @@ async function loadAppointmentLogistics(userRole) {
     const nextTitle = document.getElementById("nextApptTitle");
     const nextDriver = document.getElementById("nextApptDriver");
     
-    // Stats Elements
     const statOpen = document.getElementById("statOpenCount");
     const statTotal = document.getElementById("statTotalShifts");
     const statTopName = document.getElementById("statTopWorker");
@@ -38,17 +37,14 @@ async function loadAppointmentLogistics(userRole) {
             else unassignedCount++;
         });
 
-        // Sort Workers
         const sortedWorkers = Object.entries(workload).sort((a, b) => b[1] - a[1]);
         const topName = sortedWorkers.length > 0 && sortedWorkers[0][1] > 0 ? sortedWorkers[0][0] : "None";
         const leastBusyName = sortedWorkers.length > 0 ? sortedWorkers[sortedWorkers.length - 1][0] : "Anyone";
 
-        // Update Stats UI
         if(statOpen) statOpen.innerText = unassignedCount;
         if(statTotal) statTotal.innerText = appointments.length;
         if(statTopName) statTopName.innerText = topName;
         
-        // Render Workload List
         const listContainer = document.getElementById("workloadList");
         if (listContainer) {
             listContainer.innerHTML = "";
@@ -80,7 +76,6 @@ async function loadAppointmentLogistics(userRole) {
             });
         }
 
-        // Update Top Performer Bar
         const topBar = document.getElementById("topWorkerBar");
         if (topBar && sortedWorkers.length > 0) {
             const topPercent = (sortedWorkers[0][1] / appointments.length) * 100;
@@ -108,7 +103,6 @@ async function loadAppointmentLogistics(userRole) {
             const dayAppts = appointments.filter(a => a.date.startsWith(dStr));
             const dateDisplay = new Date(dStr).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
 
-            // Date Header
             grid.innerHTML += `<div class="text-xs font-bold text-muted uppercase mt-6 mb-3 ml-1">${dateDisplay}</div>`;
 
             dayAppts.forEach(a => {
@@ -116,18 +110,14 @@ async function loadAppointmentLogistics(userRole) {
                 const time = new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const cardClass = isAssigned ? "task-card assigned" : "task-card unassigned";
                 
-                // "Real" Feel: Calculate Progress
-                // Assumption: A visit lasts 1 hour. If current time is past start, show 100%. If approaching, show 0%.
-                // For a dynamic feel, we'll randomize 'Estimated Duration' visuals or use real time if it's today.
                 let progressPercent = 0;
                 const now = new Date();
                 const apptTime = new Date(a.date);
                 const oneHourLater = new Date(apptTime.getTime() + 60*60000);
 
                 if (now > oneHourLater) progressPercent = 100;
-                else if (now > apptTime) progressPercent = 50; // In progress
+                else if (now > apptTime) progressPercent = 50;
                 
-                // Color for progress bar
                 const progressColor = isAssigned ? 'var(--primary)' : 'var(--danger)';
                 const statusLabel = isAssigned ? "Scheduled" : "Pending";
                 const statusClass = isAssigned ? "active" : "";
@@ -213,7 +203,6 @@ window.openAssignModal = async function(apptId, title) {
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    // 1. Load Caregivers if not cached
     if (familyMembersCache.length === 0) {
         select.innerHTML = '<option>Loading caregivers...</option>';
         try {
@@ -230,8 +219,6 @@ window.openAssignModal = async function(apptId, title) {
         op.value = u.name; op.text = u.name; select.appendChild(op);
     });
 
-    // 2. CALL THE STRICT FAIRNESS ENGINE
-    // We need the date of this specific appointment to check availability
     try {
         if (recText) recText.classList.add("hidden");
         const apptDoc = await firebase.firestore().collection("appointments").doc(apptId).get();
@@ -341,7 +328,6 @@ window.openOverrideModal = async function(apptId) {
     const select = document.getElementById("overrideDriverSelect");
     document.getElementById("overrideApptId").value = apptId;
 
-    // Load caregivers if cache is empty
     if (familyMembersCache.length === 0) {
         select.innerHTML = '<option>Loading...</option>';
         try {

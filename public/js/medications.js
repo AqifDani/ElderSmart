@@ -1,4 +1,4 @@
-// js/medications.js - REFACTORED (Clean CSS Classes)
+// js/medications.js
 
 let medTimePicker = null;
 let historyPicker = null;
@@ -11,7 +11,7 @@ let currentViewDate = new Date().toISOString().split('T')[0];
 
     if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
         const btn = document.getElementById("addMedBtn");
-        if (btn) btn.classList.remove("hidden"); // Use class toggle
+        if (btn) btn.classList.remove("hidden");
     }
 
     initPickers();
@@ -45,8 +45,6 @@ function updateScheduleTitle(dateObj) {
 }
 
 function loadInventory(userRole) {
-    // Inventory relies on the global meds listener
-    // We just render it here
     renderInventory(userRole);
 }
 
@@ -57,7 +55,6 @@ function renderInventory() {
     const meds = currentMeds;
     const isCaregiver = !document.getElementById("addMedBtn").classList.contains("hidden");
 
-    // --- Update Stats Row ---
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     const todayDow = new Date().getDay();
     let dueToday = 0, lowStock = 0;
@@ -74,7 +71,6 @@ function renderInventory() {
     if (el('medsCabinetCount')) el('medsCabinetCount').innerText = `${meds.length} medications`;
     if (el('statLowStockCard') && lowStock > 0) el('statLowStockCard').style.borderLeft = '4px solid var(--warning)';
 
-    // --- Render Cards ---
     if (meds.length === 0) {
         list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#9ca3af;">
             <i class="fas fa-pills" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
@@ -85,7 +81,6 @@ function renderInventory() {
 
     const sortedMeds = [...meds].sort((a, b) => a.time.localeCompare(b.time));
 
-    // Pill icon colors cycle
     const pillColors = [
         { bg: '#e0f2fe', color: '#0369a1' },
         { bg: '#dcfce7', color: '#166534' },
@@ -137,7 +132,6 @@ function renderInventory() {
             " onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.08)';"
                onmouseleave="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.04)';">
                 
-                <!-- Pill Icon + Name Row -->
                 <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
                     <div style="
                         width:48px; height:48px; flex-shrink:0;
@@ -155,7 +149,6 @@ function renderInventory() {
                     </div>
                 </div>
 
-                <!-- Elder -->
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
                     <div style="width:24px; height:24px; border-radius:8px; background:${c.bg}; color:${c.color}; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;">
                         ${med.elderName ? med.elderName[0].toUpperCase() : '?'}
@@ -164,7 +157,6 @@ function renderInventory() {
                     <span style="margin-left:auto; font-size:12px; color:#6b7280;">${med.formType === 'liquid' ? '💧' : '💊'} Take ${med.perDose || 1} ${unit}</span>
                 </div>
 
-                <!-- Stock Bar -->
                 ${med.stock !== undefined ? `
                 <div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -189,7 +181,6 @@ let unsubscribeLogs = null;
 let currentMeds = [];
 let currentLogs = {};
 
-// We attach one listener for meds that feeds both inventory and checklist
 function initMedsListener() {
     window.medicationService.listenAll((meds) => {
         currentMeds = meds;
@@ -213,7 +204,6 @@ function renderChecklist(dateStr) {
 
     if (currentMeds.length === 0 && Object.keys(currentLogs).length === 0) {
         tableBody.innerHTML = "<tr><td colspan='6' class='text-center p-4 text-muted'>Loading...</td></tr>";
-        // Wait for listeners to fire
         return;
     }
 
@@ -288,8 +278,6 @@ function renderChecklist(dateStr) {
     tableBody.innerHTML = html;
 }
 
-// ... (Helpers: formatTime, formatDays remain the same) ...
-
 window.toggleDaysSelector = function (val) {
     const el = document.getElementById("daysSelector");
     if (val === 'specific' && !document.getElementById("isPRN").checked) el.classList.remove('hidden');
@@ -319,7 +307,7 @@ window.toggleFrequency = function (isPRN) {
     const daysBox = document.getElementById("daysSelector");
     if (isPRN) {
         freqSelect.disabled = true;
-        freqSelect.value = "prn"; // Internal value
+        freqSelect.value = "prn";
         daysBox.classList.add('hidden');
     } else {
         freqSelect.disabled = false;
@@ -338,7 +326,6 @@ window.markTaken = async function (id, name, qtyToTake) {
     try {
         await window.medicationService.markAsTaken(id, name, user.name, currentViewDate);
 
-        // Update Stock Logic
         const medRef = firebase.firestore().collection("medications").doc(id);
         const doc = await medRef.get();
         if (doc.exists) {
@@ -397,7 +384,6 @@ window.openMedModal = async function (id = null) {
 
             document.getElementById("medReminder").value = data.reminderOffset || "0";
 
-            // Handle Days Checkboxes
             document.querySelectorAll('input[name="weekDay"]').forEach(cb => cb.checked = false);
             if (data.frequency === 'specific' && !data.isPRN) {
                 document.getElementById("daysSelector").classList.remove('hidden');
@@ -427,7 +413,6 @@ window.openMedModal = async function (id = null) {
 
 window.closeMedModal = function () { document.getElementById("medModal").style.display = "none"; };
 
-// Re-attach listener if form exists
 const medForm = document.getElementById("medForm");
 if (medForm) {
     medForm.addEventListener("submit", async function (e) {
@@ -464,7 +449,6 @@ if (medForm) {
             reminderOffset: document.getElementById("medReminder").value
         };
 
-        // FIX: Add startDate for new meds so they don't appear in history
         if (!id) {
             data.startDate = new Date().toISOString().split('T')[0];
         }

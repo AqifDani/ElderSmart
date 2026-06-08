@@ -67,7 +67,7 @@ class BaseService {
 
         if (id) {
             payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-            await this.collection.doc(id).set(payload, { merge: true }); // Merge ensures we don't overwrite auth data
+            await this.collection.doc(id).set(payload, { merge: true });
         } else {
             payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
             await this.collection.add(payload);
@@ -84,7 +84,6 @@ class BaseService {
 // ---------------------------------------------------------
 
 class ElderService extends BaseService {
-    // ✅ FIX: Point to 'users' collection so edits sync with Login
     constructor() {
         super("users");
         this.cachedElders = null;
@@ -100,7 +99,6 @@ class ElderService extends BaseService {
         if (!fid) return [];
 
         try {
-            // Fetch users who are specifically ELDERS in this family
             const snap = await this.collection
                 .where("familyId", "==", fid)
                 .where("role", "==", "elder")
@@ -164,8 +162,6 @@ class ElderService extends BaseService {
             });
     }
 
-    // Overriding getById is not strictly necessary if BaseService works, 
-    // but good for safety if we need specific elder logic later.
     async getById(id) {
         try {
             const doc = await this.collection.doc(id).get();
@@ -187,7 +183,6 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return [];
 
-        // Get local system date and time for a precise query that avoids timezone offsets
         const localNow = new Date();
         const year = localNow.getFullYear();
         const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -208,7 +203,6 @@ class AppointmentService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
 
-        // Get local system date and time for a precise real-time listener without offset issues
         const localNow = new Date();
         const year = localNow.getFullYear();
         const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -249,14 +243,12 @@ class AppointmentService extends BaseService {
     async markShiftCompleted(appointmentId, caregiverUid) {
         const batch = this.db.batch();
 
-        // Operation 1: Mark appointment as completed
         const appointmentRef = this.collection.doc(appointmentId);
         batch.update(appointmentRef, {
             status: 'completed',
             completedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Operation 2: Atomic increment of the caregiver's counter
         const userRef = this.db.collection('users').doc(caregiverUid);
         batch.update(userRef, {
             totalShiftsCompleted: firebase.firestore.FieldValue.increment(1)
@@ -345,7 +337,6 @@ class MedicationService extends BaseService {
 
         const logs = Object.create(null);
         snap.forEach(doc => {
-            // Safe assignment to avoid prototype pollution vulnerability
             safeSet(logs, doc.data().medId, true);
         });
         return logs;
@@ -383,7 +374,6 @@ class MedicationService extends BaseService {
             .onSnapshot(snap => {
                 const logs = Object.create(null);
                 snap.forEach(doc => {
-                    // Safe assignment to avoid prototype pollution vulnerability
                     safeSet(logs, doc.data().medId, true);
                 });
                 callback(logs);
@@ -424,10 +414,7 @@ class MedicationService extends BaseService {
         const missedMeds = meds.filter(med => {
             const isScheduled = (med.frequency === 'daily') ||
                 (med.frequency === 'specific' && med.days && med.days.includes(dayIndex));
-            // Safe access to avoid dynamic bracket notation warnings
             const isTaken = safeGet(logs, med.id);
-            
-            // Should be taken, wasn't taken, and started before yesterday
             const startedBeforeYesterday = !med.startDate || med.startDate <= dateStr;
 
             return isScheduled && !isTaken && startedBeforeYesterday;
@@ -487,7 +474,6 @@ class ScheduleService extends BaseService {
                 });
             });
 
-            // Get local system date and time for precise date queries without UTC bias
             const localNow = new Date();
             const year = localNow.getFullYear();
             const month = String(localNow.getMonth() + 1).padStart(2, '0');
@@ -511,7 +497,6 @@ class ScheduleService extends BaseService {
                 }
             });
 
-            // Assign a stable random factor per execution for consistent tie-breaking resolution
             const enriched = caregivers.map(c => ({
                 uid: c.uid,
                 name: c.name,
@@ -640,8 +625,6 @@ class ReportService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return null;
 
-        // Optimization: Strict bounding of date ranges directly in queries 
-        // to prevent over-fetching and minimize Firebase read quotas.
         const startDateStr = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00`;
         const nextMonth = month === 11 ? 0 : month + 1;
         const nextYear = month === 11 ? year + 1 : year;
@@ -653,8 +636,6 @@ class ReportService extends BaseService {
         const dateOnlyStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
         const dateOnlyEnd = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-01`;
 
-        // Concurrent reads for maximum performance with optimized query constraints
-        // EXACTLY 5 QUERIES using Promise.all
         const [usersSnap, apptsSnap, healthSnap, medsSnap, medLogsSnap] = await Promise.all([
             this.usersCollection.where("familyId", "==", fid).where("role", "in", ["caregiver", "primary_caregiver"]).get(),
             this.appointmentsCollection.where("familyId", "==", fid).where("date", ">=", startDateStr).where("date", "<", endDateStr).get(),

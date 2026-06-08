@@ -1,4 +1,4 @@
-// js/navigation.js - REFACTORED & CLEAN
+// js/navigation.js
 
 /* ==============================
    1. SIDEBAR TEMPLATES
@@ -96,7 +96,6 @@ const ELDER_SIDEBAR_HTML = `
 </aside>
 `;
 
-// Helper: Uses CSS classes for footer layout
 function getSidebarFooter(defaultRoleLabel) {
     return `
     <div class="sidebar-footer">
@@ -123,7 +122,6 @@ function getSidebarFooter(defaultRoleLabel) {
    2. INITIALIZE
    ============================== */
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. INJECT SIDEBAR
     const storedRole = localStorage.getItem('userRole');
     const placeholder = document.getElementById("sidebar-container");
 
@@ -131,13 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedRole === 'elder' || storedRole === 'Elder') {
             placeholder.innerHTML = ELDER_SIDEBAR_HTML;
         } else {
-            // Both caregiver and primary_caregiver get the caregiver sidebar
             placeholder.innerHTML = CAREGIVER_SIDEBAR_HTML;
         }
     }
 
-    // 2. INJECT MOBILE HAMBURGER BUTTON (New)
-    // We add this dynamically so it appears on all pages without editing HTML
     const isNoSidebarPage = window.location.pathname.includes('login.html') ||
         window.location.pathname.includes('register.html') ||
         window.location.pathname.includes('index.html') ||
@@ -151,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(btn);
     }
 
-    // 3. HIGHLIGHT ACTIVE LINK
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -164,14 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. INJECT TOAST CONTAINER
     if (!document.getElementById('toast-container')) {
         const container = document.createElement('div');
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
 
-    // 6. INJECT LOGOUT MODAL
     if (!document.getElementById('logoutModal')) {
         const modal = document.createElement('div');
         modal.id = 'logoutModal';
@@ -192,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(modal);
     }
 
-    // 5. AUTH CHECK
     if (typeof firebase !== 'undefined') {
         window.checkUserRole();
     }
@@ -220,18 +211,16 @@ function toggleSidebar() {
     if (sidebar) {
         sidebar.classList.toggle('active');
 
-        // Handle Overlay (Create if not exists)
         if (!overlay) {
             const newOverlay = document.createElement('div');
             newOverlay.id = 'sidebar-overlay';
             newOverlay.onclick = toggleSidebar;
             document.body.appendChild(newOverlay);
-            // Small delay to allow CSS transition
             setTimeout(() => newOverlay.classList.add('visible'), 10);
         } else {
             overlay.classList.toggle('visible');
             if (!sidebar.classList.contains('active')) {
-                setTimeout(() => overlay.remove(), 300); // Remove after fade out
+                setTimeout(() => overlay.remove(), 300);
             }
         }
     }
@@ -253,7 +242,6 @@ window.checkUserRole = async function () {
                 return;
             }
 
-            // Update Sidebar Name
             const nameElem = document.getElementById('userName');
             const avatarElem = document.getElementById('userAvatar');
             const stored = JSON.parse(localStorage.getItem('currentUser'));
@@ -264,7 +252,6 @@ window.checkUserRole = async function () {
             const role = localStorage.getItem('userRole');
             const path = window.location.pathname.toLowerCase();
 
-            // STRICT RBAC ROUTING
             const CAREGIVER_ONLY = ['caregiver-dashboard.html', 'notifications.html', 'elder_profiles.html', 'schedule.html', 'report.html'];
             const ELDER_ONLY = ['elder-dashboard.html'];
 

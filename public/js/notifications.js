@@ -3,33 +3,26 @@
 let allNotifications = [];
 let currentFilter = 'all';
 
-// 1. Get App ID safely for strict environment path compliance
 const getAppId = () => {
     return (typeof window.__app_id !== 'undefined') ? window.__app_id : 'default-app-id';
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Check Auth
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
-            // We need the familyId to query the root collection
             const storedUser = JSON.parse(localStorage.getItem('currentUser'));
             if (storedUser && storedUser.familyId) {
                 loadNotifications(user.uid, storedUser.familyId);
             } else {
-                // Fallback: Fetch profile if localStorage is empty
                 firebase.firestore().collection('users').doc(user.uid).get()
                     .then(doc => {
                         if(doc.exists) {
                             const data = doc.data();
-                            // Update local storage for future use
                             localStorage.setItem('currentUser', JSON.stringify({ uid: user.uid, ...data }));
                             loadNotifications(user.uid, data.familyId);
                         }
                     });
             }
-        } else {
-            // window.location.href = 'login.html';
         }
     });
 });
@@ -40,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadNotifications(userId, familyId) {
     const list = document.getElementById('notificationList');
     
-    // Query ROOT 'notifications' collection by familyId
     firebase.firestore()
         .collection('notifications')
         .where('familyId', '==', familyId)
@@ -49,7 +41,6 @@ function loadNotifications(userId, familyId) {
             
             snapshot.forEach(doc => {
                 const data = doc.data();
-                // Client-side filter: Only show if it's for THIS user or meant for everyone
                 if (data.recipientId === userId || !data.recipientId) {
                     allNotifications.push({
                         id: doc.id,
@@ -58,7 +49,6 @@ function loadNotifications(userId, familyId) {
                 }
             });
 
-            // Sort in Memory (Newest first)
             allNotifications.sort((a, b) => {
                 const getMillis = (item) => {
                     const ts = item.createdAt || item.timestamp;
@@ -67,7 +57,6 @@ function loadNotifications(userId, familyId) {
                 return getMillis(b) - getMillis(a);
             });
 
-            // Limit in Memory
             if (allNotifications.length > 50) {
                 allNotifications = allNotifications.slice(0, 50);
             }
@@ -185,14 +174,12 @@ function renderNotifications() {
 
 window.handleNotifAction = function(event, id, url) {
     event.stopPropagation();
-    // Mark as read first
     firebase.firestore().collection('notifications').doc(id)
         .update({ isRead: true, read: true })
         .then(() => {
             if (url && url !== "#") {
                 window.location.href = url;
             } else {
-                // If no URL, just re-render to show it's read
                 renderNotifications();
             }
         });
@@ -219,12 +206,10 @@ function showCustomConfirm(title, message, type, onConfirm) {
 
     if (!modal) return;
 
-    // Reset styles
     iconBox.className = "";
     icon.className = "";
     okBtn.style.background = "";
 
-    // Set dynamic properties based on type
     if (type === 'danger') {
         iconBox.style.background = "var(--danger-bg)";
         iconBox.style.color = "var(--danger)";
@@ -235,9 +220,9 @@ function showCustomConfirm(title, message, type, onConfirm) {
         iconBox.style.background = "var(--warning-bg)";
         iconBox.style.color = "var(--warning)";
         icon.className = "fas fa-exclamation-triangle animate__animated animate__pulse animate__infinite";
-        okBtn.style.background = "var(--secondary)"; // Gold/Brass Accent
+        okBtn.style.background = "var(--secondary)";
         okBtn.style.color = "white";
-    } else { // info / success
+    } else {
         iconBox.style.background = "var(--primary-light)";
         iconBox.style.color = "var(--primary)";
         icon.className = "fas fa-check-double animate__animated animate__bounceIn";
@@ -248,13 +233,10 @@ function showCustomConfirm(title, message, type, onConfirm) {
     titleEl.innerText = title;
     msgEl.innerText = message;
 
-    // Open modal
     modal.style.display = "flex";
 
-    // Setup action handlers
     const cleanUp = () => {
         modal.style.display = "none";
-        // Remove event listeners by cloning elements
         const newOkBtn = okBtn.cloneNode(true);
         const newCancelBtn = cancelBtn.cloneNode(true);
         okBtn.parentNode.replaceChild(newOkBtn, okBtn);
@@ -275,7 +257,6 @@ function showCustomConfirm(title, message, type, onConfirm) {
    ACTIONS
    ============================ */
 
-// 1. Clear All (Batch Delete)
 window.clearAllNotifications = async function() {
     if(allNotifications.length === 0) return;
     
@@ -303,21 +284,17 @@ window.clearAllNotifications = async function() {
     );
 };
 
-// 2. Mark as Read (Single Update)
 window.markAsRead = function(id, currentStatus) {
-    if (currentStatus === true) return; // Already read
+    if (currentStatus === true) return;
 
-    // Update both field names to be safe
     firebase.firestore().collection('notifications').doc(id)
         .update({ isRead: true, read: true })
         .catch(err => console.error("Error marking read:", err));
 };
 
-// 3. Mark All as Read (Batch Update)
 window.markAllAsRead = async function() {
     if(allNotifications.length === 0) return;
 
-    // Check if there are actually any unread items
     const unreadCount = allNotifications.filter(n => {
         const isRead = n.isRead !== undefined ? n.isRead : n.read;
         return !isRead;
@@ -355,7 +332,6 @@ window.markAllAsRead = async function() {
     );
 };
 
-// 4. Delete Single
 window.deleteNotification = function(event, id) {
     event.stopPropagation();
     const btn = event.currentTarget;
@@ -419,7 +395,6 @@ function getIconForType(type) {
     }
 }
 
-// 5. Simulator (Updated to use Root Collection + Correct Fields)
 window.simulateAlert = async function() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {

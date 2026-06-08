@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const monthSelect = document.getElementById('reportMonthSelect');
         const elderSelect = document.getElementById('reportElderSelect');
 
-        // Dynamically populate the elder selector
         try {
             if (window.elderService) {
                 const elders = await window.elderService.getAll();
@@ -73,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 5. Render Charts
         function renderCharts(summary) {
-            // BP Trends Chart
             const bpCtx = document.getElementById('healthTrendsChart');
             if (bpCtx) {
                 if (bpChartInstance) bpChartInstance.destroy();
@@ -118,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // Adherence Chart
             const adCtx = document.getElementById('adherenceChart');
             if (adCtx) {
                 if (adherenceChartInstance) adherenceChartInstance.destroy();
@@ -159,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 if (!summary) throw new Error("Failed to load summary data.");
 
-                // Render Top Metric Cards
                 const metricAppts = document.getElementById('metricAppointments');
                 metricAppts.classList.remove('skeleton', 'skeleton-text-short');
                 metricAppts.textContent = summary.completedAppointments;
@@ -177,10 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 metricAdherence.classList.remove('skeleton', 'skeleton-text-short');
                 metricAdherence.textContent = `${summary.medicalAdherence}%`;
 
-                // Render Charts
                 renderCharts(summary);
 
-                // Render Incidents Table
                 const incidentsBody = document.getElementById('reportIncidentsBody');
                 incidentsBody.innerHTML = '';
                 if (summary.criticalIncidents.length === 0) {
@@ -197,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 }
 
-                // Render Missed Appointments Table
                 const missedBody = document.getElementById('reportMissedAppointmentsBody');
                 missedBody.innerHTML = '';
                 if (summary.missedAppointments.length === 0) {
@@ -216,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 }
 
-                // Render Leaderboard Table
                 const leaderboardBody = document.getElementById('reportLeaderboardBody');
                 leaderboardBody.innerHTML = '';
                 if (summary.caregivers.length === 0) {
@@ -240,7 +232,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
                 console.error("Report Generation Error:", error);
                 
-                // Show clean error status
                 ['metricAppointments', 'metricAlerts', 'metricHealthLogs', 'metricAdherence'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) {

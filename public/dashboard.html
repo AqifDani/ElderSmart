@@ -10,14 +10,12 @@
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!currentUser) {
-        // Redirect to login if not authenticated
         window.location.replace("login.html");
     } else if (currentUser.role === "Elder") {
         window.location.replace("elder-dashboard.html");
     } else if (currentUser.role === "Family Caregiver") {
         window.location.replace("caregiver-dashboard.html");
     } else {
-        // Fallback for unknown roles or errors
         window.location.replace("login.html");
     }
 </script>

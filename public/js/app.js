@@ -112,7 +112,6 @@ async function handleUserRedirect(user) {
 
         const userData = doc.data();
 
-        // 1. SAVE TO LOCALSTORAGE (Essential for services)
         localStorage.setItem('currentUser', JSON.stringify({
             uid: user.uid,
             email: user.email,
@@ -122,7 +121,6 @@ async function handleUserRedirect(user) {
         }));
         localStorage.setItem('userRole', userData.role);
 
-        // 2. LEGACY BYPASS: If user existed before these rules and has no onboarding status, mark them as legacy
         if (userData.onboardingComplete === undefined) {
             await firebase.firestore().collection('users').doc(user.uid).update({
                 onboardingComplete: true,
@@ -131,18 +129,11 @@ async function handleUserRedirect(user) {
             userData.onboardingComplete = true;
         }
 
-        // 3. AUTH & ONBOARDING ROUTING
-        if (!user.emailVerified) {
-            // Optional: Allow them to see a "Please verify" message/page
-            // window.location.href = 'verify-email.html'; 
-        }
-
         if (!userData.onboardingComplete) {
             window.location.href = 'onboarding.html';
             return;
         }
 
-        // 4. ROLE-BASED DASHBOARD REDIRECT
         if (userData.role === 'elder') {
             window.location.href = 'elder-dashboard.html';
         } else {

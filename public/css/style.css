@@ -4,53 +4,53 @@
    1. VARIABLES & THEME (Gilded Sage)
    ========================================= */
 :root {
-    /* Core Brand Colors (The Serenity System) */
+
     --primary: #2D5A47;
     --primary-dark: #1B3E2F;
-    /* Professional Deep Sage */
-    --primary-light: #E9F2EE;
-    /* Ultra-soft background tint */
-    --secondary: #B88E2F;
-    /* Matte Gold / Brass */
-    --accent: #FF6B6B;
-    /* Warm Coral for urgent alerts */
 
-    /* Functional Colors (Accessibility Optimized) */
+    --primary-light: #E9F2EE;
+
+    --secondary: #B88E2F;
+
+    --accent: #FF6B6B;
+
+
+
     --danger: #D63031;
-    /* WCAG Compliant Red */
+
     --danger-bg: #FFF5F5;
     --success: #27AE60;
-    /* Calm Green */
+
     --success-bg: #F0FFF4;
     --warning: #E67E22;
-    /* High Contrast Orange */
+
     --warning-bg: #FFF9F2;
     --info: #0984E3;
-    /* Clinical Blue */
+
     --info-bg: #F0F7FF;
 
-    /* Neutrals & Borders (Higher Contrast) */
+
     --bg-body: #F1F5F9;
-    /* Darkened background for better card pop */
+
     --surface: #FFFFFF;
     --border: #E2E8F0;
-    /* Standard border */
-    --border-strong: #CBD5E1;
-    /* Defined containment border */
 
-    /* Text - Maximum Contrast for Elders */
+    --border-strong: #CBD5E1;
+
+
+
     --text-main: #1A1A1B;
-    /* True high-contrast charcoal */
+
     --text-muted: #64748B;
-    /* Slate grey */
+
     --text-on-primary: #FFFFFF;
 
-    /* Measurements - Soft & Spaced */
+
     --sidebar-width: 280px;
     --radius: 20px;
     --radius-sm: 12px;
 
-    /* Premium Elevation System */
+
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
     --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
@@ -88,7 +88,7 @@
     background: rgba(45, 90, 71, 0.4);
 }
 
-/* For Firefox */
+
 * {
     scrollbar-width: thin;
     scrollbar-color: rgba(45, 90, 71, 0.2) transparent;
@@ -98,12 +98,12 @@ body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     line-height: 1.6;
-    /* More breathing room for elders */
+
     color: var(--text-main);
     background: var(--bg-body);
     -webkit-font-smoothing: antialiased;
     font-size: 16px;
-    /* Base font size increased */
+
 }
 
 /* =========================================
@@ -177,7 +177,7 @@ body {
     display: none !important;
 }
 
-/* Text Utilities */
+
 .text-sm {
     font-size: 13px;
 }
@@ -228,7 +228,7 @@ body {
     text-decoration: underline;
 }
 
-/* Form Interactivity Refinements */
+
 input::placeholder,
 textarea::placeholder {
     transition: color 0.3s ease;
@@ -239,7 +239,7 @@ textarea:focus::placeholder {
     color: transparent;
 }
 
-/* Skeleton Loaders */
+
 @keyframes pulse {
     0% {
         background-color: #e2e8f0;
@@ -290,7 +290,7 @@ body.dashboard-page {
     display: flex;
 }
 
-/* Sidebar Styling (Deep Forest Charcoal) */
+
 .sidebar {
     width: var(--sidebar-width);
     background: linear-gradient(180deg, #1A1C1B 0%, #111814 100%);
@@ -470,7 +470,7 @@ h6 {
     margin-top: 5px;
 }
 
-/* Sidebar Footer Buttons */
+
 .btn-icon-footer {
     flex: 1;
     text-align: center;
@@ -498,7 +498,7 @@ h6 {
     background: rgba(239, 68, 68, 0.1);
 }
 
-/* Main Content Area */
+
 .main-content {
     flex: 1;
     margin-left: var(--sidebar-width);
@@ -508,7 +508,7 @@ h6 {
     transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Sidebar Responsive Logic */
+
 #mobile-menu-btn {
     display: none;
     position: fixed;
@@ -616,7 +616,7 @@ h6 {
     border-radius: var(--radius);
     box-shadow: var(--shadow-soft);
     border: 1.5px solid var(--border);
-    /* Slightly thicker, more visible */
+
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -633,7 +633,7 @@ h6 {
     border-color: rgba(158, 134, 53, 0.3);
 }
 
-/* Hover Effect for Clickable Cards */
+
 .card-link {
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -644,7 +644,7 @@ h6 {
     box-shadow: var(--shadow-lg);
 }
 
-/* Colored Borders */
+
 .card-primary {
     border-left: 5px solid var(--primary);
 }
@@ -669,7 +669,7 @@ h6 {
     border-left: 5px solid var(--info);
 }
 
-/* Square Icons (Default) */
+
 .icon-box {
     width: 50px;
     height: 50px;
@@ -681,7 +681,7 @@ h6 {
     margin-bottom: 15px;
 }
 
-/* Circular Icons (For Profile/Invite) */
+
 .icon-circle {
     width: 60px;
     height: 60px;
@@ -694,7 +694,7 @@ h6 {
     margin-bottom: 0;
 }
 
-/* Icon Colors */
+
 .bg-primary-light {
     background: var(--primary-light);
     color: var(--primary);
@@ -861,7 +861,7 @@ label {
     box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
 }
 
-/* Ghost Button - used in modals as the cancel/secondary action */
+
 .btn-ghost {
     background: transparent;
     border: 1.5px solid var(--border);
@@ -886,7 +886,7 @@ label {
     transform: translateY(-1px);
 }
 
-/* Settings Page */
+
 .settings-profile-header {
     display: flex;
     align-items: center;
@@ -938,7 +938,7 @@ label {
     text-transform: capitalize;
 }
 
-/* Tables */
+
 .table-container {
     background: var(--surface);
     border-radius: var(--radius);
@@ -999,13 +999,13 @@ td {
     width: 540px;
     max-width: 95%;
     max-height: 90vh;
-    /* Prevent full-screen feel */
+
     overflow-y: auto;
-    /* Scroll if content exceeds height */
+
     padding: 32px 40px;
-    /* Reduced vertical padding */
+
     border-radius: 32px;
-    /* Slightly tighter corners for smaller footprint */
+
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
     animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1023,7 +1023,7 @@ td {
     }
 }
 
-/* Confirmation Specifics */
+
 .confirm-icon-wrapper {
     width: 100px;
     height: 100px;
@@ -1032,9 +1032,9 @@ td {
     align-items: center;
     justify-content: center;
     font-size: 40px;
-    /* Larger icon */
+
     margin: 0 auto 32px;
-    /* More gap below icon */
+
     transition: all 0.3s ease;
 }
 
@@ -1059,7 +1059,7 @@ td {
 .confirm-title {
     font-family: 'Outfit', sans-serif;
     font-size: 32px;
-    /* More prominent */
+
     font-weight: 900;
     color: var(--text-main);
     letter-spacing: -0.04em;
@@ -1071,7 +1071,7 @@ td {
     line-height: 1.7;
     color: var(--text-muted);
     margin-bottom: 40px;
-    /* Much more gap before buttons */
+
     max-width: 90%;
     margin-left: auto;
     margin-right: auto;
@@ -1125,7 +1125,7 @@ td {
     }
 }
 
-/* Staggered Fade-In Animation */
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -1222,7 +1222,7 @@ td {
     justify-content: center;
 }
 
-/* Elder Card Content */
+
 .elder-card-content {
     display: flex;
     flex-direction: column;
@@ -1263,7 +1263,7 @@ td {
    10. COMPONENT: MEDICATIONS & FLATPICKR
    ========================================= */
 
-/* Stock Badges */
+
 .badge {
     display: inline-flex;
     align-items: center;
@@ -1283,12 +1283,12 @@ td {
     color: var(--danger);
 }
 
-/* Table Status Styles */
+
 .row-taken {
     background: var(--success-bg);
 }
 
-/* Light Green Background */
+
 .status-taken {
     color: var(--success);
     font-weight: 700;
@@ -1303,7 +1303,7 @@ td {
     font-weight: 600;
 }
 
-/* Small Buttons (Table Actions) */
+
 .btn-xs {
     padding: 5px 10px;
     font-size: 12px;
@@ -1327,7 +1327,7 @@ td {
     cursor: not-allowed;
 }
 
-/* Flatpickr Theme Override (Moved from HTML) */
+
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.endRange,
@@ -1355,7 +1355,7 @@ td {
    11. COMPONENT: APPOINTMENTS
    ========================================= */
 
-/* Smart Assign Input States */
+
 .input-loading {
     background-color: var(--bg-body);
     border-color: var(--border-strong);
@@ -1380,7 +1380,7 @@ td {
     color: #0369a1;
 }
 
-/* Completed Row Styling */
+
 .row-completed {
     background: #f9fafb;
 }
@@ -1393,7 +1393,7 @@ td {
     text-decoration: line-through;
 }
 
-/* Icon Button Styles (for Table Actions) */
+
 .btn-icon {
     background: none;
     border: none;
@@ -1411,7 +1411,7 @@ td {
    12. COMPONENT: SCHEDULE & LOGISTICS
    ========================================= */
 
-/* The "Next Appointment" Hero Card */
+
 .card-hero {
     background: #fdfcf6;
     border-left: 5px solid var(--primary);
@@ -1419,14 +1419,14 @@ td {
     padding: 30px;
 }
 
-/* The Grid Layout for Shifts */
+
 .schedule-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 
-/* Individual Shift Card */
+
 .shift-card {
     background: var(--surface);
     border-radius: var(--radius-sm);
@@ -1434,7 +1434,7 @@ td {
     margin-bottom: 16px;
     box-shadow: var(--shadow-soft);
     border-left: 6px solid #CBD5E1;
-    /* Muted Slate */
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1455,7 +1455,7 @@ td {
     background: var(--danger-bg);
 }
 
-/* Driver Pill (The Name Tag) */
+
 .driver-pill {
     display: flex;
     align-items: center;
@@ -1480,7 +1480,7 @@ td {
     font-size: 10px;
 }
 
-/* Shift Actions */
+
 .btn-assign {
     background: #ef4444;
     color: white;
@@ -1528,7 +1528,7 @@ td {
     background: #fecaca;
 }
 
-/* Suggestion Box (Fairness Engine) */
+
 .suggestion-box {
     display: inline-flex;
     align-items: center;
@@ -1548,7 +1548,7 @@ td {
    13. COMPONENT: HEALTH & CHARTS
    ========================================= */
 
-/* The asymmetric grid (Chart gets more space) */
+
 .health-grid {
     display: grid;
     grid-template-columns: 3fr 1fr;
@@ -1562,14 +1562,14 @@ td {
     }
 }
 
-/* Chart Container */
+
 .chart-container {
     height: 250px;
     position: relative;
     width: 100%;
 }
 
-/* Stat Box (Right side of health page) */
+
 .stat-box {
     display: flex;
     flex-direction: column;
@@ -1612,7 +1612,7 @@ td {
    14. COMPONENT: NOTIFICATIONS
    ========================================= */
 
-/* Notification Card Base */
+
 .notif-card {
     margin-bottom: 16px;
     display: flex;
@@ -1632,7 +1632,7 @@ td {
     border-color: var(--primary);
 }
 
-/* Unread/Urgent State */
+
 .notif-unread {
     background: var(--surface);
     border-left: 6px solid var(--primary);
@@ -1643,7 +1643,7 @@ td {
     background: var(--danger-bg);
 }
 
-/* Read State */
+
 .notif-read {
     background: var(--bg-body);
     opacity: 0.7;
@@ -1655,7 +1655,7 @@ td {
     font-weight: 500;
 }
 
-/* Notification Icons */
+
 .notif-icon {
     font-size: 20px;
     margin-top: 2px;
@@ -1669,7 +1669,7 @@ td {
     color: var(--primary);
 }
 
-/* Unread Dot indicator */
+
 .unread-dot {
     width: 10px;
     height: 10px;
@@ -1734,7 +1734,7 @@ td {
     display: flex;
     align-items: center;
     gap: 100px;
-    /* More breathing room */
+
     z-index: 2;
 }
 
@@ -1800,7 +1800,7 @@ td {
     justify-content: center;
 }
 
-/* Central Tablet Mockup (Cleaned & Focused) */
+
 .tablet-mockup {
     width: 480px;
     height: 350px;
@@ -1843,7 +1843,7 @@ td {
     object-position: top;
 }
 
-/* Enhanced Floating Cards - Organized to avoid overlaps */
+
 .floating-card {
     position: absolute;
     background: rgba(255, 255, 255, 0.98);
@@ -1869,8 +1869,8 @@ td {
     box-shadow: 0 25px 50px rgba(45, 90, 71, 0.3);
 }
 
-/* Spread cards out to avoid "messiness" */
-/* Focused positions for the core three cards */
+
+
 .card-1 {
     top: 15%;
     right: -2px;
@@ -1953,7 +1953,7 @@ td {
     }
 }
 
-/* Benefit Images Fix */
+
 .split-image.caregiver {
     background: url('../assets/img/caregiver.png') no-repeat center center;
     background-size: cover;
@@ -1964,7 +1964,7 @@ td {
     background-size: cover;
 }
 
-/* Video Section */
+
 .video-section {
     padding: 120px 40px;
     background: white;
@@ -2002,7 +2002,7 @@ td {
     border: none;
 }
 
-/* Feature Grid */
+
 .feature-grid {
     padding: 120px 80px;
     background: #f8fafc;
@@ -2058,7 +2058,7 @@ td {
     line-height: 1.7;
 }
 
-/* Split Benefit Section */
+
 .split-section {
     padding: 140px 80px;
     display: flex;
@@ -2106,7 +2106,7 @@ td {
     margin-bottom: 30px;
 }
 
-/* Call to Action Banner */
+
 .cta-banner {
     margin: 80px 40px;
     padding: 120px 80px;
@@ -2136,7 +2136,7 @@ td {
    16. ELDER DASHBOARD SPECIFICS
    ========================================= */
 
-/* Family Code Badge (Header) */
+
 .family-code-pill {
     display: inline-flex;
     align-items: center;
@@ -2157,7 +2157,7 @@ td {
     letter-spacing: 1px;
 }
 
-/* Timeline Table Styles */
+
 .timeline-time {
     font-size: 16px;
     font-weight: 700;
@@ -2182,7 +2182,7 @@ td {
    17. NEW DASHBOARD LAYOUT (Reference Image Style)
    ========================================= */
 
-/* The Main Grid: 70% Left | 30% Right */
+
 .dashboard-layout-grid {
     display: grid;
     grid-template-columns: 2.5fr 1fr;
@@ -2192,13 +2192,13 @@ td {
 @media (max-width: 1024px) {
     .dashboard-layout-grid {
         grid-template-columns: 1fr;
-        /* Stack on smaller screens */
+
     }
 }
 
-/* LEFT PANEL STYLES */
 
-/* Hero Banner (The big colored card) */
+
+
 .hero-banner {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
@@ -2237,7 +2237,7 @@ td {
     color: var(--primary);
 }
 
-/* Stats Row (Mini Cards) */
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2274,14 +2274,14 @@ td {
     font-size: 18px;
 }
 
-/* Bottom Grid (2 Columns) */
+
 .grid-2-col {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* Placeholder Donut Chart */
+
 .chart-donut {
     width: 100px;
     height: 100px;
@@ -2295,14 +2295,14 @@ td {
     justify-content: center;
 }
 
-/* RIGHT PANEL STYLES */
+
 .right-panel {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Utility helpers for this layout */
+
 .bg-danger-bg {
     background-color: var(--danger-bg);
 }
@@ -2323,7 +2323,7 @@ td {
    18. MINI CALENDAR STYLES (Flatpickr Override)
    ========================================= */
 
-/* Hide container border for seamless look */
+
 .flatpickr-calendar.inline {
     width: 100% !important;
     max-width: 100%;
@@ -2349,15 +2349,15 @@ td {
     min-width: 100%;
 }
 
-/* Day Cell Styling */
+
 .flatpickr-day {
     position: relative;
-    /* For dot positioning */
+
     border-radius: 8px !important;
     border: 1px solid transparent !important;
 }
 
-/* The Event Dot Indicator */
+
 .event-dot {
     width: 5px;
     height: 5px;
@@ -2369,13 +2369,13 @@ td {
     transform: translateX(-50%);
 }
 
-/* Selected state styling */
+
 .flatpickr-day.selected {
     background: var(--primary) !important;
     border-color: var(--primary) !important;
 }
 
-/* Fix month/year text */
+
 .flatpickr-current-month {
     font-size: 110%;
 }
@@ -2445,14 +2445,14 @@ span.flatpickr-weekday {
     margin-top: 20px;
 }
 
-/* Timeline Group (Per Day) */
+
 .timeline-group {
     position: relative;
     padding-left: 30px;
-    /* Space for line */
+
     margin-bottom: 20px;
     border-left: 2px solid #e2e8f0;
-    /* Solid, cleaner line */
+
 }
 
 .timeline-group:last-child {
@@ -2460,21 +2460,21 @@ span.flatpickr-weekday {
     padding-bottom: 0;
 }
 
-/* Date Bubble - Perfectly Aligned on Line */
+
 .timeline-date-marker {
     position: absolute;
     left: -11px;
-    /* Center circle on the 2px line */
+
     top: 0;
     width: 20px;
     height: 20px;
     background: var(--primary);
     border: 4px solid #f1ecc5;
-    /* Matches background color to create gap */
+
     border-radius: 50%;
 }
 
-/* The actual Date Text */
+
 .date-label {
     position: absolute;
     top: -2px;
@@ -2485,16 +2485,16 @@ span.flatpickr-weekday {
     text-transform: uppercase;
 }
 
-/* Timeline Item (Row) */
+
 .timeline-item {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
     padding-top: 25px;
-    /* Push down below the date marker */
+
 }
 
-/* Time Column */
+
 .timeline-time {
     font-size: 13px;
     font-weight: 600;
@@ -2504,7 +2504,7 @@ span.flatpickr-weekday {
     padding-top: 4px;
 }
 
-/* Content Card */
+
 .timeline-content {
     flex-grow: 1;
     background: white;
@@ -2523,7 +2523,7 @@ span.flatpickr-weekday {
     border-color: var(--secondary);
 }
 
-/* Urgent / Unassigned Variant */
+
 .timeline-content.urgent-border {
     border-left: 4px solid var(--danger);
     background: #fffbfc;
@@ -2533,7 +2533,7 @@ span.flatpickr-weekday {
     border-left: 4px solid var(--success);
 }
 
-/* Caregiver Pill */
+
 .assigned-pill {
     display: inline-flex;
     align-items: center;
@@ -2558,7 +2558,7 @@ span.flatpickr-weekday {
     justify-content: center;
 }
 
-/* Buttons */
+
 .btn-icon-hover {
     width: 32px;
     height: 32px;
@@ -2628,7 +2628,7 @@ span.flatpickr-weekday {
     transform: translateY(-1px);
 }
 
-/* Variant: Urgent (Red) */
+
 .notification-card.urgent {
     background: #fef2f2;
     border: 1.5px solid var(--danger);
@@ -2640,7 +2640,7 @@ span.flatpickr-weekday {
     color: #dc2626;
 }
 
-/* Variant: Info (Blue/White) */
+
 .notification-card.info {
     background: white;
     border-left: 4px solid #3b82f6;
@@ -2651,7 +2651,7 @@ span.flatpickr-weekday {
     color: #3b82f6;
 }
 
-/* Icon Box */
+
 .notif-icon-box {
     width: 40px;
     height: 40px;
@@ -2663,14 +2663,14 @@ span.flatpickr-weekday {
     flex-shrink: 0;
 }
 
-/* Delete Button Area */
+
 .delete-action {
     display: flex;
     align-items: center;
     justify-content: center;
     padding-left: 10px;
     margin-left: auto;
-    /* Push to right */
+
     border-left: 1px solid #f1f5f9;
 }
 
@@ -2709,8 +2709,8 @@ span.flatpickr-weekday {
    22. HERO BANNER & GRID (Reference Image Style)
    ========================================= */
 
-/* The "All Invoices" style Hero Card */
-/* Unified Professional Hero Banner (Deep Sage Green) */
+
+
 .hero-banner,
 .hero-banner-card {
     background: linear-gradient(135deg, #1E2D24 0%, #2D5A47 100%);
@@ -2844,7 +2844,7 @@ span.flatpickr-weekday {
     transform: scale(1.05);
 }
 
-/* Background Icon Decoration */
+
 .hero-illustration i {
     font-size: 180px;
     position: absolute;
@@ -2862,7 +2862,7 @@ span.flatpickr-weekday {
     gap: 10px;
 }
 
-/* Filter Pills (Visual Aesthetic) */
+
 .filter-pill {
     background: white;
     padding: 8px 16px;
@@ -2888,7 +2888,7 @@ span.flatpickr-weekday {
     box-shadow: 0 5px 15px rgba(74, 99, 81, 0.3);
 }
 
-/* Glass Buttons for Hero */
+
 .btn-glass {
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(4px);
@@ -2931,11 +2931,11 @@ span.flatpickr-weekday {
 .notification-feed {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    /* Responsive Grid */
+
     gap: 25px;
 }
 
-/* The Grid Card */
+
 .notification-card {
     background: white;
     border-radius: 20px;
@@ -2955,7 +2955,7 @@ span.flatpickr-weekday {
     border-color: var(--secondary);
 }
 
-/* Card Header */
+
 .notif-header {
     display: flex;
     justify-content: space-between;
@@ -2987,7 +2987,7 @@ span.flatpickr-weekday {
     border-radius: 20px;
 }
 
-/* Card Content */
+
 .notif-body h4 {
     font-size: 16px;
     font-weight: 700;
@@ -3002,7 +3002,7 @@ span.flatpickr-weekday {
     margin-bottom: 20px;
 }
 
-/* Card Footer */
+
 .notif-footer {
     margin-top: auto;
     padding-top: 15px;
@@ -3012,7 +3012,7 @@ span.flatpickr-weekday {
     align-items: center;
 }
 
-/* Variants */
+
 .notification-card.urgent {
     border-left: 6px solid var(--danger);
     background: var(--danger-bg);
@@ -3032,7 +3032,7 @@ span.flatpickr-weekday {
     color: #ef4444;
 }
 
-/* Unread Badge */
+
 .status-badge {
     font-size: 11px;
     font-weight: 700;
@@ -3050,7 +3050,7 @@ span.flatpickr-weekday {
     color: #9ca3af;
 }
 
-/* Delete Button */
+
 .btn-trash {
     background: transparent;
     border: none;
@@ -3086,7 +3086,7 @@ span.flatpickr-weekday {
    23. ELDER PROFILES (Insights Layout)
    ========================================= */
 
-/* Top Layout Grid (2 Columns: Wide Left, Narrow Right) */
+
 .profiles-hero-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -3102,7 +3102,7 @@ span.flatpickr-weekday {
 /* 1. HERO INVITE CARD (Left) */
 .hero-invite-card {
     background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
-    /* Soft Cream/Orange Gradient */
+
     border-radius: 24px;
     padding: 40px;
     position: relative;
@@ -3119,7 +3119,7 @@ span.flatpickr-weekday {
     position: relative;
 }
 
-/* The "3D" Character Placeholder */
+
 .hero-illustration-3d {
     position: absolute;
     right: 30px;
@@ -3136,7 +3136,7 @@ span.flatpickr-weekday {
     transform: rotate(0deg) scale(1.05);
 }
 
-/* Metrics Row inside Hero */
+
 .metrics-row {
     margin-top: 20px;
     background: rgba(255, 255, 255, 0.6);
@@ -3151,7 +3151,7 @@ span.flatpickr-weekday {
 /* 2. FAMILY CODE CARD (Right) */
 .family-code-card {
     background: var(--primary);
-    /* Sage Green */
+
     color: white;
     border-radius: 24px;
     padding: 25px;
@@ -3165,7 +3165,7 @@ span.flatpickr-weekday {
     min-height: 250px;
 }
 
-/* Background Circle Decoration */
+
 .family-code-card::after {
     content: '';
     position: absolute;
@@ -3234,7 +3234,7 @@ span.flatpickr-weekday {
     border-color: var(--secondary);
 }
 
-/* Avatar Styling */
+
 .modern-avatar {
     width: 80px;
     height: 80px;
@@ -3245,7 +3245,7 @@ span.flatpickr-weekday {
     margin-bottom: 15px;
 }
 
-/* Status Badge */
+
 .status-pill {
     position: absolute;
     top: 20px;
@@ -3257,7 +3257,7 @@ span.flatpickr-weekday {
     box-shadow: 0 0 0 3px white;
 }
 
-/* Stats Row inside Card */
+
 .card-stats-row {
     display: flex;
     justify-content: space-around;
@@ -3301,7 +3301,7 @@ span.flatpickr-weekday {
     border-color: var(--primary);
 }
 
-/* Helper */
+
 .icon-circle-sm {
     width: 40px;
     height: 40px;
@@ -3315,11 +3315,11 @@ span.flatpickr-weekday {
    24. SHIFT SCHEDULE (Performance Layout)
    ========================================= */
 
-/* The Main Split Grid */
+
 .shift-layout-grid {
     display: grid;
     grid-template-columns: 2.5fr 1fr;
-    /* Wide Left, Narrow Right */
+
     gap: 30px;
     align-items: start;
 }
@@ -3335,7 +3335,7 @@ span.flatpickr-weekday {
 /* 1. Pink Hero Card ("Good Job" style) */
 .hero-softCream-card {
     background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
-    /* Soft Cream/Orange Gradient */
+
     border-radius: 24px;
     padding: 30px;
     position: relative;
@@ -3393,7 +3393,7 @@ span.flatpickr-weekday {
     margin-top: 20px;
 }
 
-/* Timeline Card Style (Clean White) */
+
 .shift-item {
     background: white;
     padding: 16px 20px;
@@ -3425,7 +3425,7 @@ span.flatpickr-weekday {
 
 .right-panel-yellow {
     background: var(--primary);
-    /* Sage Green */
+
     color: white;
     border-radius: 24px;
     padding: 30px;
@@ -3436,7 +3436,7 @@ span.flatpickr-weekday {
     box-shadow: 0 10px 30px rgba(74, 99, 81, 0.2);
 }
 
-/* Worker Card inside Yellow Panel */
+
 .worker-card {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 12px;
@@ -3458,7 +3458,7 @@ span.flatpickr-weekday {
     justify-content: center;
 }
 
-/* Progress Bars */
+
 .progress-bar-bg {
     background: rgba(255, 255, 255, 0.4);
     height: 6px;
@@ -3488,7 +3488,7 @@ span.flatpickr-weekday {
    24. SHIFT SCHEDULE (Themed Sync)
    ========================================= */
 
-/* Layout Grid */
+
 .shift-layout-grid {
     display: grid;
     grid-template-columns: 2.5fr 1fr;
@@ -3504,7 +3504,7 @@ span.flatpickr-weekday {
 
 /* --- LEFT PANEL --- */
 
-/* Hero Card: Replaced Pink with Brand Sage Gradient */
+
 .hero-sage-card {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     border-radius: 20px;
@@ -3513,7 +3513,7 @@ span.flatpickr-weekday {
     overflow: hidden;
     color: white;
     box-shadow: 0 10px 25px rgba(74, 99, 81, 0.25);
-    /* Green Shadow */
+
     margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
@@ -3540,7 +3540,7 @@ span.flatpickr-weekday {
     position: relative;
 }
 
-/* Stats Row: Clean White styling */
+
 .stats-row-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -3572,7 +3572,7 @@ span.flatpickr-weekday {
     margin: 0 auto;
 }
 
-/* Timeline Cards */
+
 .shift-item {
     background: white;
     padding: 16px 20px;
@@ -3591,7 +3591,7 @@ span.flatpickr-weekday {
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Status Colors */
+
 .shift-item.assigned {
     border-left-color: var(--success);
 }
@@ -3601,7 +3601,7 @@ span.flatpickr-weekday {
     background: #fffbfb;
 }
 
-/* Driver Pill */
+
 .driver-pill {
     display: flex;
     align-items: center;
@@ -3644,7 +3644,7 @@ span.flatpickr-weekday {
     height: 45px;
     border-radius: 12px;
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    /* Gold Gradient */
+
     color: white;
     font-weight: bold;
     display: flex;
@@ -3653,7 +3653,7 @@ span.flatpickr-weekday {
     box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
 }
 
-/* Progress Bars */
+
 .progress-track {
     background: #f1f5f9;
     height: 6px;
@@ -3674,7 +3674,7 @@ span.flatpickr-weekday {
     background: var(--primary);
 }
 
-/* Buttons */
+
 .btn-assign {
     background: var(--primary);
     color: white;
@@ -3719,7 +3719,7 @@ span.flatpickr-weekday {
     color: #fab005;
 }
 
-/* Gold Warning */
+
 .btn-drop:hover {
     color: #d97706;
     background: #fffbeb;
@@ -3735,16 +3735,16 @@ span.flatpickr-weekday {
     margin: 0 auto;
 }
 
-/* Container: Side-by-Side Layout */
+
 .video-container {
     display: grid;
     grid-template-columns: 1fr 1.2fr;
-    /* Text takes less space, Video takes more */
+
     gap: 60px;
     align-items: center;
 }
 
-/* Text Styling */
+
 .video-text h2 {
     font-size: 36px;
     line-height: 1.2;
@@ -3759,7 +3759,7 @@ span.flatpickr-weekday {
     white-space: nowrap;
 }
 
-/* Gold underline for 'Family' */
+
 .video-text .highlight::after {
     content: '';
     position: absolute;
@@ -3789,19 +3789,19 @@ span.flatpickr-weekday {
     margin-bottom: 10px;
 }
 
-/* The Video Card (The "Frame" Look) */
+
 .video-wrapper {
     position: relative;
     background: white;
     padding: 12px;
-    /* This creates the white border frame */
+
     border-radius: 24px;
-    /* Rounded outer corners */
+
     box-shadow: 0 20px 50px rgba(74, 99, 81, 0.15);
-    /* Soft Sage Shadow */
+
     width: 100%;
     aspect-ratio: 16 / 9;
-    /* Enforce standard video shape */
+
     transition: transform 0.3s ease;
 }
 
@@ -3814,15 +3814,15 @@ span.flatpickr-weekday {
     width: 100%;
     height: 100%;
     border-radius: 16px;
-    /* Inner rounded corners */
+
     display: block;
 }
 
-/* Mobile Responsiveness */
+
 @media (max-width: 900px) {
     .video-container {
         grid-template-columns: 1fr;
-        /* Stack vertically */
+
         text-align: center;
         gap: 40px;
     }
@@ -3836,21 +3836,21 @@ span.flatpickr-weekday {
    18. SPLIT REGISTRATION PAGE
    ========================================= */
 
-/* Main Container */
+
 body.auth-split-page {
     margin: 0;
     padding: 0;
     height: 100vh;
     display: flex;
     overflow: hidden;
-    /* Prevents double scrollbars */
+
     background: white;
 }
 
-/* Left Side: Visual Image */
+
 .auth-visual {
     flex: 1.2;
-    /* Takes slightly more than half width */
+
     position: relative;
     height: 100%;
     background-color: var(--primary-dark);
@@ -3862,10 +3862,10 @@ body.auth-split-page {
     height: 100%;
     object-fit: cover;
     opacity: 0.85;
-    /* Slightly darkens image so text pops */
+
 }
 
-/* Text Overlay on Image */
+
 .visual-overlay {
     position: absolute;
     bottom: 60px;
@@ -3889,15 +3889,15 @@ body.auth-split-page {
     font-weight: 500;
 }
 
-/* Right Side: Form Container */
+
 .auth-form-container {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    /* Start from top to prevent clipping */
+
     padding: 60px 40px;
-    /* Generous vertical padding for scrolling */
+
     background: white;
     overflow-y: auto;
 }
@@ -3905,11 +3905,11 @@ body.auth-split-page {
 .auth-card-modern {
     width: 100%;
     max-width: 480px;
-    /* Limits form width */
+
     padding: 20px;
 }
 
-/* Form Elements */
+
 .logo-header {
     display: flex;
     align-items: center;
@@ -3934,17 +3934,17 @@ body.auth-split-page {
     letter-spacing: -0.5px;
 }
 
-/* Mobile Responsive Adjustments */
+
 @media (max-width: 900px) {
     body.auth-split-page {
         flex-direction: column;
         overflow: auto;
-        /* Enable scroll on mobile */
+
     }
 
     .auth-visual {
         display: none;
-        /* Hide big image on mobile for cleaner UX */
+
     }
 
     .auth-form-container {
@@ -3961,26 +3961,26 @@ body.auth-split-page {
     width: 100%;
     max-width: 480px;
     padding: 40px;
-    /* Added more internal spacing */
 
-    /* THE BORDER & SHAPE */
+
+
     border: 1.5px solid var(--border);
-    /* Soft grey border */
-    border-radius: 24px;
-    /* Modern rounded corners */
-    background: white;
-    /* Clean white background */
 
-    /* Optional: Soft shadow to lift it up */
+    border-radius: 24px;
+
+    background: white;
+
+
+
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
-/* Mobile Adjustment */
+
 @media (max-width: 768px) {
     .auth-card-modern {
         padding: 25px;
         border: none;
-        /* Remove border on mobile for cleaner look */
+
         box-shadow: none;
     }
 }
@@ -3989,13 +3989,13 @@ body.auth-split-page {
    24. SHIFT SCHEDULE (Clean & Distinct)
    ========================================= */
 
-/* Main Grid Layout - More breathing room */
+
 .taskie-grid {
     display: grid;
     grid-template-columns: 2.8fr 1.2fr;
-    /* Optimized ratio */
+
     gap: 40px;
-    /* Increased gap for cleanliness */
+
     align-items: start;
 }
 
@@ -4009,7 +4009,7 @@ body.auth-split-page {
 .search-pill {
     background: white;
     border: 1px solid rgba(74, 99, 81, 0.2);
-    /* Sage tint border */
+
     padding: 10px 20px;
     border-radius: 50px;
     display: flex;
@@ -4017,7 +4017,7 @@ body.auth-split-page {
     gap: 12px;
     width: 280px;
     box-shadow: 0 4px 15px rgba(74, 99, 81, 0.05);
-    /* Soft sage shadow */
+
     transition: 0.3s ease;
 }
 
@@ -4064,7 +4064,7 @@ body.auth-split-page {
     display: grid;
     grid-template-columns: 1.4fr 1fr 1fr;
     gap: 25px;
-    /* Better spacing */
+
     margin-bottom: 40px;
 }
 
@@ -4086,7 +4086,7 @@ body.auth-split-page {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Hero Card (Sage - Deep & Professional) */
+
 .hero-sage {
     background: linear-gradient(145deg, #1E3A2F 0%, #2D5A47 100%);
     box-shadow: 0 20px 40px rgba(30, 58, 47, 0.2);
@@ -4099,12 +4099,12 @@ body.auth-split-page {
     box-shadow: 0 25px 50px rgba(30, 58, 47, 0.3);
 }
 
-/* White Stat Cards (Distinct from background) */
+
 .card-distinct {
     background: white;
     border: 1px solid rgba(0, 0, 0, 0.03);
     box-shadow: 0 10px 25px rgba(158, 134, 53, 0.08);
-    /* Warm gold shadow */
+
 }
 
 .card-distinct:hover {
@@ -4202,7 +4202,7 @@ body.auth-split-page {
     border-color: var(--primary);
 }
 
-/* Left Indicator Bar */
+
 .task-bar {
     width: 6px;
     height: 100%;
@@ -4224,7 +4224,7 @@ body.auth-split-page {
     background: var(--danger);
 }
 
-/* Glass Badge for Priority Card */
+
 .badge-white-glass {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(4px);
@@ -4238,12 +4238,12 @@ body.auth-split-page {
     letter-spacing: 0.5px;
 }
 
-/* Background opacity helper */
+
 .bg-white\/20 {
     background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Progress Bar (Refined & Thicker for Elders) */
+
 .progress-container,
 .progress-track {
     width: 100%;
@@ -4262,7 +4262,7 @@ body.auth-split-page {
     transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Filter Chips */
+
 .filter-chip {
     padding: 10px 22px;
     border-radius: 30px;
@@ -4352,7 +4352,7 @@ body.auth-split-page {
     border: 1px solid var(--border);
 }
 
-/* Modals Refined (Replacement for Inline Styles) */
+
 .modal-banner {
     border-radius: 16px;
     padding: 16px;
@@ -4433,7 +4433,7 @@ body.auth-split-page {
     text-align: center;
 }
 
-/* Glassmorphic Clinical Tabs */
+
 .clinical-tabs {
     display: flex;
     gap: 10px;
@@ -4595,7 +4595,7 @@ body.auth-split-page {
         display: block !important;
     }
 
-    /* Show all clinical data in print */
+
 
     body {
         background: white !important;
@@ -4612,7 +4612,7 @@ body.auth-split-page {
     margin-bottom: 25px;
 }
 
-/* Up Next Task Box */
+
 .next-task-box {
     background: var(--bg-body);
     border: 1.5px solid var(--border);
@@ -4637,7 +4637,7 @@ body.auth-split-page {
     font-size: 14px;
 }
 
-/* Team Workload Styles */
+
 .workload-item {
     display: flex;
     align-items: center;
@@ -4698,7 +4698,7 @@ body.auth-split-page {
     vertical-align: middle;
 }
 
-/* Circular Progress Avatar */
+
 .progress-circle-container {
     position: relative;
     width: 140px;
@@ -4706,7 +4706,7 @@ body.auth-split-page {
     margin: 0 auto 15px;
 }
 
-/* FIX: Added top/left 10px to perfectly center the 120px ring inside the 140px container */
+
 .progress-ring {
     transform: rotate(-90deg);
     position: absolute;
@@ -4719,7 +4719,7 @@ body.auth-split-page {
     height: 110px;
     border-radius: 50%;
     background: linear-gradient(135deg, #fdfbf7 0%, #f1ecc5 100%);
-    /* Sage/Cream tint */
+
     color: var(--primary);
     font-size: 40px;
     font-weight: 800;
@@ -4732,7 +4732,7 @@ body.auth-split-page {
     box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Buttons */
+
 .btn-mini-action {
     width: 34px;
     height: 34px;
@@ -4745,7 +4745,7 @@ body.auth-split-page {
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    /* Explicit font-size ensures icon centers correctly */
+
     line-height: 1;
     flex-shrink: 0;
     transition: all 0.2s ease;
@@ -4797,7 +4797,7 @@ body.auth-split-page {
    16. DYNAMIC DASHBOARD COMPONENTS
    ========================================= */
 
-/* Leaderboard Specifics */
+
 .leaderboard-table {
     width: 100%;
 }
@@ -4839,7 +4839,7 @@ body.auth-split-page {
     border: 1px solid var(--border);
 }
 
-/* Health Status Cards (The Interactive List) */
+
 .health-status-card {
     background: var(--surface);
     border-radius: 18px;
@@ -4912,10 +4912,10 @@ body.auth-split-page {
     transform: translateX(-50%);
 }
 
-/* Next Appointment Widget Polish */
+
 .next-appt-card {
     border-bottom: 2px solid var(--bg-body);
-    /* More visible divider */
+
     padding: 20px 0;
     transition: all 0.2s ease;
 }
@@ -5004,7 +5004,7 @@ body.auth-split-page {
    ========================================= */
 @media (max-width: 768px) {
 
-    /* Show Mobile Controls */
+
     #mobile-menu-btn {
         display: flex !important;
         align-items: center;
@@ -5015,19 +5015,19 @@ body.auth-split-page {
         display: block !important;
     }
 
-    /* Sidebar Behavior */
+
     .sidebar {
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 1000;
         width: 280px;
-        /* FIX: Prevent sidebar from being cut off by mobile browser bars */
+
         height: 100% !important;
         position: fixed;
         top: 0;
         bottom: 0;
         overflow-y: hidden;
-        /* Only nav should scroll */
+
         display: flex;
         flex-direction: column;
     }
@@ -5037,46 +5037,46 @@ body.auth-split-page {
         box-shadow: 10px 0 40px rgba(0, 0, 0, 0.4);
     }
 
-    /* Ensure nav takes available space and scrolls */
+
     .sidebar-nav {
         flex: 1;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Ensure footer is visible and has space from bottom edge */
+
     .sidebar-footer {
         padding-bottom: 30px !important;
-        /* Safe area for bottom swipe bar */
+
         flex-shrink: 0;
     }
 
-    /* Main Content Full Width */
+
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
-        /* FIX: Native scrolling for mobile */
+
         height: auto !important;
         overflow-y: visible !important;
         min-height: 100vh;
     }
 
-    /* FIX: Ensure body allows scrolling */
+
     body.dashboard-page {
         height: auto !important;
         min-height: 100vh;
         overflow-y: auto !important;
-        /* Force browser scrollbar */
+
         display: block !important;
-        /* Reset layout to normal flow */
+
     }
 
     .dashboard-container {
-        /* FIX: Increased padding to clear fixed UI (top and bottom) */
+
         padding: 90px 15px 120px 15px !important;
     }
 
-    /* Header Optimizations */
+
     .dashboard-header {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -5103,7 +5103,7 @@ body.auth-split-page {
         justify-content: center;
     }
 
-    /* Force All Grids to Single Column */
+
     .dashboard-layout-grid,
     .taskie-grid,
     .shift-layout-grid,
@@ -5122,7 +5122,7 @@ body.auth-split-page {
         gap: 20px !important;
     }
 
-    /* Card Optimizations */
+
     .card,
     .stat-card,
     .notification-card,
@@ -5132,7 +5132,7 @@ body.auth-split-page {
         margin-bottom: 15px;
     }
 
-    /* Hero Cards */
+
     .hero-banner,
     .hero-banner-card,
     .hero-sage-card,
@@ -5143,7 +5143,7 @@ body.auth-split-page {
         text-align: center;
     }
 
-    /* Hide Decorative Elements */
+
     .hero-icon,
     .hero-illustration,
     .hero-illustration-3d,
@@ -5151,7 +5151,7 @@ body.auth-split-page {
         display: none !important;
     }
 
-    /* Table Handling */
+
     .table-container {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
@@ -5169,13 +5169,13 @@ body.auth-split-page {
         font-size: 13px;
     }
 
-    /* Form Optimizations & Modal Scrolling Fix */
+
     .modal {
         padding: 10px !important;
         align-items: flex-start !important;
-        /* Top align to allow scroll */
+
         overflow-y: auto !important;
-        /* Enable vertical scroll */
+
         -webkit-overflow-scrolling: touch;
     }
 
@@ -5184,22 +5184,22 @@ body.auth-split-page {
         max-width: 100% !important;
         padding: 25px 20px !important;
         margin: 20px 0 80px 0 !important;
-        /* Top margin + Bottom clearance */
+
         height: auto !important;
         position: relative !important;
         top: auto !important;
         transform: none !important;
-        /* Remove animation transform conflict */
+
     }
 
     input,
     select,
     textarea {
         font-size: 16px !important;
-        /* Prevents iOS zoom */
+
     }
 
-    /* Stack Form Button Groups */
+
     form .flex,
     .flex.gap-2,
     .flex.gap-4 {
@@ -5213,7 +5213,7 @@ body.auth-split-page {
         width: 100% !important;
     }
 
-    /* Timeline & Schedule */
+
     .timeline-item,
     .task-card,
     .shift-item,
@@ -5229,12 +5229,12 @@ body.auth-split-page {
         margin-top: 8px;
     }
 
-    /* Notifications */
+
     .notif-header {
         flex-wrap: wrap;
     }
 
-    /* Search & Filter */
+
     .search-pill {
         width: 100% !important;
         max-width: 100%;
@@ -5245,14 +5245,14 @@ body.auth-split-page {
         padding: 6px 12px;
     }
 
-    /* Calendar */
+
     #miniCalendar,
     .flatpickr-calendar {
         width: 100% !important;
         max-width: 100% !important;
     }
 
-    /* Landing Page */
+
     .landing-nav {
         padding: 15px 20px;
         flex-wrap: wrap;
@@ -5298,7 +5298,7 @@ body.auth-split-page {
         text-align: center;
     }
 
-    /* FIX: Un-cramp the Notification Actions on Mobile */
+
     .hero-actions {
         position: static !important;
         margin-top: 15px;
@@ -5306,7 +5306,7 @@ body.auth-split-page {
         justify-content: center;
     }
 
-    /* Video Section */
+
     .video-container {
         grid-template-columns: 1fr !important;
         gap: 30px;
@@ -5324,14 +5324,14 @@ body.auth-split-page {
         max-width: 100%;
     }
 
-    /* Features */
+
     .features {
         grid-template-columns: 1fr !important;
         padding: 0 20px;
         gap: 25px;
     }
 
-    /* Auth Pages */
+
     body.auth-split-page {
         flex-direction: column;
         overflow-y: auto;
@@ -5361,7 +5361,7 @@ body.auth-split-page {
         text-align: center;
     }
 
-    /* Elder Profiles */
+
     .family-code-card {
         min-height: auto;
         padding: 20px !important;
@@ -5372,7 +5372,7 @@ body.auth-split-page {
         width: 100%;
     }
 
-    /* Utility Classes */
+
     .mobile-hidden {
         display: none !important;
     }
@@ -5385,7 +5385,7 @@ body.auth-split-page {
         gap: 12px !important;
     }
 
-    /* Larger Tap Targets */
+
     .btn-icon,
     .btn-icon-hover,
     .action-btn-icon,
@@ -5399,13 +5399,13 @@ body.auth-split-page {
         margin-bottom: 8px;
     }
 
-    /* Reduce Animations on Mobile */
+
     * {
         animation-duration: 0.2s !important;
         transition-duration: 0.2s !important;
     }
 
-    /* Disable Problematic Hover Effects */
+
     .card:hover,
     .task-card:hover,
     .notification-card:hover,
@@ -5413,12 +5413,12 @@ body.auth-split-page {
         transform: none !important;
     }
 
-    /* Mini Stats Cards Stack Better */
+
     .mini-stat-card {
         padding: 15px !important;
     }
 
-    /* Icon Circles Smaller */
+
     .icon-circle-lg {
         width: 50px !important;
         height: 50px !important;
@@ -5506,7 +5506,7 @@ body.auth-split-page {
     }
 }
 
-/* Notification Feed Enhancements */
+
 .notification-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
@@ -5718,7 +5718,7 @@ body.auth-split-page {
     transform: scale(1.2);
 }
 
-/* Profile Upload Upgrade */
+
 .profile-upload-container {
     display: flex;
     flex-direction: column;
@@ -5817,7 +5817,7 @@ body.auth-split-page {
     line-height: 1.6;
 }
 
-/* Progress bar for onboarding card */
+
 .onboarding-progress {
     height: 6px;
     background: #f1f5f9;
@@ -5833,7 +5833,7 @@ body.auth-split-page {
 }
 
 
-/* Premium Modal System */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -5938,7 +5938,7 @@ body.auth-split-page {
 }
 
 
-/* Password Toggle Styles */
+
 .password-field-container {
     position: relative;
     width: 100%;
@@ -5949,7 +5949,7 @@ body.auth-split-page {
     position: absolute;
     right: 18px;
     top: 25px;
-    /* Manually center relative to input height */
+
     transform: translateY(-50%);
     cursor: pointer;
     color: var(--text-muted);
@@ -5968,7 +5968,7 @@ body.auth-split-page {
 }
 
 
-/* Premium Toast Notifications */
+
 #toast-container {
     position: fixed;
     top: 24px;
@@ -6030,7 +6030,7 @@ body.auth-split-page {
 }
 
 
-/* Disabled Role Option Styles */
+
 .role-option.disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -6053,7 +6053,7 @@ body.auth-split-page {
 }
 
 
-/* Revised Onboarding Layout */
+
 .onboarding-container {
     display: flex;
     min-height: 100vh;
@@ -6256,7 +6256,7 @@ body.auth-split-page {
 }
 
 
-/* Polishing Onboarding UI */
+
 .step {
     display: flex;
     align-items: center;
@@ -6264,7 +6264,7 @@ body.auth-split-page {
     opacity: 0.4;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background: none !important;
-    /* Override old circle style */
+
     width: auto !important;
     height: auto !important;
     border: none !important;
@@ -6346,7 +6346,7 @@ body.auth-split-page {
 }
 
 
-/* Final Onboarding Polish */
+
 .onboarding-actions button {
     flex: 1;
     display: flex;
@@ -6402,7 +6402,7 @@ body.auth-split-page {
 }
 
 
-/* Cleaning up Step 3 UI */
+
 .profile-upload-section {
     display: flex;
     flex-direction: column;
@@ -6461,7 +6461,7 @@ body.auth-split-page {
 }
 
 
-/* Premium Settings Styles */
+
 .settings-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -6613,7 +6613,7 @@ body.auth-split-page {
     }
 
     .dashboard-container {
-        padding: 80px 15px 40px 15px !important; /* Top space for menu button */
+        padding: 80px 15px 40px 15px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         overflow-x: hidden !important;
@@ -6668,7 +6668,7 @@ body.auth-split-page {
         box-sizing: border-box !important;
     }
 
-    .table-container, 
+    .table-container,
     div[style*="overflow-x:auto"] {
         width: 100% !important;
         overflow-x: auto !important;
@@ -6677,7 +6677,7 @@ body.auth-split-page {
     }
 
     table {
-        min-width: 600px !important; /* Allow the table to be wide INTERNALLY */
+        min-width: 600px !important;
     }
 
     /* 5. UI Elements Fix */
@@ -6695,18 +6695,18 @@ body.auth-split-page {
         padding: 15px !important;
     }
 
-    /* Fix for health status cards */
+
     #elderHealthList > div {
         width: 100% !important;
     }
 }
 
-/* Specific fix for ultra-small screens */
+
 @media (max-width: 400px) {
     .dashboard-container {
         padding-top: 70px !important;
     }
-    
+
     .hero-text h2 {
         font-size: 18px !important;
     }
@@ -6743,10 +6743,10 @@ body.auth-split-page {
     }
 
     .chart-container-large {
-        height: 220px !important; /* Slightly smaller charts for mobile */
+        height: 220px !important;
     }
-    
-    /* Ensure the print/share buttons don't overlap tabs */
+
+
     .clinical-main-content .flex.justify-between {
         flex-direction: column !important;
         gap: 15px !important;

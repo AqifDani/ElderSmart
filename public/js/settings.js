@@ -18,7 +18,6 @@ async function loadUserSettings(user) {
 
         currentUserData = doc.data();
         
-        // Fill Fields
         document.getElementById("displayName").value = currentUserData.name || "";
         document.getElementById("displayEmail").value = user.email;
         document.getElementById("displayPhone").value = currentUserData.phone || "";
@@ -27,7 +26,6 @@ async function loadUserSettings(user) {
         const roleBadge = document.getElementById("displayRoleBadge");
         roleBadge.innerText = currentUserData.role ? currentUserData.role.replace('_', ' ').toUpperCase() : "CAREGIVER";
 
-        // Update Avatar Preview
         updateAvatarUI(currentUserData.photo, currentUserData.name);
 
     } catch (e) {
@@ -51,7 +49,6 @@ document.getElementById("settingsPhotoUpload").addEventListener("change", async 
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validation: 5MB
     if (file.size > 5 * 1024 * 1024) {
         if (window.showToast) showToast("File Too Large", "Photo must be under 5MB.", "error");
         return;
@@ -61,7 +58,6 @@ document.getElementById("settingsPhotoUpload").addEventListener("change", async 
     const preview = document.getElementById("settingsAvatarPreview");
     const originalContent = preview.innerHTML;
     
-    // Show loading state in avatar
     preview.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary);"></i>`;
 
     try {
@@ -69,14 +65,11 @@ document.getElementById("settingsPhotoUpload").addEventListener("change", async 
         const snapshot = await storageRef.put(file);
         const photoUrl = await snapshot.ref.getDownloadURL();
 
-        // Update Firestore
         await firebase.firestore().collection("users").doc(user.uid).update({ photo: photoUrl });
 
-        // Update Local State & UI
         updateAvatarUI(photoUrl, currentUserData.name);
         syncLocalStorage({ photo: photoUrl });
         
-        // Update Sidebar immediately if it exists
         const sidebarAvatar = document.getElementById("userAvatar");
         if (sidebarAvatar) {
             sidebarAvatar.innerHTML = `<img src="${photoUrl}" alt="U" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
@@ -111,7 +104,6 @@ document.getElementById("profileForm").addEventListener("submit", async function
             phone: newPhone
         });
 
-        // Sync and Update UI
         syncLocalStorage({ name: newName });
         
         const nameDisplay = document.getElementById("userName");
@@ -156,7 +148,7 @@ function syncLocalStorage(newData) {
     localStorage.setItem('currentUser', JSON.stringify(updated));
 }
 
-// Global: Copy Code (exposed for onclick)
+// Global: Copy Code
 window.copyFamilyCode = function() {
     const code = document.getElementById("displayFamilyId").innerText;
     if (code === "---") return;

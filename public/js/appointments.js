@@ -1,7 +1,5 @@
-// js/appointments.js - REFACTORED (Clean Classes)
+// js/appointments.js
 
-// Helper function to escape HTML characters and mitigate Cross-Site Scripting (XSS) attacks.
-// Converts special characters to their corresponding HTML entities before rendering.
 function escapeHTML(str) {
     if (!str) return '';
     return String(str)
@@ -46,7 +44,6 @@ async function checkShiftAvailability(fullDateStr) {
     const dateStr = fullDateStr.split("T")[0];
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    // Add a visual CSS class to indicate calculation in progress without clearing loaded options
     assignedInput.classList.add("input-loading");
 
     try {
@@ -65,16 +62,13 @@ async function checkShiftAvailability(fullDateStr) {
                 }
             }
         } else {
-            // Query the Fairness Engine v3 to get the caregiver with the lowest workload
             const priorityResult = await window.scheduleService.getLeastBusyCaregiver(currentUser.familyId);
 
             if (priorityResult) {
                 assignedInput.value = priorityResult.uid;
                 assignedInput.className = "input-warning";
-                // Display an informative toast detailing the effective workload (completed plus pending) to avoid user confusion
                 if (window.showToast) showToast("Fairness Engine", `${priorityResult.name} is prioritized (Workload: ${priorityResult.effectiveWorkload} shifts - ${priorityResult.totalShiftsCompleted} completed, ${priorityResult.pendingShifts} pending).`, "default");
             } else {
-                // Fallback to the current user if no other caregivers are found
                 if (currentUser) assignedInput.value = currentUser.uid;
                 assignedInput.className = "input-auto";
                 if (window.showToast) showToast("Notice", "No available caregivers found. Self-assigning.", "default");
@@ -97,7 +91,6 @@ function loadAppointments(userRole) {
     window.appointmentService.listenUpcoming((allAppointments) => {
         tableBody.innerHTML = "";
 
-        // RBAC: Elders only see their own appointments
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const legacyElders = ["gf58Z64WVq56aU8RJyJO", "Ai4YwBAGbfZgGO9elqP57gwd3Hr2"];
         const appointments = (userRole && userRole.toLowerCase() === 'elder')
@@ -139,7 +132,6 @@ function loadAppointments(userRole) {
                 ? `<span class="badge" style="background:#e0f2fe; color:#0369a1;">👤 ${safeAssignedName}</span>`
                 : `<span class="text-muted">--</span>`;
 
-            // Action Buttons
             let actionButtons = "";
             if (isCompleted) {
                 actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
@@ -191,7 +183,6 @@ function loadAppointments(userRole) {
 
 function updateSummaryCard(data, dateStr, timeStr) {
     if (data) {
-        // Replace innerHTML with manual DOM node creation to prevent XSS vectors
         const nextApptDateEl = document.getElementById("nextApptDate");
         nextApptDateEl.innerHTML = "";
         
@@ -213,8 +204,6 @@ function updateSummaryCard(data, dateStr, timeStr) {
     }
 }
 
-// ... (Load Elder Options, Open/Close Modal - Standard) ...
-// Search and select an option in a select element based on display text instead of value
 function selectOptionByName(selectElement, name) {
     if (!name) return false;
     for (let i = 0; i < selectElement.options.length; i++) {
@@ -226,7 +215,6 @@ function selectOptionByName(selectElement, name) {
     return false;
 }
 
-// Dynamically load active family caregivers to populate the assignment dropdown
 async function loadCaregiverOptions() {
     const select = document.getElementById("apptAssigned");
     select.innerHTML = '<option value="">Loading caregivers...</option>';
@@ -263,7 +251,6 @@ window.openApptModal = async function (id = null) {
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
     document.getElementById("apptModal").style.display = "flex";
     
-    // Load both elders and caregivers in parallel to avoid sequential network delays
     await Promise.all([loadElderOptions(), loadCaregiverOptions()]);
     
     const assignedInput = document.getElementById("apptAssigned");
@@ -279,7 +266,6 @@ window.openApptModal = async function (id = null) {
             document.getElementById("apptNotes").value = d.notes;
             if (datePickerInstance) datePickerInstance.setDate(d.date);
             
-            // Safely assign value to the select element using the assigned caregiver's ID, with name fallback
             if (d.assignedToId) {
                 assignedInput.value = d.assignedToId;
             } else if (d.assignedToName) {
@@ -314,7 +300,6 @@ window.showConfirmModal = function ({ title, message, iconClass, wrapperClass, b
     document.getElementById("confirmTitle").innerText = title;
     document.getElementById("confirmMessage").innerText = message;
 
-    // We avoid using innerHTML to prevent any injection through dynamic icon classes
     const iconWrapper = document.getElementById("confirmIconWrapper");
     iconWrapper.innerHTML = "";
     const iconEl = document.createElement("i");
@@ -339,7 +324,6 @@ window.closeConfirmModal = function () {
     document.getElementById("confirmModal").style.display = "none";
 };
 
-// ... (Delete and Complete Logic - Refactored for Custom Modal) ...
 window.deleteAppt = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
@@ -373,7 +357,6 @@ window.completeAppt = function (id) {
         btnClass: "bg-success",
         onConfirm: async () => {
             try {
-                // Resolve assigned caregiver UID from appointment document
                 const apptDoc = await firebase.firestore().collection('appointments').doc(id).get();
                 const apptData = apptDoc.exists ? apptDoc.data() : null;
 
@@ -384,7 +367,6 @@ window.completeAppt = function (id) {
 
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-                // Use assigned UID if exists, otherwise use current user UID
                 const caregiverUid = (apptData && apptData.assignedToId) ? apptData.assignedToId : currentUser.uid;
 
                 await window.appointmentService.markShiftCompleted(id, caregiverUid);
@@ -398,7 +380,6 @@ window.completeAppt = function (id) {
     });
 };
 
-// Handle appointment form submissions to save data in Firestore
 const apptForm = document.getElementById("apptForm");
 if (apptForm) {
     apptForm.addEventListener("submit", async function (e) {
@@ -411,7 +392,6 @@ if (apptForm) {
         const title = document.getElementById("apptTitle").value;
         const currentUser = firebase.auth().currentUser;
 
-        // Synchronously resolve caregiver ID and name directly from select options
         const assignedToId = assignedSelect.value || null;
         const assignedToName = (assignedSelect.selectedIndex >= 0 && assignedSelect.value) ? assignedSelect.options.item(assignedSelect.selectedIndex).text : "";
 
@@ -424,7 +404,6 @@ if (apptForm) {
             assignedToName: assignedToName,
             assignedToId: assignedToId,
             elderId: elderSelect.value,
-            // Use .item() to avoid dynamic bracket notation warnings
             elderName: elderSelect.selectedIndex >= 0 ? elderSelect.options.item(elderSelect.selectedIndex).text : "",
             loggedBy: currentUser.email,
             reminderOffset: document.getElementById("apptReminder").value

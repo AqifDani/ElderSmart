@@ -1,4 +1,4 @@
-// js/health.js - REFACTORED (Medical Master Feed)
+// js/health.js
 
 let miniChartInstance = null;
 
@@ -37,23 +37,20 @@ async function loadMedicalFeed(userRole) {
         
         const todayStr = new Date().toISOString().split('T')[0];
         let todayCount = 0;
-        let criticalElders = new Map(); // Map to keep latest high reading per elder
+        let criticalElders = new Map();
 
         const eldersWithRecentLog = new Set();
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
         records.forEach(r => {
-            // Count Today's Visits
             if (r.date === todayStr) todayCount++;
 
-            // Track Recent Activity (Last 48h)
             const recordDate = new Date(r.date);
             if (recordDate >= twoDaysAgo) {
                 eldersWithRecentLog.add(r.elderId);
             }
 
-            // Check for Critical BP (Ignore if already acknowledged)
             if (r.bp && r.bp.includes('/') && !r.acknowledged) {
                 const [sys, dia] = r.bp.split('/').map(Number);
                 if (sys >= 140 || dia >= 90) {
@@ -64,7 +61,6 @@ async function loadMedicalFeed(userRole) {
             }
         });
 
-        // 1. Update Critical Alert Box
         if (criticalElders.size > 0) {
             criticalAlerts.classList.remove('hidden');
             criticalCount.innerText = criticalElders.size;
@@ -83,19 +79,15 @@ async function loadMedicalFeed(userRole) {
             criticalAlerts.classList.add('hidden');
         }
 
-        // 2. Update Pulse Stats
         if (visitsTodayEl) visitsTodayEl.innerText = todayCount;
         if (checkupsDueEl) checkupsDueEl.innerText = Math.max(0, allElders.length - eldersWithRecentLog.size);
 
-        // 3. Update Medication Adherence
         updateAdherenceChart();
 
-        // --- Render Feed Cards ---
         records.forEach((data, index) => {
             const dateStr = new Date(data.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
             const delay = (index * 0.1).toFixed(1);
             
-            // Highlight High BP
             let bpStatusClass = "";
             if (data.bp && data.bp.includes('/')) {
                 const [sys, dia] = data.bp.split('/').map(Number);
@@ -175,7 +167,6 @@ async function updateAdherenceChart() {
             window.medicationService.getLogsByDate(todayStr)
         ]);
 
-        // Calculate Total Scheduled for Today
         const scheduledToday = meds.filter(m => {
             if (m.startDate && todayStr < m.startDate) return false;
             if (m.frequency === 'daily') return true;
@@ -213,7 +204,6 @@ async function updateAdherenceChart() {
     }
 }
 
-// ... MODAL & DELETE LOGIC (Same as previous but with improved services calls) ...
 let cachedElderOptions = null;
 
 window.loadElderOptions = async function () {

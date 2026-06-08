@@ -1,11 +1,10 @@
-// js/onboarding.js - CLINICAL ONBOARDING LOGIC
+// js/onboarding.js
 let currentStep = 1;
 let selectedRole = '';
 let familyId = '';
 let currentUser = null;
 let isNewFamily = false;
 
-// Initialize Firebase Auth
 firebase.auth().onAuthStateChanged(user => {
     if (!user) {
         window.location.href = 'login.html';
@@ -48,38 +47,31 @@ function updateRoleUI(role) {
 }
 
 window.nextStep = function(step) {
-    // Validation for Step 1
     if (step === 2 && !familyId) {
         if (window.showToast) showToast("Network Required", "Please join or create a family network first.", "warning");
         return;
     }
 
-    // Validation for Step 2
     if (step === 3 && !selectedRole) {
         if (window.showToast) showToast("Role Required", "Please select your role within the network.", "warning");
         return;
     }
 
-    // Hide all
     document.querySelectorAll('.onboarding-step-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
 
-    // Show target
     document.getElementById(`step${step}`).classList.add('active');
     
-    // Update dots
     for(let i=1; i<=step; i++) {
         const dot = document.getElementById(`step${i}-dot`);
         if (dot) dot.classList.add('active');
     }
     
-    // Update Progress Bar
     const progressMap = { 1: '33%', 2: '66%', 3: '100%' };
     document.getElementById('progressBar').style.width = progressMap[step];
     
     currentStep = step;
 
-    // Logic when entering Step 2: Check for Primary Caregiver
     if (step === 2) {
         checkPrimaryCaregiverStatus();
     }
@@ -96,11 +88,9 @@ async function checkPrimaryCaregiverStatus() {
         const primaryBtn = document.getElementById('primaryCaregiverRole');
         const badge = document.querySelector('#primaryCaregiverRole .role-limit-badge');
 
-        // Check 1: Families Collection (New Logic)
         const familyDoc = await firebase.firestore().collection('families').doc(familyId).get();
         let primaryExists = familyDoc.exists && familyDoc.data().primaryCaregiver;
 
-        // Check 2: Users Collection Fallback (Legacy/Reliability)
         if (!primaryExists) {
             const querySnapshot = await firebase.firestore().collection('users')
                 .where('familyId', '==', familyId)
@@ -145,7 +135,6 @@ window.verifyAndJoinFamily = async function() {
             familyId: familyId
         });
 
-        // UI Feedback
         codeInput.style.borderColor = '#166534';
         document.getElementById('proceedToRoleBtn').disabled = false;
         document.getElementById('createNetworkBtn').style.display = 'none';
@@ -176,7 +165,6 @@ window.finishOnboarding = async function() {
     btn.disabled = true;
     btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Saving...`;
 
-    // --- Validation: PDPA Privacy Consent ---
     if (!window.pdpaConsentAgreed) {
         if (window.showToast) {
             showToast("Consent Required", "Please review and authorize the PDPA Privacy Notice before completing setup.", "warning");
@@ -191,7 +179,6 @@ window.finishOnboarding = async function() {
     const phone = document.getElementById('onboardingPhone').value;
     const photoFile = document.getElementById('photoUpload').files[0];
 
-    // --- Validation: File Size Check (5MB) ---
     if (photoFile && photoFile.size > 5 * 1024 * 1024) {
         if (window.showToast) showToast("File Too Large", "Profile photo must be under 5MB.", "error");
         btn.disabled = false;
@@ -202,14 +189,12 @@ window.finishOnboarding = async function() {
     try {
         let photoUrl = null;
         
-        // 1. Upload Photo to Storage if selected
         if (photoFile) {
             const storageRef = firebase.storage().ref(`profiles/${currentUser.uid}/${photoFile.name}`);
             const snapshot = await storageRef.put(photoFile);
             photoUrl = await snapshot.ref.getDownloadURL();
         }
 
-        // 2. Create or Update Family Record
         if (isNewFamily) {
             await firebase.firestore().collection("families").doc(familyId).set({
                 createdBy: currentUser.uid,
@@ -217,13 +202,11 @@ window.finishOnboarding = async function() {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         } else if (selectedRole === 'primary_caregiver') {
-            // If joining existing family as primary (if it was vacant)
             await firebase.firestore().collection("families").doc(familyId).update({
                 primaryCaregiver: currentUser.uid
             });
         }
 
-        // 3. Update Firestore
         const updateData = {
             phone: phone,
             role: selectedRole,
@@ -235,14 +218,12 @@ window.finishOnboarding = async function() {
             onboardedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Initialize shift counter for caregiver roles (Fairness Engine)
         if (selectedRole === 'caregiver' || selectedRole === 'primary_caregiver') {
             updateData.totalShiftsCompleted = 0;
         }
 
         if (photoUrl) updateData.photo = photoUrl;
 
-        // Write completed onboarding data to Firestore
         await firebase.firestore().collection("users").doc(currentUser.uid).update(updateData);
 
         // 4. Sync to LocalStorage (CRITICAL for sidebar injection)
@@ -254,7 +235,6 @@ window.finishOnboarding = async function() {
         localStorage.setItem('currentUser', JSON.stringify(storedUser));
         localStorage.setItem('userRole', selectedRole);
 
-        // 5. Final Redirect
         if (selectedRole === 'elder') {
             window.location.href = 'elder-dashboard.html';
         } else {

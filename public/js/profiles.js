@@ -1,4 +1,4 @@
-// js/profiles.js - REFACTORED (Uses CSS Classes)
+// js/profiles.js
 
 let currentBase64Photo = null;
 
@@ -28,7 +28,6 @@ function loadElders() {
     const container = document.getElementById("elder-list");
     if (!container) return;
 
-    // Use listener instead of fetch
     window.elderService.listenElders((elders) => {
         const countEl = document.getElementById("totalEldersCount");
         if (countEl) countEl.innerText = elders.length;
@@ -134,7 +133,7 @@ function loadCaregivers() {
 
 window.previewImage = function (input) {
     if (input.files && input.files[0]) {
-        if (input.files[0].size > 500000) { // 500KB Limit
+        if (input.files[0].size > 500000) {
             alert("File is too big! Please keep it under 500KB.");
             input.value = "";
             return;
@@ -177,8 +176,6 @@ window.editElder = async function (id) {
             document.getElementById('editElderId').value = id;
             document.getElementById('elderName').value = data.name || "";
             
-            // ✅ FIX: Ensure age is a number or empty string.
-            // If data.age is "Not specified" or "undefined", we clear it so the number input doesn't break.
             let safeAge = data.age;
             if (!safeAge || isNaN(safeAge)) safeAge = "";
             document.getElementById('elderAge').value = safeAge;
@@ -193,7 +190,7 @@ window.editElder = async function (id) {
                 document.getElementById("uploadIcon").style.display = "none";
                 document.getElementById("removePhotoBtn").style.display = "flex";
             } else {
-                window.removePhoto(); // Reset UI
+                window.removePhoto();
             }
 
             document.getElementById('addElderModal').style.display = 'flex';

@@ -1,8 +1,7 @@
-// js/firebase.js (Compat Version)
+// js/firebase.js
 // firebaseConfig is loaded from js/config.js (gitignored — never committed)
 // For setup, copy js/config.example.js → js/config.js and fill in your keys.
 
-// Initialize Firebase using config provided by js/config.js
 if (typeof firebaseConfig === "undefined") {
     console.error(
         "❌ Firebase config not found! " +
@@ -12,7 +11,7 @@ if (typeof firebaseConfig === "undefined") {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     } else {
-        firebase.app(); // if already initialized, use that one
+        firebase.app();
     }
     console.log("Firebase Initialized Successfully");
 }

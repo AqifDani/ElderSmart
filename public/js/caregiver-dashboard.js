@@ -1,9 +1,7 @@
-// js/caregiver-dashboard.js - WIRED TO REAL DATA
+// js/caregiver-dashboard.js
 
-// js/caregiver-dashboard.js - CALENDAR & CHARTS ADDED
 
 (async () => {
-    // Safety check for services
     if (!window.elderService || !window.appointmentService || !window.medicationService || !window.healthService) {
         console.log("Waiting for services...");
         setTimeout(() => location.reload(), 500); 
@@ -33,7 +31,6 @@ async function loadDashboardStats() {
             window.healthService.getRecent()
         ]);
 
-        // 1. Basic Stats
         const eldersEl = document.getElementById("totalElders");
         if(eldersEl) {
             eldersEl.classList.remove('skeleton', 'skeleton-text-short');
@@ -55,7 +52,6 @@ async function loadDashboardStats() {
             medsEl.innerText = `${meds.length} Active`;
         }
 
-        // 2. Alerts
         const alertEl = document.getElementById("activeAlerts");
         if(alertEl) {
             alertEl.innerText = unreadAlerts;
@@ -63,16 +59,12 @@ async function loadDashboardStats() {
         }
         updateMiniAlerts(unreadAlerts);
 
-        // 3. Initialize Calendar with Data (Interactive)
         initMiniCalendar(appts);
 
-        // 4. Default: Show Next Immediate Appointment
         updateNextApptWidget(futureAppts);
 
-        // 5. Render Health List (Per Elder)
         renderElderHealthList(healthRecords, elders);
 
-        // 6. Family Leaderboard
         loadFamilyLeaderboard();
 
     } catch (error) {
@@ -88,7 +80,6 @@ async function loadFamilyLeaderboard() {
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const familyId = currentUser.familyId;
 
-        // Fetch all caregivers in the family
         const usersSnap = await firebase.firestore().collection("users")
             .where("familyId", "==", familyId)
             .get();
@@ -101,22 +92,6 @@ async function loadFamilyLeaderboard() {
             }
         });
 
-        /* ========================================================================
-         * [ARCHIVED] Legacy deficitScore logic — retained for potential future use.
-         * The deficitScore field on user documents is no longer computed or updated
-         * by any active system logic. To reactivate, uncomment this block and
-         * comment out the totalShiftsCompleted replacement below.
-         * ======================================================================== 
-         * const minDeficit = Math.min(...caregivers.map(c => c.deficitScore || 0));
-         *
-         * tableBody.innerHTML = caregivers.sort((a, b) => (a.deficitScore || 0) - (b.deficitScore || 0)).map(c => {
-         *     const isTarget = (c.deficitScore || 0) === minDeficit;
-         *     const completed = c.totalShiftsCompleted || 0;
-         *     const roleLabel = c.role === 'primary_caregiver' ? 'Primary' : 'Support';
-         *     const score = c.deficitScore || 0;
-         * ======================================================================== */
-
-        // Active logic: sort and display using totalShiftsCompleted (Fairness Engine v3)
         const minShifts = Math.min(...caregivers.map(c => c.totalShiftsCompleted || 0));
 
         tableBody.innerHTML = caregivers.sort((a, b) => (a.totalShiftsCompleted || 0) - (b.totalShiftsCompleted || 0)).map(c => {
@@ -364,5 +339,4 @@ async function runSafetyChecks() {
     }
 }
 
-// Trigger it 3 seconds after load
 setTimeout(runSafetyChecks, 3000);

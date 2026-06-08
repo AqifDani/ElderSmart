@@ -40,7 +40,6 @@ async function loadElderChart(id) {
             window.medicationService.getAll()
         ]);
 
-        // Filter by ID (Primary) and Name (Robust Fallback)
         const targetId = id;
         const targetName = currentElder.name.toLowerCase().trim();
         
@@ -48,7 +47,6 @@ async function loadElderChart(id) {
 
         const filteredHealth = healthRecords
             .filter(r => {
-                // Try ID first, then fallback to name matching
                 if (r.elderId === targetId) return true;
                 const recordName = (r.elderName || r.visitElder || "").toLowerCase().trim();
                 return recordName && (recordName === targetName || targetName.includes(recordName) || recordName.includes(targetName));
@@ -80,7 +78,6 @@ function renderProfileSummary(elder) {
     document.getElementById("elderName").innerText = elder.name;
     document.getElementById("elderMeta").innerText = `${elder.age || '--'} Years Old • Family ID: ${elder.familyId}`;
     
-    // Render Conditions as Tags
     const tagsContainer = document.getElementById("elderConditions");
     const conditions = elder.conditions ? elder.conditions.split(',').map(c => c.trim()) : [];
     
@@ -105,7 +102,6 @@ function renderVitalsPulse(records) {
     document.getElementById("sideBP").innerText = latest.bp || "--/--";
     document.getElementById("sideHR").innerText = (latest.hr ? `${latest.hr} bpm` : "-- bpm");
 
-    // Chart.js BP Trend
     const ctxBP = document.getElementById('bpChart').getContext('2d');
     const last10 = [...records].reverse().slice(-10);
     
@@ -130,7 +126,6 @@ function renderVitalsPulse(records) {
         }
     });
 
-    // Chart.js Weight Trend
     const ctxW = document.getElementById('weightChart').getContext('2d');
     const weights = last10.map(r => r.weight ? parseFloat(r.weight) : null);
 
@@ -211,11 +206,9 @@ function renderPharmacy(meds) {
 }
 
 window.switchTab = function(tabName) {
-    // Buttons
     document.querySelectorAll('.clinical-tab').forEach(b => b.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
     
-    // Panes
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById(`content-${tabName}`).classList.add('active');
 };

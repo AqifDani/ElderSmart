@@ -168,11 +168,9 @@
     <script>
         function closeModal() { document.getElementById('addElderModal').style.display = 'none'; }
         
-        // Quick Copy Function for the new button
         function copyFamilyCode() {
             const code = document.getElementById("displayFamilyCode").innerText;
             navigator.clipboard.writeText(code);
-            // Use existing toast if available, or alert
             if(window.showToast) window.showToast("Copied", "Family Code copied to clipboard", "success");
             else alert("Copied: " + code);
         }
