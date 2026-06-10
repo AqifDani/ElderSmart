@@ -98,7 +98,7 @@ function renderInventory() {
     let dueToday = 0, lowStock = 0;
     meds.forEach(med => {
         const isDaily = med.frequency !== 'specific';
-        const isOnDay = med.frequency === 'specific' && med.days && med.days.includes(String(todayDow));
+        const isOnDay = med.frequency === 'specific' && med.days && med.days.includes(todayDow);
         if (isDaily || isOnDay) dueToday++;
         if (med.stock !== undefined && med.stock < 5) lowStock++;
     });
