@@ -35,10 +35,6 @@ const CAREGIVER_SIDEBAR_HTML = `
                 <span class="nav-icon"><i class="fas fa-calendar-week"></i></span>
                 <span>Shift Schedule</span>
             </a>
-            <a href="report.html" class="nav-item">
-                <span class="nav-icon"><i class="fas fa-file-invoice"></i></span>
-                <span>Monthly Report</span>
-            </a>
         </div>
 
         <div class="nav-section" style="margin-top: 20px;">
@@ -54,6 +50,10 @@ const CAREGIVER_SIDEBAR_HTML = `
             <a href="medications.html" class="nav-item">
                 <span class="nav-icon"><i class="fas fa-pills"></i></span>
                 <span>Medications</span>
+            </a>
+            <a href="report.html" class="nav-item">
+                <span class="nav-icon"><i class="fas fa-file-invoice"></i></span>
+                <span>Monthly Report</span>
             </a>
         </div>
     </nav>
