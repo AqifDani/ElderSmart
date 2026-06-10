@@ -224,16 +224,16 @@
     </div>
 
     <!-- DELETE CONFIRMATION MODAL -->
-    <div id="deleteConfirmModal" class="modal">
-        <div class="modal-card bounce-in" style="max-width: 400px; text-align: center; border-top: 5px solid var(--danger);">
-            <div class="text-danger mb-4" style="font-size: 48px;">
+    <div id="deleteConfirmModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-icon" style="background: #fee2e2; color: #ef4444;">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <h3 class="text-xl font-bold text-dark mb-2">Delete Medication?</h3>
-            <p class="text-sm text-muted mb-6">Are you sure you want to permanently remove this medication prescription? This action cannot be undone.</p>
-            <div class="flex gap-3">
-                <button type="button" onclick="closeDeleteModal()" class="btn-secondary w-full">Cancel</button>
-                <button type="button" id="confirmDeleteBtn" class="btn-primary w-full shadow-md" style="background-color: var(--danger); border-color: var(--danger);">Remove</button>
+            <h3 class="modal-title">Delete Medication?</h3>
+            <p class="modal-description">Are you sure you want to permanently remove this medication prescription? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button" onclick="closeDeleteModal()" class="btn-modal-cancel">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-modal-confirm">Remove</button>
             </div>
         </div>
     </div>

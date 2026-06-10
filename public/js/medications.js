@@ -510,7 +510,7 @@ window.deleteMed = function (id) {
     medIdToDelete = id;
     const deleteModal = document.getElementById("deleteConfirmModal");
     if (deleteModal) {
-        deleteModal.style.display = "flex";
+        deleteModal.classList.add("active");
     }
 };
 
@@ -518,7 +518,7 @@ window.closeDeleteModal = function () {
     medIdToDelete = null;
     const deleteModal = document.getElementById("deleteConfirmModal");
     if (deleteModal) {
-        deleteModal.style.display = "none";
+        deleteModal.classList.remove("active");
     }
 };
 
