@@ -197,9 +197,6 @@ function renderAppointmentsList() {
                 timeStatusHtml = `<span style="background: #f8fafc; color: #475569; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px;">Upcoming</span>`;
             }
 
-            const statusLabel = isAssigned ? "Scheduled" : "Pending";
-            const statusClass = isAssigned ? "active" : "";
-
             let actionHtml = "";
             const isPrimary = cachedUserRole === 'primary_caregiver';
 
@@ -233,9 +230,8 @@ function renderAppointmentsList() {
                     <div class="task-bar"></div>
                     
                     <div style="flex:1;">
-                        <div class="flex items-center gap-3 mb-2">
+                        <div class="mb-2">
                             <h4 class="font-bold text-md text-dark" style="margin: 0;">${a.title}</h4>
-                            <span class="status-pill-task ${statusClass}" style="padding: 4px 8px; font-size: 10px; border-radius: 6px; line-height: 1;">${statusLabel}</span>
                         </div>
                         
                         <div class="flex gap-4 text-xs text-muted mb-4">
