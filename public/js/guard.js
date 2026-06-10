@@ -54,9 +54,23 @@
                 name: data.name || user.email,
                 role: data.role,
                 familyId: data.familyId,
+                photo: data.photo || null,
                 lastFetched: now
             }));
             localStorage.setItem('userRole', data.role);
+
+            const nameElem = document.getElementById('userName');
+            const avatarElem = document.getElementById('userAvatar');
+            if (nameElem) {
+                nameElem.textContent = data.name || user.email.split('@')[0];
+            }
+            if (avatarElem) {
+                if (data.photo) {
+                    avatarElem.innerHTML = `<img src="${data.photo}" alt="U" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                } else {
+                    avatarElem.textContent = (data.name || "U").charAt(0).toUpperCase();
+                }
+            }
 
         } catch (e) {
             console.error("Guard Error:", e);

@@ -117,7 +117,8 @@ async function handleUserRedirect(user) {
             email: user.email,
             name: userData.name || user.email,
             role: userData.role,
-            familyId: userData.familyId
+            familyId: userData.familyId,
+            photo: userData.photo || null
         }));
         localStorage.setItem('userRole', userData.role);
 

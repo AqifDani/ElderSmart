@@ -247,7 +247,13 @@ window.checkUserRole = async function () {
             const stored = JSON.parse(localStorage.getItem('currentUser'));
 
             if (nameElem) nameElem.textContent = stored ? stored.name : user.email.split('@')[0];
-            if (avatarElem) avatarElem.textContent = (stored ? stored.name : "U").charAt(0).toUpperCase();
+            if (avatarElem) {
+                if (stored && stored.photo) {
+                    avatarElem.innerHTML = `<img src="${stored.photo}" alt="U" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                } else {
+                    avatarElem.textContent = (stored ? stored.name : "U").charAt(0).toUpperCase();
+                }
+            }
 
             const role = localStorage.getItem('userRole');
             const path = window.location.pathname.toLowerCase();
