@@ -57,7 +57,7 @@ async function loadDashboardStats() {
             alertEl.innerText = unreadAlerts;
             alertEl.style.color = unreadAlerts > 0 ? "#ef4444" : "#166534";
         }
-        updateMiniAlerts(unreadAlerts);
+        renderRecentHealthUpdates(healthRecords);
 
         initMiniCalendar(appts);
 
@@ -238,10 +238,18 @@ function updateNextApptWidget(appts, isSpecificDate = false) {
                     <span class="badge appt-badge">
                         ${dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' })}
                     </span>
-                    <div class="mt-2">
+                    <div class="mt-2" style="display: flex; justify-content: flex-end;">
                         ${next.assignedToName 
-                            ? `<span class="text-xs text-success font-bold">✔ ${next.assignedToName.split(' ')[0]}</span>` 
-                            : `<span class="text-xs text-danger font-bold">⚠ Unassigned</span>`
+                            ? `
+                            <div class="driver-pill" style="padding: 4px 8px; font-size: 11px; border-radius: 12px; gap: 4px;">
+                                <div class="avatar-circle" style="width: 18px; height: 18px; font-size: 8px;">${next.assignedToName.substring(0, 2).toUpperCase()}</div>
+                                <span>${next.assignedToName.split(' ')[0]}</span>
+                            </div>` 
+                            : `
+                            <div class="driver-pill" style="background: #fef2f2; color: #991b1b; padding: 4px 8px; font-size: 11px; border-radius: 12px; gap: 4px;">
+                                <div class="avatar-circle" style="width: 18px; height: 18px; background: #ef4444; color: white; font-size: 8px;">⚠</div>
+                                <span>Unassigned</span>
+                            </div>`
                         }
                     </div>
                 </div>
@@ -256,33 +264,60 @@ function updateNextApptWidget(appts, isSpecificDate = false) {
     container.innerHTML = html;
 }
 
-function updateMiniAlerts(count) {
+function renderRecentHealthUpdates(records) {
     const container = document.getElementById("miniAlertList");
     if (!container) return;
-    
-    if (count > 0) {
+
+    if (!records || records.length === 0) {
         container.innerHTML = `
-            <div class="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100 shadow-sm animate__animated animate__headShake">
-                <div class="flex-shrink-0 w-10 h-10 bg-danger rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-exclamation-triangle text-white text-lg"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-danger text-sm tracking-tight" style="font-family:'Outfit', sans-serif;">Action Needed</h4>
-                    <p class="text-xs text-danger opacity-80">You have ${count} unread alerts.</p>
-                </div>
+            <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                <i class="fas fa-notes-medical" style="font-size: 24px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p style="margin: 0; font-size: 13px;">No recent health logs recorded.</p>
             </div>`;
-    } else {
-        container.innerHTML = `
-            <div class="flex items-center gap-4 p-4 bg-green-50 rounded-2xl border border-green-100">
-                <div class="flex-shrink-0 w-10 h-10 bg-success rounded-xl flex items-center justify-center">
-                    <i class="fas fa-check-circle text-white text-lg"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-success text-sm tracking-tight" style="font-family:'Outfit', sans-serif;">All Clear</h4>
-                    <p class="text-xs text-success opacity-80">System is running smoothly.</p>
-                </div>
-            </div>`;
+        return;
     }
+
+    const recent = records.slice(0, 3);
+    let html = "";
+    recent.forEach(rec => {
+        const dateStr = new Date(rec.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        
+        let bpBadge = "";
+        if (rec.bp) {
+            let bpStyle = "background: #e6f4ea; color: #137333;";
+            if (rec.bp.includes('/')) {
+                const [sys, dia] = rec.bp.split('/').map(Number);
+                if (sys > 140 || dia > 90) {
+                    bpStyle = "background: #fce8e6; color: #c5221f; font-weight: 800;";
+                }
+            }
+            bpBadge = `<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; ${bpStyle}">${rec.bp}</span>`;
+        }
+
+        const hrInfo = rec.hr ? `<span style="font-size: 11px; color: var(--text-muted);"><i class="fas fa-heartbeat" style="color: var(--secondary); margin-right: 2px;"></i>${rec.hr} bpm</span>` : "";
+
+        html += `
+            <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: white; border-radius: 12px; border: 1.5px solid #f1f5f9; box-shadow: var(--shadow-soft); transition: transform 0.2s;" onmouseenter="this.style.transform='translateX(4px)'" onmouseleave="this.style.transform=''">
+                <div style="width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0;">
+                    ${rec.elderName ? rec.elderName[0].toUpperCase() : '?'}
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">${rec.elderName}</span>
+                        <span style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">${dateStr}</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">
+                        <i class="fas fa-clinic-medical" style="font-size: 9px; margin-right: 2px;"></i>${rec.location || 'Clinic Visit'}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${bpBadge}
+                        ${hrInfo}
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    container.innerHTML = html;
 }
 
 function renderElderHealthList(records, elders) {

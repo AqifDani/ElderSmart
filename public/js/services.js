@@ -174,6 +174,54 @@ class ElderService extends BaseService {
             throw error;
         }
     }
+
+    async save(data, id = null) {
+        await super.save(data, id);
+
+        if (id && data.name) {
+            const newName = data.name;
+            const db = this.db;
+
+            const p1 = db.collection("appointments")
+                .where("elderId", "==", id)
+                .get()
+                .then(snap => {
+                    if (snap.empty) return Promise.resolve();
+                    const batch = db.batch();
+                    snap.forEach(doc => {
+                        batch.update(doc.ref, { elderName: newName });
+                    });
+                    return batch.commit();
+                });
+
+            const p2 = db.collection("medications")
+                .where("elderId", "==", id)
+                .get()
+                .then(snap => {
+                    if (snap.empty) return Promise.resolve();
+                    const batch = db.batch();
+                    snap.forEach(doc => {
+                        batch.update(doc.ref, { elderName: newName });
+                    });
+                    return batch.commit();
+                });
+
+            const p3 = db.collection("health_records")
+                .where("elderId", "==", id)
+                .get()
+                .then(snap => {
+                    if (snap.empty) return Promise.resolve();
+                    const batch = db.batch();
+                    snap.forEach(doc => {
+                        batch.update(doc.ref, { elderName: newName });
+                    });
+                    return batch.commit();
+                });
+
+            await Promise.all([p1, p2, p3]);
+        }
+        return true;
+    }
 }
 
 class AppointmentService extends BaseService {
