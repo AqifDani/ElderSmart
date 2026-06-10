@@ -27,9 +27,14 @@
                     <h2 class="text-xs text-muted uppercase font-bold tracking-widest mb-1">Health & Care</h2>
                     <h1 class="text-3xl font-bold text-dark">Medication Tracker</h1>
                 </div>
-                <button class="btn-primary hidden" onclick="openMedModal()" id="addMedBtn">
-                    <i class="fas fa-plus"></i> Add Medication
-                </button>
+                <div class="flex items-center gap-3">
+                    <select id="elderFilterSelect" style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: none;">
+                        <option value="all">All Elders</option>
+                    </select>
+                    <button class="btn-primary hidden" onclick="openMedModal()" id="addMedBtn">
+                        <i class="fas fa-plus"></i> Add Medication
+                    </button>
+                </div>
             </header>
 
             <!-- Stats Row -->

@@ -3,6 +3,8 @@
 let medTimePicker = null;
 let historyPicker = null;
 let currentViewDate = new Date().toISOString().split('T')[0];
+let currentElderFilter = 'all';
+let elderFilterDropdownPopulated = false;
 
 (async () => {
     if (!window.medicationService || !window.elderService) return;
@@ -15,9 +17,43 @@ let currentViewDate = new Date().toISOString().split('T')[0];
     }
 
     initPickers();
+    await populateElderFilterDropdown(userRole);
     initMedsListener();
     loadChecklist(currentViewDate);
 })();
+
+async function populateElderFilterDropdown(userRole) {
+    if (elderFilterDropdownPopulated) return;
+    const select = document.getElementById("elderFilterSelect");
+    if (!select) return;
+
+    const isCaregiver = userRole === 'caregiver' || userRole === 'primary_caregiver';
+    if (!isCaregiver) {
+        select.style.display = 'none';
+        return;
+    }
+
+    try {
+        const elders = await window.elderService.getAll();
+        select.innerHTML = '<option value="all">All Elders</option>';
+        elders.forEach(e => {
+            const op = document.createElement("option");
+            op.value = e.id;
+            op.text = e.name;
+            select.appendChild(op);
+        });
+
+        select.style.display = 'block';
+        select.addEventListener("change", (e) => {
+            currentElderFilter = e.target.value;
+            renderInventory();
+            renderChecklist(currentViewDate);
+        });
+        elderFilterDropdownPopulated = true;
+    } catch (e) {
+        console.error("Error populating elder filter dropdown:", e);
+    }
+}
 
 function initPickers() {
     medTimePicker = flatpickr("#medTime", {
@@ -52,7 +88,9 @@ function renderInventory() {
     const list = document.getElementById("medsList");
     if (!list) return;
 
-    const meds = currentMeds;
+    const meds = currentElderFilter === 'all'
+        ? currentMeds
+        : currentMeds.filter(m => m.elderId === currentElderFilter);
     const isCaregiver = !document.getElementById("addMedBtn").classList.contains("hidden");
 
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -207,7 +245,9 @@ function renderChecklist(dateStr) {
         return;
     }
 
-    const meds = currentMeds;
+    const meds = currentElderFilter === 'all'
+        ? currentMeds
+        : currentMeds.filter(m => m.elderId === currentElderFilter);
     const logs = currentLogs;
 
     const [y, m, d] = dateStr.split('-').map(Number);
