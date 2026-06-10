@@ -233,9 +233,9 @@ function renderAppointmentsList() {
                     <div class="task-bar"></div>
                     
                     <div style="flex:1;">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-md text-dark">${a.title}</h4>
-                            <span class="status-pill-task ${statusClass}">${statusLabel}</span>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h4 class="font-bold text-md text-dark" style="margin: 0;">${a.title}</h4>
+                            <span class="status-pill-task ${statusClass}" style="padding: 4px 8px; font-size: 10px; border-radius: 6px; line-height: 1;">${statusLabel}</span>
                         </div>
                         
                         <div class="flex gap-4 text-xs text-muted mb-4">
