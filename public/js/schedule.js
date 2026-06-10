@@ -1,5 +1,12 @@
 // js/schedule.js - TASKIE LAYOUT + REAL PROGRESS
 
+let allAppointments = [];
+let currentStatusFilter = 'all'; // 'all', 'pending', 'completed'
+let currentAssigneeFilter = 'all'; // 'all', 'me'
+let loggedInUser = null;
+let cachedUserRole = null;
+let filtersInitialized = false;
+
 (async () => {
     if (!window.appointmentService) return;
     const userRole = await window.checkUserRole();
@@ -8,6 +15,7 @@
 })();
 
 async function loadAppointmentLogistics(userRole) {
+    cachedUserRole = userRole;
     const grid = document.getElementById("scheduleGrid");
     const nextTime = document.getElementById("nextApptTime");
     const nextTitle = document.getElementById("nextApptTitle");
@@ -16,16 +24,18 @@ async function loadAppointmentLogistics(userRole) {
     const statOpen = document.getElementById("statOpenCount");
     const statTotal = document.getElementById("statTotalShifts");
     const statTopName = document.getElementById("statTopWorker");
-    const topAvatar = document.getElementById("topWorkerAvatar");
 
     try {
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        loggedInUser = currentUser;
         const familyId = currentUser.familyId;
 
         const [usersSnap, appointments] = await Promise.all([
             firebase.firestore().collection("users").where("familyId", "==", familyId).get(),
             window.appointmentService.getUpcoming()
         ]);
+
+        allAppointments = appointments;
 
         // 1. Logic: Workload & Unassigned
         const workload = {};
@@ -84,6 +94,9 @@ async function loadAppointmentLogistics(userRole) {
 
         // 2. Next Task Logic
         if (appointments.length === 0) {
+            if(nextTime) nextTime.innerText = "--:--";
+            if(nextTitle) nextTitle.innerText = "No upcoming tasks";
+            if(nextDriver) nextDriver.innerText = "RELAX MODE";
             grid.innerHTML = `<div class="text-center p-8 text-muted">No visits scheduled.</div>`;
             return;
         }
@@ -95,93 +108,154 @@ async function loadAppointmentLogistics(userRole) {
         if(nextTitle) nextTitle.innerText = firstAppt.title;
         if(nextDriver) nextDriver.innerText = firstAppt.assignedToName || "Unassigned";
 
+        // Setup filter handlers
+        setupFilters();
+
         // 3. Render List (Task Cards)
-        grid.innerHTML = "";
-        const dates = [...new Set(appointments.map(a => a.date.split('T')[0]))];
-
-        dates.forEach(dStr => {
-            const dayAppts = appointments.filter(a => a.date.startsWith(dStr));
-            const dateDisplay = new Date(dStr).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-
-            grid.innerHTML += `<div class="text-xs font-bold text-muted uppercase mt-6 mb-3 ml-1">${dateDisplay}</div>`;
-
-            dayAppts.forEach(a => {
-                const isAssigned = a.assignedToName && a.assignedToName !== "";
-                const time = new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const cardClass = isAssigned ? "task-card assigned" : "task-card unassigned";
-                
-                let progressPercent = 0;
-                const now = new Date();
-                const apptTime = new Date(a.date);
-                const oneHourLater = new Date(apptTime.getTime() + 60*60000);
-
-                if (now > oneHourLater) progressPercent = 100;
-                else if (now > apptTime) progressPercent = 50;
-                
-                const progressColor = isAssigned ? 'var(--primary)' : 'var(--danger)';
-                const statusLabel = isAssigned ? "Scheduled" : "Pending";
-                const statusClass = isAssigned ? "active" : "";
-
-                let actionHtml = "";
-                const isPrimary = userRole === 'primary_caregiver';
-
-                if (a.status === 'completed') {
-                    actionHtml = `<div class="flex items-center justify-center w-full"><span class="text-success text-xs font-bold">✔ Completed</span></div>`;
-                } else if (isAssigned) {
-                    const initials = a.assignedToName.substring(0,2).toUpperCase();
-                    const titleEsc = a.title.replace(/'/g, "\\'");
-                    actionHtml = `
-                        <div class="flex items-center gap-2">
-                            <div class="driver-pill">
-                                <div class="avatar-circle">${initials}</div>
-                                <span class="hidden sm:inline">${a.assignedToName}</span>
-                            </div>
-                            <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                            ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
-                            <button onclick="openDropModal('${a.id}', '${titleEsc}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
-                        </div>`;
-                } else {
-                    const titleEsc = a.title.replace(/'/g, "\\'");
-                    actionHtml = `
-                        <div class="flex items-center gap-2">
-                            <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-assign">Assign</button>
-                            ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
-                        </div>
-                    `;
-                }
-
-                grid.innerHTML += `
-                    <div class="${cardClass} animate__animated animate__fadeInUp">
-                        <div class="task-bar"></div>
-                        
-                        <div style="flex:1;">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-bold text-md text-dark">${a.title}</h4>
-                                <span class="status-pill-task ${statusClass}">${statusLabel}</span>
-                            </div>
-                            
-                            <div class="flex gap-4 text-xs text-muted mb-4">
-                                <span><i class="far fa-clock"></i> ${time}</span>
-                                <span><i class="fas fa-map-marker-alt"></i> ${a.location || 'Home'}</span>
-                            </div>
-
-                            <div class="flex items-center gap-3">
-                                <span class="text-[10px] uppercase font-bold text-muted tracking-wider">Progress</span>
-                                <div class="progress-track" style="flex:1; height: 6px; margin-top:0;">
-                                    <div class="progress-fill" style="width: ${progressPercent}%; background: ${progressColor};"></div>
-                                </div>
-                                <span class="text-xs font-bold text-dark">${progressPercent}%</span>
-                            </div>
-                        </div>
-
-                        <div class="pl-4 border-l border-gray-100 flex items-center">
-                            ${actionHtml}
-                        </div>
-                    </div>`;
-            });
-        });
+        renderAppointmentsList();
 
     } catch (e) { console.error("Error:", e); }
+}
+
+function setupFilters() {
+    if (filtersInitialized) return;
+
+    const assigneeSelect = document.getElementById("assigneeFilterSelect");
+    if (assigneeSelect) {
+        assigneeSelect.addEventListener("change", (e) => {
+            currentAssigneeFilter = e.target.value;
+            renderAppointmentsList();
+        });
+    }
+
+    const chips = document.querySelectorAll(".filter-chip");
+    chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+            chips.forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            
+            const filterText = chip.textContent.trim().toLowerCase();
+            currentStatusFilter = filterText;
+            renderAppointmentsList();
+        });
+    });
+
+    filtersInitialized = true;
+}
+
+function renderAppointmentsList() {
+    const grid = document.getElementById("scheduleGrid");
+    if (!grid) return;
+
+    let filtered = allAppointments;
+
+    // A. Apply Status Filter
+    if (currentStatusFilter === 'pending') {
+        filtered = filtered.filter(a => a.status !== 'completed');
+    } else if (currentStatusFilter === 'completed') {
+        filtered = filtered.filter(a => a.status === 'completed');
+    }
+
+    // B. Apply Assignee Filter
+    if (currentAssigneeFilter === 'me') {
+        filtered = filtered.filter(a => a.assignedToName === loggedInUser.name || a.assignedToId === loggedInUser.uid);
+    }
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div class="text-center p-12 text-muted">No tasks found matching current filters.</div>`;
+        return;
+    }
+
+    grid.innerHTML = "";
+    const dates = [...new Set(filtered.map(a => a.date.split('T')[0]))];
+
+    dates.forEach(dStr => {
+        const dayAppts = filtered.filter(a => a.date.startsWith(dStr));
+        const dateDisplay = new Date(dStr).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+
+        grid.innerHTML += `<div class="text-xs font-bold text-muted uppercase mt-6 mb-3 ml-1">${dateDisplay}</div>`;
+
+        dayAppts.forEach(a => {
+            const isAssigned = a.assignedToName && a.assignedToName !== "";
+            const time = new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const cardClass = isAssigned ? "task-card assigned" : "task-card unassigned";
+            
+            const now = new Date();
+            const apptTime = new Date(a.date);
+            const oneHourLater = new Date(apptTime.getTime() + 60 * 60000);
+
+            let timeStatusHtml = "";
+            if (a.status === 'completed') {
+                timeStatusHtml = `<span style="background: #e6f4ea; color: #137333; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px;">Completed</span>`;
+            } else if (a.status === 'missed') {
+                timeStatusHtml = `<span style="background: #fce8e6; color: #c5221f; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px;">Missed</span>`;
+            } else if (now > oneHourLater) {
+                timeStatusHtml = `<span style="background: #fffbeb; color: #b45309; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px;">Overdue</span>`;
+            } else if (now >= apptTime && now <= oneHourLater) {
+                timeStatusHtml = `<span style="background: #f0f9ff; color: #0369a1; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><span style="width:6px; height:6px; background:#0ea5e9; border-radius:50%; display:inline-block; animation: pulse 1.5s infinite;"></span>Active Now</span>`;
+            } else {
+                timeStatusHtml = `<span style="background: #f8fafc; color: #475569; font-weight: 800; padding: 3px 10px; border-radius: 12px; font-size: 11px;">Upcoming</span>`;
+            }
+
+            const statusLabel = isAssigned ? "Scheduled" : "Pending";
+            const statusClass = isAssigned ? "active" : "";
+
+            let actionHtml = "";
+            const isPrimary = cachedUserRole === 'primary_caregiver';
+
+            if (a.status === 'completed') {
+                actionHtml = `<div class="flex items-center justify-center w-full"><span class="text-success text-xs font-bold">✔ Completed</span></div>`;
+            } else if (isAssigned) {
+                const initials = a.assignedToName.substring(0,2).toUpperCase();
+                const titleEsc = a.title.replace(/'/g, "\\'");
+                actionHtml = `
+                    <div class="flex items-center gap-2">
+                        <div class="driver-pill">
+                            <div class="avatar-circle">${initials}</div>
+                            <span>${a.assignedToName}</span>
+                        </div>
+                        <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-mini-action" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                        ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
+                        <button onclick="openDropModal('${a.id}', '${titleEsc}')" class="btn-mini-action danger" title="Drop"><i class="fas fa-trash"></i></button>
+                    </div>`;
+            } else {
+                const titleEsc = a.title.replace(/'/g, "\\'");
+                actionHtml = `
+                    <div class="flex items-center gap-2">
+                        <button onclick="openAssignModal('${a.id}', '${titleEsc}')" class="btn-assign">Assign</button>
+                        ${isPrimary ? `<button onclick="openOverrideModal('${a.id}')" class="btn-mini-action" style="background:#1e293b; color:white;" title="Force Override"><i class="fas fa-shield-alt"></i></button>` : ''}
+                    </div>
+                `;
+            }
+
+            grid.innerHTML += `
+                <div class="${cardClass} animate__animated animate__fadeInUp">
+                    <div class="task-bar"></div>
+                    
+                    <div style="flex:1;">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-md text-dark">${a.title}</h4>
+                            <span class="status-pill-task ${statusClass}">${statusLabel}</span>
+                        </div>
+                        
+                        <div class="flex gap-4 text-xs text-muted mb-4">
+                            <span><i class="far fa-clock"></i> ${time}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${a.location || 'Home'}</span>
+                            <span><i class="fas fa-user"></i> ${a.elderName || 'Elder'}</span>
+                        </div>
+
+                        <div class="flex items-center gap-2" style="margin-top: 4px;">
+                            <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Schedule Status:</span>
+                            ${timeStatusHtml}
+                        </div>
+                    </div>
+
+                    <div class="pl-4 border-l border-gray-100 flex items-center">
+                        ${actionHtml}
+                    </div>
+                </div>`;
+        });
+    });
 }
 
 // ==========================================
@@ -264,7 +338,7 @@ window.confirmAssignment = async function() {
     await firebase.firestore().collection("appointments").doc(apptId).update(updatePayload);
     if (window.showToast) showToast("Assigned", `Shift assigned to ${name}.`, "success");
     closeAssignModal();
-    loadAppointmentLogistics();
+    loadAppointmentLogistics(cachedUserRole);
 };
 
 // ==========================================
@@ -312,7 +386,7 @@ window.confirmDropShift = async function() {
     });
     if (window.showToast) showToast("Dropped", "Shift has been unassigned.", "error");
     closeDropModal();
-    loadAppointmentLogistics();
+    loadAppointmentLogistics(cachedUserRole);
 };
 
 // Legacy: keep dropShift as alias for backward compatibility

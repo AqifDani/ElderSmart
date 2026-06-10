@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Master Log - ElderSmart</title>
+    <title>Health Check-Up Logs - ElderSmart</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -23,7 +23,7 @@
             <header class="dashboard-header mb-8">
                 <div>
                     <h2 class="text-xs text-muted uppercase font-bold tracking-widest mb-1">Health Intelligence</h2>
-                    <h1 class="text-3xl font-bold text-dark">Medical Master Log</h1>
+                    <h1 class="text-3xl font-bold text-dark">Health Check-Up Logs</h1>
                     <p class="text-sm text-muted mt-1">A real-time clinical feed of all elder doctor visits and vital check-ups.</p>
                 </div>
                 <button id="addHealthBtn" class="btn-primary shadow-lg hidden" onclick="openHealthModal()">
@@ -35,6 +35,12 @@
                 
                 <!-- MAIN FEED -->
                 <div class="main-column">
+                    <div class="flex justify-between items-center mb-4" style="padding: 0 4px;">
+                        <span class="text-xs font-bold text-muted uppercase tracking-wider">Check-Up Feed</span>
+                        <select id="elderFilterSelect" style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                            <option value="all">All Elders</option>
+                        </select>
+                    </div>
                     <div id="healthFeed" class="flex flex-col gap-6">
                         <!-- Clinical Event Cards -->
                         <div class="text-center p-12 text-muted">Scanning clinical records...</div>

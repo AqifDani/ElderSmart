@@ -1,5 +1,10 @@
 // js/appointments.js
 
+let currentElderFilter = 'all';
+let allAppointmentsCached = [];
+let cachedUserRole = null;
+let elderFilterDropdownPopulated = false;
+
 function escapeHTML(str) {
     if (!str) return '';
     return String(str)
@@ -91,110 +96,148 @@ async function checkShiftAvailability(fullDateStr) {
 // 2. LOAD & DISPLAY
 // ==========================================
 function loadAppointments(userRole) {
+    window.appointmentService.listenUpcoming(async (allAppointments) => {
+        allAppointmentsCached = allAppointments;
+        cachedUserRole = userRole;
+
+        await populateElderFilterDropdown();
+        renderAppointmentsTable();
+    });
+}
+
+async function populateElderFilterDropdown() {
+    if (elderFilterDropdownPopulated) return;
+    const select = document.getElementById("elderFilterSelect");
+    if (!select) return;
+
+    try {
+        const elders = await window.elderService.getAll();
+        select.innerHTML = '<option value="all">All Elders</option>';
+        elders.forEach(e => {
+            const op = document.createElement("option");
+            op.value = e.id;
+            op.text = e.name;
+            select.appendChild(op);
+        });
+
+        select.addEventListener("change", (e) => {
+            currentElderFilter = e.target.value;
+            renderAppointmentsTable();
+        });
+        elderFilterDropdownPopulated = true;
+    } catch (e) {
+        console.error("Error populating elder filter dropdown:", e);
+    }
+}
+
+function renderAppointmentsTable() {
     const tableBody = document.getElementById("apptTableBody");
+    if (!tableBody) return;
 
-    window.appointmentService.listenUpcoming((allAppointments) => {
-        tableBody.innerHTML = "";
+    tableBody.innerHTML = "";
 
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const legacyElders = ["gf58Z64WVq56aU8RJyJO", "Ai4YwBAGbfZgGO9elqP57gwd3Hr2"];
-        const appointments = (userRole && userRole.toLowerCase() === 'elder')
-            ? allAppointments.filter(a => a.elderId === currentUser.uid || legacyElders.includes(a.elderId))
-            : allAppointments;
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const legacyElders = ["gf58Z64WVq56aU8RJyJO", "Ai4YwBAGbfZgGO9elqP57gwd3Hr2"];
+    let appointments = (cachedUserRole && cachedUserRole.toLowerCase() === 'elder')
+        ? allAppointmentsCached.filter(a => a.elderId === currentUser.uid || legacyElders.includes(a.elderId))
+        : allAppointmentsCached;
 
-        if (appointments.length === 0) {
-            tableBody.innerHTML = "<tr><td colspan='7' class='text-center p-4 text-muted'>No upcoming appointments found.</td></tr>";
-            updateSummaryCard(null);
-            document.getElementById("totalAppts").innerText = "0";
-            return;
+    if (currentElderFilter !== 'all') {
+        appointments = appointments.filter(a => a.elderId === currentElderFilter);
+    }
+
+    if (appointments.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='7' class='text-center p-4 text-muted'>No upcoming appointments found.</td></tr>";
+        updateSummaryCard(null);
+        document.getElementById("totalAppts").innerText = "0";
+        return;
+    }
+
+    document.getElementById("totalAppts").innerText = appointments.length;
+
+    let isFirst = true;
+    appointments.sort((a, b) => {
+        if (a.status === 'completed' && b.status !== 'completed') return 1;
+        if (a.status !== 'completed' && b.status === 'completed') return -1;
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    const localNow = new Date();
+    const twoDaysAgo = new Date(localNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const y2 = twoDaysAgo.getFullYear();
+    const m2 = String(twoDaysAgo.getMonth() + 1).padStart(2, '0');
+    const d2 = String(twoDaysAgo.getDate()).padStart(2, '0');
+    const h2 = String(twoDaysAgo.getHours()).padStart(2, '0');
+    const min2 = String(twoDaysAgo.getMinutes()).padStart(2, '0');
+    const twoDaysAgoStr = `${y2}-${m2}-${d2}T${h2}:${min2}`;
+
+    appointments.forEach((data) => {
+        const isCompleted = data.status === 'completed';
+        const isMissed = data.status === 'missed' || (!isCompleted && data.date < twoDaysAgoStr);
+        const isFuture = new Date(data.date) > new Date();
+
+        if (isFirst && isFuture && !isCompleted) {
+            const dObj = new Date(data.date);
+            updateSummaryCard(data, dObj.toLocaleDateString(), dObj.toLocaleTimeString());
+            isFirst = false;
         }
 
-        document.getElementById("totalAppts").innerText = appointments.length;
+        const dateObj = new Date(data.date);
+        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-        let isFirst = true;
-        appointments.sort((a, b) => {
-            if (a.status === 'completed' && b.status !== 'completed') return 1;
-            if (a.status !== 'completed' && b.status === 'completed') return -1;
-            return new Date(a.date) - new Date(b.date);
-        });
+        const safeAssignedName = escapeHTML(data.assignedToName);
+        const elderDisplay = escapeHTML(data.elderName || '--');
+        const assignedBadge = data.assignedToName
+            ? `<span class="badge" style="background:#e0f2fe; color:#0369a1;">👤 ${safeAssignedName}</span>`
+            : `<span class="text-muted">--</span>`;
 
-        const localNow = new Date();
-        const twoDaysAgo = new Date(localNow.getTime() - 2 * 24 * 60 * 60 * 1000);
-        const y2 = twoDaysAgo.getFullYear();
-        const m2 = String(twoDaysAgo.getMonth() + 1).padStart(2, '0');
-        const d2 = String(twoDaysAgo.getDate()).padStart(2, '0');
-        const h2 = String(twoDaysAgo.getHours()).padStart(2, '0');
-        const min2 = String(twoDaysAgo.getMinutes()).padStart(2, '0');
-        const twoDaysAgoStr = `${y2}-${m2}-${d2}T${h2}:${min2}`;
+        let actionButtons = "";
+        if (isCompleted) {
+            actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
+        } else if (isMissed) {
+            actionButtons = `<span class="text-danger text-xs font-bold">✖ Missed</span>`;
+        } else if (cachedUserRole === 'caregiver' || cachedUserRole === 'primary_caregiver') {
+            const safeDataId = escapeHTML(data.id);
+            const completeBtn = isFuture
+                ? `<button title="Available after scheduled time" class="btn-icon text-muted" disabled style="opacity: 0.5; cursor: not-allowed;"><i class="fas fa-check-circle"></i></button>`
+                : `<button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>`;
 
-        appointments.forEach((data) => {
-            const isCompleted = data.status === 'completed';
-            const isMissed = data.status === 'missed' || (!isCompleted && data.date < twoDaysAgoStr);
-            const isFuture = new Date(data.date) > new Date();
-
-            if (isFirst && isFuture && !isCompleted) {
-                const dObj = new Date(data.date);
-                updateSummaryCard(data, dObj.toLocaleDateString(), dObj.toLocaleTimeString());
-                isFirst = false;
-            }
-
-            const dateObj = new Date(data.date);
-            const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-
-            const safeAssignedName = escapeHTML(data.assignedToName);
-            const elderDisplay = escapeHTML(data.elderName || '--');
-            const assignedBadge = data.assignedToName
-                ? `<span class="badge" style="background:#e0f2fe; color:#0369a1;">👤 ${safeAssignedName}</span>`
-                : `<span class="text-muted">--</span>`;
-
-            let actionButtons = "";
-            if (isCompleted) {
-                actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
-            } else if (isMissed) {
-                actionButtons = `<span class="text-danger text-xs font-bold">✖ Missed</span>`;
-            } else if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
-                const safeDataId = escapeHTML(data.id);
-                const completeBtn = isFuture
-                    ? `<button title="Available after scheduled time" class="btn-icon text-muted" disabled style="opacity: 0.5; cursor: not-allowed;"><i class="fas fa-check-circle"></i></button>`
-                    : `<button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>`;
-
-                actionButtons = `
-                    ${completeBtn}
-                    <button onclick="openApptModal('${safeDataId}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteAppt('${safeDataId}')" title="Delete" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
-                `;
-            } else {
-                actionButtons = `<span class="text-muted text-xs">Locked</span>`;
-            }
-
-            const rowClass = isCompleted ? "row-completed" : "";
-            const textClass = isCompleted ? "text-strike" : "";
-
-            const safeReminderOffset = escapeHTML(data.reminderOffset);
-            const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0")
-                ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${safeReminderOffset}m before"></i>`
-                : "";
-
-            const safeTitle = escapeHTML(data.title);
-            const safeDoctor = escapeHTML(data.doctor || "Not listed");
-            const safeLocation = escapeHTML(data.location);
-
-            tableBody.innerHTML += `
-                <tr class="${rowClass}">
-                    <td class="${textClass}">
-                        <strong>${dateStr}</strong><br> 
-                        <span class="text-xs text-muted">${timeStr}</span> ${reminderIcon}
-                    </td>
-                    <td class="${textClass}">${elderDisplay}</td>
-                    <td class="${textClass}">${safeTitle}</td>
-                    <td class="${textClass}">${safeDoctor}</td>
-                    <td class="${textClass}">${assignedBadge}</td>
-                    <td class="${textClass}">${safeLocation}</td>
-                    <td>${actionButtons}</td>
-                </tr>
+            actionButtons = `
+                ${completeBtn}
+                <button onclick="openApptModal('${safeDataId}')" title="Edit" class="btn-icon text-muted"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteAppt('${safeDataId}')" title="Delete" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
             `;
-        });
+        } else {
+            actionButtons = `<span class="text-muted text-xs">Locked</span>`;
+        }
+
+        const rowClass = isCompleted ? "row-completed" : "";
+        const textClass = isCompleted ? "text-strike" : "";
+
+        const safeReminderOffset = escapeHTML(data.reminderOffset);
+        const reminderIcon = (data.reminderOffset && data.reminderOffset !== "none" && data.reminderOffset !== "0")
+            ? `<i class="fas fa-bell text-warning animate__animated animate__swing animate__infinite" style="font-size:10px; margin-left:4px;" title="Alert set for ${safeReminderOffset}m before"></i>`
+            : "";
+
+        const safeTitle = escapeHTML(data.title);
+        const safeDoctor = escapeHTML(data.doctor || "Not listed");
+        const safeLocation = escapeHTML(data.location);
+
+        tableBody.innerHTML += `
+            <tr class="${rowClass}">
+                <td class="${textClass}">
+                    <strong>${dateStr}</strong><br> 
+                    <span class="text-xs text-muted">${timeStr}</span> ${reminderIcon}
+                </td>
+                <td class="${textClass}">${elderDisplay}</td>
+                <td class="${textClass}">${safeTitle}</td>
+                <td class="${textClass}">${safeDoctor}</td>
+                <td class="${textClass}">${assignedBadge}</td>
+                <td class="${textClass}">${safeLocation}</td>
+                <td>${actionButtons}</td>
+            </tr>
+        `;
     });
 }
 

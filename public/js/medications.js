@@ -462,16 +462,43 @@ if (medForm) {
         } catch (e) { alert(e.message); }
     });
 }
+let medIdToDelete = null;
+
 window.deleteMed = function (id) {
     const role = localStorage.getItem('userRole');
     if (role !== 'caregiver' && role !== 'primary_caregiver') return;
-    if (confirm("Delete this medication?")) {
-        window.medicationService.delete(id).then(() => {
-            loadInventory('caregiver');
-            loadChecklist(currentViewDate);
-        });
+    medIdToDelete = id;
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    if (deleteModal) {
+        deleteModal.style.display = "flex";
     }
 };
+
+window.closeDeleteModal = function () {
+    medIdToDelete = null;
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    if (deleteModal) {
+        deleteModal.style.display = "none";
+    }
+};
+
+// Bind confirm delete action
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", async function () {
+        if (medIdToDelete) {
+            try {
+                await window.medicationService.delete(medIdToDelete);
+                if (window.showToast) showToast("Success", "Medication prescription deleted", "success");
+                loadInventory('caregiver');
+                loadChecklist(currentViewDate);
+            } catch (e) {
+                console.error(e);
+            }
+            closeDeleteModal();
+        }
+    });
+}
 
 function formatTime(t) {
     if (!t) return "--:--";

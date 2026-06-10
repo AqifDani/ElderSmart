@@ -51,8 +51,11 @@
             </div>
 
             <div class="table-container" style="overflow-x: auto;">
-                <div class="table-header">
-                    <h3 class="font-bold text-primary">Upcoming Schedule</h3>
+                <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
+                    <h3 class="font-bold text-primary" style="margin: 0;">Upcoming Schedule</h3>
+                    <select id="elderFilterSelect" style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                        <option value="all">All Elders</option>
+                    </select>
                 </div>
                 <div class="tasks-table">
                     <table id="apptTable">

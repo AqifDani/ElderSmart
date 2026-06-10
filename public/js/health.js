@@ -1,6 +1,10 @@
 // js/health.js
 
 let miniChartInstance = null;
+let allRecordsCached = [];
+let currentElderFilter = 'all';
+let cachedUserRole = null;
+let elderFilterDropdownPopulated = false;
 
 (async () => {
     if (!window.healthService || !window.elderService) return;
@@ -18,12 +22,13 @@ let miniChartInstance = null;
 })();
 
 async function loadMedicalFeed(userRole) {
-    const feed = document.getElementById("healthFeed");
     const criticalAlerts = document.getElementById("criticalAlerts");
     const criticalList = document.getElementById("criticalList");
     const criticalCount = document.getElementById("criticalCount");
     const visitsTodayEl = document.getElementById("visitsToday");
     const checkupsDueEl = document.getElementById("checkupsDue");
+
+    cachedUserRole = userRole;
 
     let allElders = [];
     try {
@@ -33,7 +38,7 @@ async function loadMedicalFeed(userRole) {
     }
 
     window.healthService.listenRecent(async (records) => {
-        feed.innerHTML = "";
+        allRecordsCached = records;
         
         const todayStr = new Date().toISOString().split('T')[0];
         let todayCount = 0;
@@ -83,72 +88,114 @@ async function loadMedicalFeed(userRole) {
         if (checkupsDueEl) checkupsDueEl.innerText = Math.max(0, allElders.length - eldersWithRecentLog.size);
 
         updateAdherenceChart();
+        await populateElderFilterDropdown();
+        renderMedicalFeed();
+    });
+}
 
-        records.forEach((data, index) => {
-            const dateStr = new Date(data.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-            const delay = (index * 0.1).toFixed(1);
-            
-            let bpStatusClass = "";
-            if (data.bp && data.bp.includes('/')) {
-                const [sys, dia] = data.bp.split('/').map(Number);
-                if (sys > 140 || dia > 90) bpStatusClass = "high-bp-pulse";
-            }
+async function populateElderFilterDropdown() {
+    if (elderFilterDropdownPopulated) return;
+    const select = document.getElementById("elderFilterSelect");
+    if (!select) return;
 
-            const card = `
-                <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: ${delay}s; position:relative; overflow:hidden;">
-                    <div class="clinical-event-bar"></div>
-                    
-                    <div class="flex justify-between items-start mb-5">
-                        <div class="flex items-center gap-4">
-                            <div class="elder-mini-avatar" onclick="window.location.href='view_profile.html?id=${data.elderId}'">
-                                ${data.elderName ? data.elderName[0] : '?'}
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-dark text-lg hover:text-primary cursor-pointer transition-colors" 
-                                    onclick="window.location.href='view_profile.html?id=${data.elderId}'">
-                                    ${data.elderName || 'Unknown Patient'}
-                                </h4>
-                                <p class="text-xs text-muted font-bold uppercase tracking-widest">
-                                    <i class="fas fa-clinic-medical mr-1"></i> ${data.location || 'Clinic Visit'}
-                                </p>
-                            </div>
+    try {
+        const elders = await window.elderService.getAll();
+        select.innerHTML = '<option value="all">All Elders</option>';
+        elders.forEach(e => {
+            const op = document.createElement("option");
+            op.value = e.id;
+            op.text = e.name;
+            select.appendChild(op);
+        });
+
+        select.addEventListener("change", (e) => {
+            currentElderFilter = e.target.value;
+            renderMedicalFeed();
+        });
+        elderFilterDropdownPopulated = true;
+    } catch (e) {
+        console.error("Error populating elder filter dropdown:", e);
+    }
+}
+
+function renderMedicalFeed() {
+    const feed = document.getElementById("healthFeed");
+    if (!feed) return;
+    feed.innerHTML = "";
+
+    const filteredRecords = currentElderFilter === "all"
+        ? allRecordsCached
+        : allRecordsCached.filter(r => r.elderId === currentElderFilter);
+
+    if (filteredRecords.length === 0) {
+        feed.innerHTML = `<div class="text-center p-12 text-muted">No clinical records found for the selected filter.</div>`;
+        return;
+    }
+
+    filteredRecords.forEach((data, index) => {
+        const dateStr = new Date(data.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        const delay = (index * 0.1).toFixed(1);
+        
+        let bpStatusClass = "";
+        if (data.bp && data.bp.includes('/')) {
+            const [sys, dia] = data.bp.split('/').map(Number);
+            if (sys > 140 || dia > 90) bpStatusClass = "high-bp-pulse";
+        }
+
+        const card = `
+            <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: ${delay}s; position:relative; overflow:hidden;">
+                <div class="clinical-event-bar"></div>
+                
+                <div class="flex justify-between items-start mb-5">
+                    <div class="flex items-center gap-4">
+                        <div class="elder-mini-avatar" onclick="window.location.href='view_profile.html?id=${data.elderId}'">
+                            ${data.elderName ? data.elderName[0] : '?'}
                         </div>
-                        <div class="text-right">
-                            <span class="text-[10px] font-bold text-muted uppercase tracking-tighter block">${dateStr}</span>
-                            <span class="badge badge-success mt-1" style="font-size:9px;">Logged by Team</span>
+                        <div>
+                            <h4 class="font-bold text-dark text-lg hover:text-primary cursor-pointer transition-colors" 
+                                onclick="window.location.href='view_profile.html?id=${data.elderId}'">
+                                ${data.elderName || 'Unknown Patient'}
+                            </h4>
+                            <p class="text-xs text-muted font-bold uppercase tracking-widest">
+                                <i class="fas fa-clinic-medical mr-1"></i> ${data.location || 'Clinic Visit'}
+                            </p>
                         </div>
                     </div>
-
-                    <div class="grid grid-3 gap-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 mb-5">
-                        <div class="text-center">
-                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Blood Pressure</p>
-                            <div class="text-xl font-bold text-primary ${bpStatusClass}">${data.bp || '--/--'}</div>
-                        </div>
-                        <div class="text-center border-x border-gray-200">
-                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Heart Rate</p>
-                            <div class="text-xl font-bold text-secondary">${data.hr || '--'} <span class="text-xs opacity-50">bpm</span></div>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-muted uppercase font-bold mb-1">Weight</p>
-                            <div class="text-xl font-bold text-dark">${data.weight || '--'} <span class="text-xs opacity-50">kg</span></div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between items-end">
-                        <div style="flex:1;">
-                            <p class="text-xs text-muted font-bold uppercase mb-2">Doctor's Observations</p>
-                            <p class="text-sm text-dark italic opacity-80 line-clamp-2">"${data.notes || 'No specific notes recorded for this visit.'}"</p>
-                        </div>
-                        ${(userRole === 'caregiver' || userRole === 'primary_caregiver') ? `
-                            <button onclick="deleteHealthRecord('${data.id}')" class="btn-icon-hover text-danger ml-4">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        ` : ''}
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-muted uppercase tracking-tighter block">${dateStr}</span>
+                        <span class="badge badge-success mt-1" style="font-size:9px;">Logged by Team</span>
                     </div>
                 </div>
-            `;
-            feed.innerHTML += card;
-        });
+
+                <div class="grid grid-3 gap-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 mb-5">
+                    <div class="text-center">
+                        <p class="text-[10px] text-muted uppercase font-bold mb-1">Blood Pressure</p>
+                        <div class="text-xl font-bold text-primary ${bpStatusClass}">${data.bp || '--/--'}</div>
+                    </div>
+                    <div class="text-center border-x border-gray-200">
+                        <p class="text-[10px] text-muted uppercase font-bold mb-1">Heart Rate</p>
+                        <div class="text-xl font-bold text-secondary">${data.hr || '--'} <span class="text-xs opacity-50">bpm</span></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[10px] text-muted uppercase font-bold mb-1">Weight</p>
+                        <div class="text-xl font-bold text-dark">${data.weight || '--'} <span class="text-xs opacity-50">kg</span></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-end">
+                    <div style="flex:1;">
+                        <p class="text-xs text-muted font-bold uppercase mb-2">Doctor's Observations</p>
+                        <p class="text-sm text-dark italic opacity-80 line-clamp-2">"${data.notes || 'No specific notes recorded for this visit.'}"</p>
+                    </div>
+                    ${(cachedUserRole === 'caregiver' || cachedUserRole === 'primary_caregiver') ? `
+                        <button onclick="deleteHealthRecord('${data.id}')" class="btn-icon-hover text-danger ml-4">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        feed.innerHTML += card;
     });
 }
 
@@ -175,7 +222,7 @@ async function updateAdherenceChart() {
         });
 
         const totalScheduled = scheduledToday.length;
-        const totalTaken = Object.keys(logs).length;
+        const totalTaken = scheduledToday.filter(m => logs[m.id]).length;
         const percent = totalScheduled > 0 ? Math.round((totalTaken / totalScheduled) * 100) : 100;
 
         document.getElementById("adherencePercent").innerText = `${percent}%`;

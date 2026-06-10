@@ -80,10 +80,16 @@
 
                     <div class="flex justify-between items-center mt-8 mb-4">
                         <h3 class="font-bold text-lg text-dark">Upcoming Tasks</h3>
-                        <div class="flex gap-2">
-                            <span class="filter-chip active">All</span>
-                            <span class="filter-chip">Pending</span>
-                            <span class="filter-chip">Completed</span>
+                        <div class="flex items-center gap-3">
+                            <select id="assigneeFilterSelect" style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                <option value="all">All Caregivers</option>
+                                <option value="me">My Tasks Only</option>
+                            </select>
+                            <div class="flex gap-2">
+                                <span class="filter-chip active">All</span>
+                                <span class="filter-chip">Pending</span>
+                                <span class="filter-chip">Completed</span>
+                            </div>
                         </div>
                     </div>
 
