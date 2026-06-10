@@ -40,6 +40,11 @@ function initDatePicker() {
 
 async function checkShiftAvailability(fullDateStr) {
     if (!fullDateStr) return;
+
+    // Do not run auto-assignment/fairness engine when editing an existing appointment
+    const isEditMode = !!document.getElementById("apptId").value;
+    if (isEditMode) return;
+
     const assignedInput = document.getElementById("apptAssigned");
     const dateStr = fullDateStr.split("T")[0];
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -113,10 +118,21 @@ function loadAppointments(userRole) {
             return new Date(a.date) - new Date(b.date);
         });
 
+        const localNow = new Date();
+        const twoDaysAgo = new Date(localNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+        const y2 = twoDaysAgo.getFullYear();
+        const m2 = String(twoDaysAgo.getMonth() + 1).padStart(2, '0');
+        const d2 = String(twoDaysAgo.getDate()).padStart(2, '0');
+        const h2 = String(twoDaysAgo.getHours()).padStart(2, '0');
+        const min2 = String(twoDaysAgo.getMinutes()).padStart(2, '0');
+        const twoDaysAgoStr = `${y2}-${m2}-${d2}T${h2}:${min2}`;
+
         appointments.forEach((data) => {
             const isCompleted = data.status === 'completed';
+            const isMissed = data.status === 'missed' || (!isCompleted && data.date < twoDaysAgoStr);
+            const isFuture = new Date(data.date) > new Date();
 
-            if (isFirst && !isCompleted) {
+            if (isFirst && isFuture && !isCompleted) {
                 const dObj = new Date(data.date);
                 updateSummaryCard(data, dObj.toLocaleDateString(), dObj.toLocaleTimeString());
                 isFirst = false;
@@ -135,9 +151,10 @@ function loadAppointments(userRole) {
             let actionButtons = "";
             if (isCompleted) {
                 actionButtons = `<span class="text-success text-xs font-bold">✔ Done</span>`;
+            } else if (isMissed) {
+                actionButtons = `<span class="text-danger text-xs font-bold">✖ Missed</span>`;
             } else if (userRole === 'caregiver' || userRole === 'primary_caregiver') {
                 const safeDataId = escapeHTML(data.id);
-                const isFuture = new Date(data.date) > new Date();
                 const completeBtn = isFuture
                     ? `<button title="Available after scheduled time" class="btn-icon text-muted" disabled style="opacity: 0.5; cursor: not-allowed;"><i class="fas fa-check-circle"></i></button>`
                     : `<button onclick="completeAppt('${safeDataId}')" title="Mark Done" class="btn-icon text-success"><i class="fas fa-check-circle"></i></button>`;

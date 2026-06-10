@@ -191,32 +191,95 @@ class AppointmentService extends BaseService {
         const minutes = String(localNow.getMinutes()).padStart(2, '0');
         const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-        const snap = await this.collection
-            .where("familyId", "==", fid)
-            .where("date", ">=", localNowStr)
-            .orderBy("date", "asc")
-            .get();
-        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const twoDaysAgo = new Date(localNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+        const y2 = twoDaysAgo.getFullYear();
+        const m2 = String(twoDaysAgo.getMonth() + 1).padStart(2, '0');
+        const d2 = String(twoDaysAgo.getDate()).padStart(2, '0');
+        const h2 = String(twoDaysAgo.getHours()).padStart(2, '0');
+        const min2 = String(twoDaysAgo.getMinutes()).padStart(2, '0');
+        const twoDaysAgoStr = `${y2}-${m2}-${d2}T${h2}:${min2}`;
+
+        const fiveDaysAgo = new Date(localNow.getTime() - 5 * 24 * 60 * 60 * 1000);
+        const y5 = fiveDaysAgo.getFullYear();
+        const m5 = String(fiveDaysAgo.getMonth() + 1).padStart(2, '0');
+        const d5 = String(fiveDaysAgo.getDate()).padStart(2, '0');
+        const h5 = String(fiveDaysAgo.getHours()).padStart(2, '0');
+        const min5 = String(fiveDaysAgo.getMinutes()).padStart(2, '0');
+        const fiveDaysAgoStr = `${y5}-${m5}-${d5}T${h5}:${min5}`;
+
+        try {
+            const snap = await this.collection
+                .where("familyId", "==", fid)
+                .get();
+            const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const filtered = all.filter(appt => {
+                if (appt.date >= localNowStr) return true;
+
+                const isApptMissed = appt.status !== 'completed' && appt.date < twoDaysAgoStr;
+                if (isApptMissed && appt.status !== 'missed') {
+                    this.collection.doc(appt.id).update({ status: 'missed' }).catch(() => {});
+                    appt.status = 'missed';
+                }
+
+                return appt.status !== 'completed' && appt.date >= fiveDaysAgoStr;
+            });
+
+            filtered.sort((a, b) => a.date.localeCompare(b.date));
+            return filtered;
+        } catch (error) {
+            console.error("Error getting upcoming appointments:", error);
+            return [];
+        }
     }
 
     listenUpcoming(callback) {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
 
-        const localNow = new Date();
-        const year = localNow.getFullYear();
-        const month = String(localNow.getMonth() + 1).padStart(2, '0');
-        const day = String(localNow.getDate()).padStart(2, '0');
-        const hours = String(localNow.getHours()).padStart(2, '0');
-        const minutes = String(localNow.getMinutes()).padStart(2, '0');
-        const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
-
         return this.collection
             .where("familyId", "==", fid)
-            .where("date", ">=", localNowStr)
-            .orderBy("date", "asc")
             .onSnapshot(snap => {
-                callback(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                const localNow = new Date();
+                const year = localNow.getFullYear();
+                const month = String(localNow.getMonth() + 1).padStart(2, '0');
+                const day = String(localNow.getDate()).padStart(2, '0');
+                const hours = String(localNow.getHours()).padStart(2, '0');
+                const minutes = String(localNow.getMinutes()).padStart(2, '0');
+                const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+                const twoDaysAgo = new Date(localNow.getTime() - 2 * 24 * 60 * 60 * 1000);
+                const y2 = twoDaysAgo.getFullYear();
+                const m2 = String(twoDaysAgo.getMonth() + 1).padStart(2, '0');
+                const d2 = String(twoDaysAgo.getDate()).padStart(2, '0');
+                const h2 = String(twoDaysAgo.getHours()).padStart(2, '0');
+                const min2 = String(twoDaysAgo.getMinutes()).padStart(2, '0');
+                const twoDaysAgoStr = `${y2}-${m2}-${d2}T${h2}:${min2}`;
+
+                const fiveDaysAgo = new Date(localNow.getTime() - 5 * 24 * 60 * 60 * 1000);
+                const y5 = fiveDaysAgo.getFullYear();
+                const m5 = String(fiveDaysAgo.getMonth() + 1).padStart(2, '0');
+                const d5 = String(fiveDaysAgo.getDate()).padStart(2, '0');
+                const h5 = String(fiveDaysAgo.getHours()).padStart(2, '0');
+                const min5 = String(fiveDaysAgo.getMinutes()).padStart(2, '0');
+                const fiveDaysAgoStr = `${y5}-${m5}-${d5}T${h5}:${min5}`;
+
+                const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const filtered = all.filter(appt => {
+                    if (appt.date >= localNowStr) return true;
+
+                    const isApptMissed = appt.status !== 'completed' && appt.date < twoDaysAgoStr;
+                    if (isApptMissed && appt.status !== 'missed') {
+                        this.collection.doc(appt.id).update({ status: 'missed' }).catch(() => {});
+                        appt.status = 'missed';
+                    }
+
+                    return appt.status !== 'completed' && appt.date >= fiveDaysAgoStr;
+                });
+
+                filtered.sort((a, b) => a.date.localeCompare(b.date));
+                callback(filtered);
             }, err => {
                 console.error("Error listening to upcoming appointments:", err);
                 callback([]);
