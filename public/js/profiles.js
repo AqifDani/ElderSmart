@@ -127,9 +127,6 @@ function loadCaregivers() {
     });
 }
 
-// ==========================================
-// PHOTO LOGIC (Add & Remove)
-// ==========================================
 
 window.previewImage = function (input) {
     if (input.files && input.files[0]) {

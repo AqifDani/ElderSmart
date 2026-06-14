@@ -128,6 +128,10 @@ function renderNotifications() {
         } else if (title.includes('health') || title.includes('reading')) {
             actionUrl = "health_records.html";
             actionLabel = "Review Records";
+        } else if (type === 'schedule' || title.includes('shift') || title.includes('schedule')) {
+            // Vinculamos las alertas de turnos/horarios con la página del cuadrante de servicio para facilitar el acceso rápido del cuidador.
+            actionUrl = "schedule.html";
+            actionLabel = "View Duty Roster";
         }
 
         if (actionUrl !== "#") {

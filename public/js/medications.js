@@ -369,9 +369,45 @@ window.markTaken = async function (id, name, qtyToTake) {
         const medRef = firebase.firestore().collection("medications").doc(id);
         const doc = await medRef.get();
         if (doc.exists) {
-            const currentStock = parseFloat(doc.data().stock) || 0;
+            const data = doc.data();
+            const currentStock = parseFloat(data.stock) || 0;
             const newStock = Math.max(0, currentStock - parsedQty);
-            await medRef.update({ stock: newStock });
+
+            // Calculamos umbrales híbridos (el 10% del stock de referencia o un búfer mínimo de 5 unidades; y el 5% o 2 unidades como nivel crítico).
+            const originalStock = parseFloat(data.originalStock) || currentStock;
+            const tenPercentThreshold = Math.max(originalStock * 0.10, 5);
+            const fivePercentThreshold = Math.max(originalStock * 0.05, 2);
+
+            const updates = { stock: newStock };
+            let notifyMsg = null;
+
+            // Evaluamos primero el umbral crítico del 5% para notificar con alta prioridad si corresponde y evitar avisos obsoletos.
+            if (newStock <= fivePercentThreshold) {
+                if (!data.alertedFivePercent) {
+                    updates.alertedFivePercent = true;
+                    updates.alertedTenPercent = true; // Si cae directamente al 5%, marcamos el 10% como alertado para no duplicar en el futuro.
+                    notifyMsg = `🔴 Medication Stock Alert: ${name} is critically low (${newStock.toFixed(1)} remaining, <= 5% of original stock / 2 doses buffer).`;
+                }
+            } else if (newStock <= tenPercentThreshold) {
+                if (!data.alertedTenPercent) {
+                    updates.alertedTenPercent = true;
+                    notifyMsg = `⚠️ Medication Stock Alert: ${name} is running low (${newStock.toFixed(1)} remaining, <= 10% of original stock / 5 doses buffer).`;
+                }
+            }
+
+            await medRef.update(updates);
+
+            // Generamos la notificación en Firestore para alertar a todo el círculo de cuidadores.
+            if (notifyMsg) {
+                await window.notificationService.save({
+                    recipientId: null, // Difusión a todos los cuidadores de la familia
+                    title: "Medication Low Stock",
+                    message: notifyMsg,
+                    type: "alert",
+                    isRead: false,
+                    read: false
+                });
+            }
 
             if (newStock < 5 && window.showToast) {
                 showToast("Low Stock", `Only ${newStock.toFixed(1)} left of ${name}!`, "error");
@@ -495,6 +531,20 @@ if (medForm) {
 
         try {
             await window.medicationService.save(data, id || null);
+
+            // Informamos a todos los miembros del círculo familiar para mantenerlos al tanto de los cambios en el régimen médico.
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            await window.notificationService.save({
+                recipientId: null, // Difusión a todos los cuidadores de la familia
+                title: id ? "Medication Updated" : "New Medication Added",
+                message: id 
+                    ? `💊 ${user.name} updated medication details for ${nameVal} (${data.elderName}).`
+                    : `💊 ${user.name} added a new medication: ${nameVal} for ${data.elderName}.`,
+                type: "medication",
+                isRead: false,
+                read: false
+            });
+
             if (window.showToast) showToast("Success", "Medication Saved", "success");
             closeMedModal();
             loadInventory('caregiver');

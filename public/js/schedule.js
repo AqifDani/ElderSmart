@@ -332,6 +332,20 @@ window.confirmAssignment = async function() {
     if (remark) updatePayload.lastRemark = remark;
 
     await firebase.firestore().collection("appointments").doc(apptId).update(updatePayload);
+
+    // Difundimos la asignación de turno a todos los miembros de la familia para mantenerlos coordinados.
+    if (apptDoc.exists) {
+        const apptData = apptDoc.data();
+        await window.notificationService.save({
+            recipientId: null, // Broadcast a toda la familia
+            title: "Shift Assigned",
+            message: `📅 Shift Assigned: ${name} has been assigned to "${apptData.title}" for ${apptData.elderName || 'Elder'} by ${currentUser.name}.`,
+            type: "schedule",
+            isRead: false,
+            read: false
+        });
+    }
+
     if (window.showToast) showToast("Assigned", `Shift assigned to ${name}.`, "success");
     closeAssignModal();
     loadAppointmentLogistics(cachedUserRole);
@@ -380,6 +394,20 @@ window.confirmDropShift = async function() {
         lastModifiedBy: currentUser.name,
         lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+
+    // Notificamos a todo el círculo familiar sobre el turno liberado para que otro cuidador pueda tomarlo.
+    if (apptDoc.exists) {
+        const apptData = apptDoc.data();
+        await window.notificationService.save({
+            recipientId: null, // Broadcast a toda la familia
+            title: "Shift Dropped",
+            message: `📅 Shift Dropped: ${currentUser.name} dropped the shift "${apptData.title}" for ${apptData.elderName || 'Elder'}. Reason: "${remark}"`,
+            type: "schedule",
+            isRead: false,
+            read: false
+        });
+    }
+
     if (window.showToast) showToast("Dropped", "Shift has been unassigned.", "error");
     closeDropModal();
     loadAppointmentLogistics(cachedUserRole);
@@ -440,6 +468,19 @@ window.confirmOverride = async function() {
             lastModifiedBy: currentUser.name + " (Admin Override)",
             lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        // Informamos a toda la familia sobre la asignación forzada por parte del cuidador principal.
+        if (apptDoc.exists) {
+            const apptData = apptDoc.data();
+            await window.notificationService.save({
+                recipientId: null, // Broadcast
+                title: "Shift Assignment Overridden",
+                message: `🛡️ Shift Override: ${currentUser.name} forcefully assigned ${name} to "${apptData.title}" for ${apptData.elderName || 'Elder'}.`,
+                type: "schedule",
+                isRead: false,
+                read: false
+            });
+        }
 
         if (window.showToast) showToast("Override Successful", `Shift forcefully assigned to ${name}.`, "success");
         closeOverrideModal();

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -28,7 +28,8 @@
                     <h1 class="text-3xl font-bold text-dark">Medication Tracker</h1>
                 </div>
                 <div class="flex items-center" style="gap: 12px;">
-                    <select id="elderFilterSelect" style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: none;">
+                    <select id="elderFilterSelect"
+                        style="width: auto; margin-bottom: 0; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-strong); background-color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: none;">
                         <option value="all">All Elders</option>
                     </select>
                     <button class="btn-primary hidden" onclick="openMedModal()" id="addMedBtn">
@@ -54,7 +55,8 @@
                     </div>
                 </div>
                 <div class="stat-card bg-white border-subtle" id="statLowStockCard">
-                    <div class="icon-square bg-warning-light"><i class="fas fa-exclamation-triangle text-warning"></i></div>
+                    <div class="icon-square bg-warning-light"><i class="fas fa-exclamation-triangle text-warning"></i>
+                    </div>
                     <div class="mt-2">
                         <h2 class="text-2xl font-bold text-dark" id="statLowStock">--</h2>
                         <p class="text-xs text-muted font-bold uppercase">Low Stock</p>
@@ -71,23 +73,39 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <i class="fas fa-calendar-alt text-muted" style="font-size:14px;"></i>
-                        <input type="text" id="historyDate" style="width:130px; margin:0; font-size:13px; padding:8px 12px; border-radius:10px;">
+                        <input type="text" id="historyDate"
+                            style="width:130px; margin:0; font-size:13px; padding:8px 12px; border-radius:10px;">
                     </div>
                 </div>
                 <div style="overflow-x:auto;">
                     <table id="checklistTable" style="width:100%; border-collapse:collapse;">
                         <thead>
                             <tr style="border-bottom: 2px solid #f1f5f9;">
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Status</th>
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Time</th>
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Elder</th>
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Medication</th>
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Dosage</th>
-                                <th style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Action</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Status</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Time</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Elder</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Medication</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Dosage</th>
+                                <th
+                                    style="text-align:left; padding:10px 12px; font-size:11px; color:#9ca3af; text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">
+                                    Action</th>
                             </tr>
                         </thead>
                         <tbody id="checklistBody">
-                            <tr><td colspan="6" style="text-align:center; color:#9ca3af; padding:24px; font-size:14px;">Loading schedule...</td></tr>
+                            <tr>
+                                <td colspan="6" style="text-align:center; color:#9ca3af; padding:24px; font-size:14px;">
+                                    Loading schedule...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -135,11 +153,15 @@
                     <div class="w-full">
                         <label>Dose Amount (<span id="doseUnitLabel">pills</span>)</label>
                         <div style="display: flex; align-items: stretch; gap: 8px;">
-                            <input type="number" id="medPerDose" placeholder="1" value="1" step="0.01" required style="flex: 1; margin-bottom: 0; min-height: 44px;">
+                            <input type="number" id="medPerDose" placeholder="1" value="1" step="0.01" required
+                                style="flex: 1; margin-bottom: 0; min-height: 44px;">
                             <div style="display: flex; gap: 4px;">
-                                <button type="button" onclick="setDose(0.25)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¼</button>
-                                <button type="button" onclick="setDose(0.5)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">½</button>
-                                <button type="button" onclick="setDose(0.75)" class="btn-secondary" style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¾</button>
+                                <button type="button" onclick="setDose(0.25)" class="btn-secondary"
+                                    style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¼</button>
+                                <button type="button" onclick="setDose(0.5)" class="btn-secondary"
+                                    style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">½</button>
+                                <button type="button" onclick="setDose(0.75)" class="btn-secondary"
+                                    style="padding: 0 12px; font-size: 14px; font-weight: 700; height: auto; border-radius: 12px;">¾</button>
                             </div>
                         </div>
                     </div>
@@ -152,7 +174,8 @@
                     </div>
                     <div class="w-full">
                         <label>Time</label>
-                        <input type="text" id="medTime" placeholder="Select Time..." required style="background: white;">
+                        <input type="text" id="medTime" placeholder="Select Time..." required
+                            style="background: white;">
                     </div>
                 </div>
 
@@ -175,8 +198,10 @@
 
                 <div class="flex justify-between items-center mb-2 mt-4">
                     <label style="margin-bottom:0; font-weight:700;">Frequency</label>
-                    <div class="flex items-center gap-2 px-3 py-1 bg-primary-light border border-primary-subtle rounded-full cursor-pointer" style="transition:all 0.2s;">
-                        <input type="checkbox" id="isPRN" onchange="toggleFrequency(this.checked)" style="width:14px; height:14px;"> 
+                    <div class="flex items-center gap-2 px-3 py-1 bg-primary-light border border-primary-subtle rounded-full cursor-pointer"
+                        style="transition:all 0.2s;">
+                        <input type="checkbox" id="isPRN" onchange="toggleFrequency(this.checked)"
+                            style="width:14px; height:14px;">
                         <span class="text-xs font-bold text-primary uppercase tracking-tight">As Needed (PRN)</span>
                     </div>
                 </div>
@@ -188,13 +213,20 @@
                 <div id="daysSelector" class="hidden mb-4 p-4 bg-gray-50 border rounded-2xl">
                     <label class="mb-3 block font-bold text-dark" style="font-size:13px;">Select Scheduled Days:</label>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="0"> Sun</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="1"> Mon</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="2"> Tue</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="3"> Wed</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="4"> Thu</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="5"> Fri</label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="weekDay" value="6"> Sat</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="0"> Sun</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="1"> Mon</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="2"> Tue</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="3"> Wed</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="4"> Thu</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="5"> Fri</label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox"
+                                name="weekDay" value="6"> Sat</label>
                     </div>
                 </div>
 
@@ -230,7 +262,8 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <h3 class="modal-title">Delete Medication?</h3>
-            <p class="modal-description">Are you sure you want to permanently remove this medication prescription? This action cannot be undone.</p>
+            <p class="modal-description">Are you sure you want to permanently remove this medication prescription? This
+                action cannot be undone.</p>
             <div class="modal-actions">
                 <button type="button" onclick="closeDeleteModal()" class="btn-modal-cancel">Cancel</button>
                 <button type="button" id="confirmDeleteBtn" class="btn-modal-confirm">Remove</button>
@@ -245,4 +278,5 @@
     <script src="js/services.js"></script>
     <script src="js/medications.js"></script>
 </body>
+
 </html>

@@ -1,7 +1,6 @@
-// js/services.js - COMPLETE & FINAL
+// js/services.js
 
-// Helper functions to mitigate prototype pollution and bypass dynamic bracket notation warnings.
-// Using Reflect and key validation prevents modification of inherited Object.prototype properties.
+
 function safeSet(obj, key, val) {
     if (typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
         Reflect.set(obj, key, val);
@@ -26,7 +25,6 @@ class BaseService {
         return user ? user.familyId : null;
     }
 
-    // ✅ GLOBAL FILTER: Always fetch by Family ID
     async getAll() {
         const fid = this.getFamilyId();
         if (!fid) return [];
@@ -40,7 +38,6 @@ class BaseService {
         }
     }
 
-    // ✅ REAL-TIME LISTENER
     listenAll(callback) {
         const fid = this.getFamilyId();
         if (!fid) { callback([]); return () => {}; }
@@ -55,7 +52,6 @@ class BaseService {
             });
     }
 
-    // ✅ GLOBAL SAVE: Always tag data with Family ID
     async save(data, id = null) {
         const fid = this.getFamilyId();
         if (!fid) throw new Error("No Family ID found");
@@ -81,7 +77,7 @@ class BaseService {
     }
 }
 
-// ---------------------------------------------------------
+
 
 class ElderService extends BaseService {
     constructor() {
@@ -227,6 +223,27 @@ class ElderService extends BaseService {
 class AppointmentService extends BaseService {
     constructor() { super("appointments"); }
 
+    _checkAndLogMissed(appt, twoDaysAgoStr) {
+        const isApptMissed = appt.status !== 'completed' && appt.date < twoDaysAgoStr;
+        if (isApptMissed && appt.status !== 'missed') {
+            // Marcamos primero el estado a 'missed' local y remotamente para evitar duplicados en la interfaz mientras se procesa.
+            this.collection.doc(appt.id).update({ status: 'missed' })
+                .then(() => {
+                    // Notificamos a todo el círculo familiar sobre la cita perdida, ya que requiere atención de cualquier cuidador disponible.
+                    return window.notificationService.save({
+                        recipientId: null,
+                        title: "Missed Appointment",
+                        message: `⚠️ Missed Appointment: "${appt.title}" for ${appt.elderName || 'Elder'} was not completed.`,
+                        type: "urgent",
+                        isRead: false,
+                        read: false
+                    });
+                })
+                .catch(err => console.error("Error handling missed appointment:", err));
+            appt.status = 'missed';
+        }
+    }
+
     async getUpcoming() {
         const fid = this.getFamilyId();
         if (!fid) return [];
@@ -264,11 +281,7 @@ class AppointmentService extends BaseService {
             const filtered = all.filter(appt => {
                 if (appt.date >= localNowStr) return true;
 
-                const isApptMissed = appt.status !== 'completed' && appt.date < twoDaysAgoStr;
-                if (isApptMissed && appt.status !== 'missed') {
-                    this.collection.doc(appt.id).update({ status: 'missed' }).catch(() => {});
-                    appt.status = 'missed';
-                }
+                this._checkAndLogMissed(appt, twoDaysAgoStr);
 
                 return appt.status !== 'completed' && appt.date >= fiveDaysAgoStr;
             });
@@ -317,11 +330,7 @@ class AppointmentService extends BaseService {
                 const filtered = all.filter(appt => {
                     if (appt.date >= localNowStr) return true;
 
-                    const isApptMissed = appt.status !== 'completed' && appt.date < twoDaysAgoStr;
-                    if (isApptMissed && appt.status !== 'missed') {
-                        this.collection.doc(appt.id).update({ status: 'missed' }).catch(() => {});
-                        appt.status = 'missed';
-                    }
+                    this._checkAndLogMissed(appt, twoDaysAgoStr);
 
                     return appt.status !== 'completed' && appt.date >= fiveDaysAgoStr;
                 });
@@ -347,9 +356,7 @@ class AppointmentService extends BaseService {
     }
 
     /**
-     * FAIRNESS ENGINE — Atomic Write.
-     * Marks the shift as completed and increments the caregiver's counter by +1 in a single batch operation.
-     * This ensures consistency: if one write fails, both fail.
+     * FAIRNESS ENGINE
      */
     async markShiftCompleted(appointmentId, caregiverUid) {
         const batch = this.db.batch();
@@ -377,8 +384,7 @@ class HealthService extends BaseService {
         const fid = this.getFamilyId();
         if (!fid) return [];
 
-        // Note: Requires composite index on [familyId, timestamp]
-        // If index is missing, remove .orderBy or create it in Firebase Console
+
         const snap = await this.collection
             .where("familyId", "==", fid)
             .orderBy("timestamp", "desc")
@@ -418,6 +424,36 @@ class MedicationService extends BaseService {
     constructor() {
         super("medications");
         this.logsCollection = this.db.collection("medication_logs");
+    }
+
+    async save(data, id = null) {
+        // Para gestionar correctamente las alertas sin repetirlas, evaluamos si es una edición de stock (reabastecimiento) o un registro nuevo.
+        if (id) {
+            const doc = await this.collection.doc(id).get();
+            if (doc.exists) {
+                const oldData = doc.data();
+                const oldStock = parseFloat(oldData.stock) || 0;
+                const newStock = parseFloat(data.stock) || 0;
+                
+                // Si el stock nuevo es mayor, se considera una recarga, por lo que restablecemos el estado de las alertas y actualizamos el stock de origen.
+                if (newStock > oldStock || oldData.originalStock === undefined) {
+                    data.originalStock = newStock;
+                    data.alertedTenPercent = false;
+                    data.alertedFivePercent = false;
+                } else {
+                    // Si el stock no se incrementó, preservamos el stock de referencia inicial y las alertas que ya se enviaron.
+                    data.originalStock = oldData.originalStock !== undefined ? oldData.originalStock : oldStock;
+                    data.alertedTenPercent = oldData.alertedTenPercent || false;
+                    data.alertedFivePercent = oldData.alertedFivePercent || false;
+                }
+            }
+        } else {
+            // Si es un medicamento nuevo, inicializamos el stock original y las banderas de alertas enviadas en falso.
+            data.originalStock = parseFloat(data.stock) || 0;
+            data.alertedTenPercent = false;
+            data.alertedFivePercent = false;
+        }
+        return await super.save(data, id);
     }
 
     async getAll() {
@@ -755,7 +791,7 @@ class ReportService extends BaseService {
             this.medicationLogsCollection.where("familyId", "==", fid).where("date", ">=", dateOnlyStart).where("date", "<", dateOnlyEnd).get()
         ]);
         
-        // 1. Caregiver Accountability (In-Memory Processing)
+        // 1. Caregiver Accountability 
         const caregiversMap = new Map();
         usersSnap.forEach(doc => {
             const data = doc.data();

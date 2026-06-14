@@ -404,8 +404,29 @@ if (healthForm) {
             elderName: elderSelect.options[elderSelect.selectedIndex].text
         };
 
+        let isCriticalBP = false;
+        if (bpVal) {
+            const [sys, dia] = bpVal.split('/').map(Number);
+            if (sys >= 140 || dia >= 90) {
+                isCriticalBP = true;
+            }
+        }
+
         try {
             await window.healthService.logVisit(visitData);
+
+            // Almacenamos una alerta de salud crítica en Firestore si la presión excede los límites normales para que los cuidadores actúen rápido.
+            if (isCriticalBP) {
+                await window.notificationService.save({
+                    recipientId: null, // Difusión a todos los cuidadores de la familia
+                    title: "Critical Health Reading",
+                    message: `⚠️ Critical BP alert: ${visitData.elderName} recorded high blood pressure of ${bpVal} at ${locationVal}.`,
+                    type: "urgent",
+                    isRead: false,
+                    read: false
+                });
+            }
+
             showToast("Success", "Medical record added to feed", "success");
             closeHealthModal();
         } catch (error) { showError("Save failed"); }

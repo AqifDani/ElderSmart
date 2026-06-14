@@ -32,9 +32,7 @@ let datePickerInstance = null;
     loadAppointments(userRole);
 })();
 
-// ==========================================
-// 1. FLATPICKR & SMART SCHEDULING
-// ==========================================
+
 function initDatePicker() {
     datePickerInstance = flatpickr("#apptDate", {
         enableTime: true, dateFormat: "Y-m-d\\TH:i", altInput: true, altFormat: "F j, Y at h:i K",
@@ -46,7 +44,7 @@ function initDatePicker() {
 async function checkShiftAvailability(fullDateStr) {
     if (!fullDateStr) return;
 
-    // Do not run auto-assignment/fairness engine when editing an existing appointment
+    
     const isEditMode = !!document.getElementById("apptId").value;
     if (isEditMode) return;
 
@@ -395,11 +393,32 @@ window.deleteAppt = function (id) {
         wrapperClass: "danger",
         btnText: "Delete Permanently",
         btnClass: "bg-danger",
-        onConfirm: () => {
-            window.appointmentService.delete(id).then(() => {
+        onConfirm: async () => {
+            try {
+                // Recuperamos los datos de la cita antes de borrarla de Firestore para poder incluirlos en la notificación a la familia.
+                const apptDoc = await firebase.firestore().collection('appointments').doc(id).get();
+                const apptData = apptDoc.exists ? apptDoc.data() : null;
+
+                await window.appointmentService.delete(id);
+
+                if (apptData) {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    await window.notificationService.save({
+                        recipientId: null, // Broadcast a todos los cuidadores
+                        title: "Appointment Cancelled",
+                        message: `❌ ${currentUser.name} cancelled the appointment: "${apptData.title}" for ${apptData.elderName || 'Elder'}.`,
+                        type: "appointment",
+                        isRead: false,
+                        read: false
+                    });
+                }
+
                 showToast("Success", "Appointment deleted", "success");
                 loadAppointments('caregiver');
-            });
+            } catch (error) {
+                console.error("Delete appointment error:", error);
+                showToast("Error", "Could not delete appointment.", "error");
+            }
         }
     });
 };
@@ -430,6 +449,20 @@ window.completeAppt = function (id) {
                 const caregiverUid = (apptData && apptData.assignedToId) ? apptData.assignedToId : currentUser.uid;
 
                 await window.appointmentService.markShiftCompleted(id, caregiverUid);
+
+                // Notificamos a todo el círculo familiar que la cita se completó con éxito para mantener sincronizados a los cuidadores.
+                if (apptData) {
+                    const caregiverName = (apptData && apptData.assignedToName) ? apptData.assignedToName : currentUser.name;
+                    await window.notificationService.save({
+                        recipientId: null, // Broadcast a todos los cuidadores
+                        title: "Appointment Completed",
+                        message: `✅ Appointment completed: "${apptData.title}" for ${apptData.elderName || 'Elder'} by ${caregiverName}.`,
+                        type: "appointment",
+                        isRead: false,
+                        read: false
+                    });
+                }
+
                 showToast("Success", "Appointment completed!", "success");
                 loadAppointments('caregiver');
             } catch (error) {
