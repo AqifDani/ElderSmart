@@ -27,7 +27,12 @@ service cloud.firestore {
     // --- 1. FAMILY CODES (Public Verification) ---
     match /families/{code} {
       allow get: if true;
-      allow create: if isSignedIn(); 
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        resource.data.createdBy == request.auth.uid ||
+        resource.data.primaryCaregiver == null ||
+        resource.data.primaryCaregiver == request.auth.uid
+      );
     }
 
     // --- 2. USER PROFILES ---
