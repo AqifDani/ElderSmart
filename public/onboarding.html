@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - ElderSmart</title>
-    <!-- Google Fonts: Inter & Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Main Style -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="auth-page">
     <div id="toast-container"></div>
     
     <div class="onboarding-container">
-        <!-- Sidebar Branding -->
         <div class="onboarding-sidebar">
             <div class="onboarding-logo">
                 <i class="fas fa-heartbeat"></i>
@@ -24,7 +20,6 @@
             <h1 class="onboarding-title">Welcome to the Family, <span id="userName">User</span>!</h1>
             <p class="onboarding-subtitle">We just need a few more details to set up your clinical command center. This ensures your care network stays safe and organized.</p>
             
-            <!-- Progress Tracker -->
             <div class="onboarding-steps">
                 <div class="step active" id="step1-dot">
                     <div class="step-num">1</div>
@@ -41,14 +36,12 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="onboarding-main">
             <div class="onboarding-card">
                 <div class="progress-bar-container">
                     <div class="progress-bar" id="progressBar" style="width: 33%;"></div>
                 </div>
 
-                <!-- STEP 1: NETWORK IDENTIFICATION (FORMERLY STEP 3) -->
                 <div class="onboarding-step-content active" id="step1">
                     <h2 class="step-heading">Your Care Network</h2>
                     <p class="step-subheading">Join an existing family or start a new clinical network.</p>
@@ -63,9 +56,13 @@
 
                     <div class="onboarding-divider"><span>OR</span></div>
 
-                    <button class="btn-outline-primary w-100" id="createNetworkBtn" onclick="generateNewFamily()">
-                        <i class="fas fa-plus-circle mr-2"></i> Create New Clinical Network
-                    </button>
+                    <div class="family-selection-box" id="createNetworkBox">
+                        <label>CREATE YOUR OWN NETWORK</label>
+                        <p class="network-create-hint">Start a new network if you're the first in your family to set up ElderSmart. You'll receive a shareable code to invite your care team.</p>
+                        <button class="btn-outline-primary" id="createNetworkBtn" onclick="generateNewFamily()" style="width: 100%;">
+                            <i class="fas fa-plus-circle mr-2"></i> Create New Clinical Network
+                        </button>
+                    </div>
 
                     <div id="newFamilyCodeDisplay" class="family-code-success" style="display: none;">
                         <i class="fas fa-check-circle"></i>
@@ -91,7 +88,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: ROLE SELECTION -->
                 <div class="onboarding-step-content" id="step2">
                     <h2 class="step-heading">What is your Role?</h2>
                     <p class="step-subheading">Choose the role that best describes your position in the care team.</p>
@@ -121,7 +117,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: PERSONAL IDENTITY -->
                 <div class="onboarding-step-content" id="step3">
                     <h2 class="step-heading">Personal Identity</h2>
                     <p class="step-subheading">A professional photo helps your care team recognize you instantly.</p>
@@ -147,7 +142,6 @@
                         </div>
                     </div>
 
-                    <!-- PDPA PRIVACY & TRUST CARD -->
                     <div class="pdpa-trust-card" id="pdpaTrustCard" style="background: var(--primary-light); border: 1.5px solid var(--primary); border-radius: var(--radius-sm); padding: 18px; margin: 24px 0 16px 0; text-align: left; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
                         <div style="display: flex; gap: 14px; align-items: flex-start;">
                             <div style="font-size: 24px; color: var(--primary); margin-top: 2px;"><i class="fas fa-shield-halved"></i></div>
@@ -177,7 +171,6 @@
         </div>
     </div>
 
-    <!-- CONSENT MODAL -->
     <div id="consentModal" class="modal">
         <div class="modal-card" style="width: 580px; max-width: 95%;">
             <h2 class="text-primary mb-4" style="font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px;">

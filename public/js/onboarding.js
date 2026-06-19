@@ -137,7 +137,7 @@ window.verifyAndJoinFamily = async function() {
 
         codeInput.style.borderColor = '#166534';
         document.getElementById('proceedToRoleBtn').disabled = false;
-        document.getElementById('createNetworkBtn').style.display = 'none';
+        document.getElementById('createNetworkBox').style.display = 'none';
         
         if (window.showToast) showToast("Code Verified", "Network identified. Proceed to role selection.", "success");
     } catch (e) {
@@ -152,7 +152,7 @@ window.generateNewFamily = function() {
 
     document.getElementById('displayFamilyCode').innerText = familyId;
     document.getElementById('newFamilyCodeDisplay').style.display = 'block';
-    document.getElementById('createNetworkBtn').style.display = 'none';
+    document.getElementById('createNetworkBox').style.display = 'none';
     document.getElementById('joinFamilyBox').style.opacity = '0.5';
     document.getElementById('joinFamilyBox').style.pointerEvents = 'none';
     document.getElementById('proceedToRoleBtn').disabled = false;
@@ -248,3 +248,24 @@ window.finishOnboarding = async function() {
         btn.innerHTML = `Complete Setup <i class="fas fa-check-circle ml-2"></i>`;
     }
 }
+
+// Photo upload preview — renders selected image inside avatar circle
+document.getElementById('photoUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Early 5MB size validation
+    if (file.size > 5 * 1024 * 1024) {
+        if (window.showToast) showToast("File Too Large", "Profile photo must be under 5MB.", "error");
+        e.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const preview = document.getElementById('avatarPreview');
+        preview.innerHTML = `<img src="${event.target.result}" alt="Profile preview" style="width:100%;height:100%;object-fit:cover;">`;
+        if (window.showToast) showToast("Photo Loaded", "Your profile photo is ready.", "success");
+    };
+    reader.readAsDataURL(file);
+});
