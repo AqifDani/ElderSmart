@@ -2,7 +2,7 @@
 
 ElderSmart is a cloud-based elder care coordination web application designed to streamline health monitoring, streamline medical appointments,
 and optimize caregiver responsibility allocation. Built using the Rapid Application Development (RAD) methodology, 
-the system addresses critical pain points in family-managed elder care by introducing systematic accountability and tracking..
+the system addresses critical pain points in family-managed elder care by introducing systematic accountability and tracking.
 
 ---
 
