@@ -103,15 +103,24 @@ async function loadFamilyLeaderboard() {
             }
         });
 
+        const localNow = new Date();
+        const year = localNow.getFullYear();
+        const month = String(localNow.getMonth() + 1).padStart(2, '0');
+        const day = String(localNow.getDate()).padStart(2, '0');
+        const hours = String(localNow.getHours()).padStart(2, '0');
+        const minutes = String(localNow.getMinutes()).padStart(2, '0');
+        const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
         appointmentsSnap.forEach(doc => {
             const appt = doc.data();
-            if (appt.status !== 'completed' && appt.assignedToName) {
+            if (appt.status !== 'completed' && appt.assignedToName && appt.date >= localNowStr) {
                 const caregiver = caregivers.find(c => c.name === appt.assignedToName || c.id === appt.assignedToId);
                 if (caregiver) {
                     caregiver.pendingShifts++;
                 }
             }
         });
+
 
         const enrichedCaregivers = caregivers.map(c => {
             const completed = c.totalShiftsCompleted;
@@ -144,6 +153,7 @@ async function loadFamilyLeaderboard() {
                     </td>
                     <td class="p-4">
                         <div class="text-sm font-bold text-dark">${c.total} <span class="text-xs text-muted font-normal">Shifts</span></div>
+                        <div class="text-xs text-muted font-normal">${c.pendingShifts} pending</div>
                     </td>
                     <td class="p-4">
                         <span class="font-bold text-sm text-dark">${c.completed}</span>

@@ -107,7 +107,15 @@
                                 <thead>
                                     <tr style="border-bottom: 2px solid #f1f5f9; text-align: left;">
                                         <th class="p-3 text-xs font-bold text-muted uppercase">Caregiver</th>
-                                        <th class="p-3 text-xs font-bold text-muted uppercase">Total Shifts</th>
+                                        <th class="p-3 text-xs font-bold text-muted uppercase">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                Total Shifts
+                                                <div class="tooltip-container">
+                                                    <i class="fas fa-info-circle text-xs text-muted cursor-pointer"></i>
+                                                    <span class="tooltip-text">Calculated as: Completed Shifts + Active Upcoming Shifts (excluding past incomplete shifts).</span>
+                                                </div>
+                                            </div>
+                                        </th>
                                         <th class="p-3 text-xs font-bold text-muted uppercase">Completed Shifts</th>
                                         <th class="p-3 text-xs font-bold text-muted uppercase text-right">Status</th>
                                     </tr>
