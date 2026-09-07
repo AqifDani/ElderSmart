@@ -1,6 +1,6 @@
 # ElderSmart 🧓🏽💼
 
-**[View Live Application]([https://your-deployed-link.com](https://eldersmart.onrender.com/))** | 🏆 **Winner: INNOGEN 26 Gold Award**
+**[View Live Application](https://eldersmart.onrender.com/)** | 🏆 **Winner: INNOGEN 26 Gold Award**
 
 ElderSmart is a cloud-based elder care coordination web application designed to streamline health monitoring, automate medical appointments, and optimize caregiver responsibility allocation. Built using the Rapid Application Development (RAD) methodology, the system addresses critical pain points in family-managed elder care by introducing systematic accountability and tracking.
 
