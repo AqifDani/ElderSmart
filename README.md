@@ -1,4 +1,4 @@
-# ElderSmart 🧓🏽💼
+# ElderSmart
 
 **[View Live Application](https://eldersmart.onrender.com/)** | 🏆 **Winner: INNOGEN 26 Gold Award**
 
@@ -6,7 +6,7 @@ ElderSmart is a cloud-based elder care coordination web application designed to 
 
 ---
 
-## 🏗️ Core Innovation: Care Management & Task Scheduling
+## Core Innovation: Care Management & Task Scheduling
 
 The system is engineered around two distinct user actors—Elders and Caregivers—with its core innovation driven by advanced task scheduling and remote care management functions:
 
@@ -23,7 +23,7 @@ The system is engineered around two distinct user actors—Elders and Caregivers
 
 ---
 
-## 🗄️ Database Architecture (Cloud Firestore)
+## Database Architecture (Cloud Firestore)
 
 The backend utilizes a NoSQL database schema engineered across 7 core collections, utilizing strict family-unit data isolation protocols:
 
@@ -42,7 +42,7 @@ The backend utilizes a NoSQL database schema engineered across 7 core collection
 
 ---
 
-## 🗂️ Project Status & Implementation Phase
+## Project Status & Implementation Phase
 
 **Status: Completed & Active Maintenance**
 
@@ -55,7 +55,7 @@ Current development focuses on maintaining the existing infrastructure and itera
 
 ---
 
-## ⚙️ Local Installation & Deployment
+## Local Installation & Deployment
 
 Follow these steps to deploy a local development instance of the platform:
 
