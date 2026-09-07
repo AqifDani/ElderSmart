@@ -1,32 +1,39 @@
 # ElderSmart 🧓🏽💼
 
-ElderSmart is a cloud-based elder care coordination web application designed to streamline health monitoring, streamline medical appointments,
-and optimize caregiver responsibility allocation. Built using the Rapid Application Development (RAD) methodology, 
-the system addresses critical pain points in family-managed elder care by introducing systematic accountability and tracking.
+**[View Live Application]([https://your-deployed-link.com](https://eldersmart.onrender.com/))** | 🏆 **Winner: INNOGEN 26 Gold Award**
+
+ElderSmart is a cloud-based elder care coordination web application designed to streamline health monitoring, automate medical appointments, and optimize caregiver responsibility allocation. Built using the Rapid Application Development (RAD) methodology, the system addresses critical pain points in family-managed elder care by introducing systematic accountability and tracking.
 
 ---
 
-## 🏗️ Core System Architecture & Modules
+## 🏗️ Core Innovation: Care Management & Task Scheduling
 
-The system is engineered around two distinct user actors—Elders and Caregivers—and operates across highly decoupled functional modules managed via a unified cloud state:
+The system is engineered around two distinct user actors—Elders and Caregivers—with its core innovation driven by advanced task scheduling and remote care management functions:
 
-### 1. Authentication & User Management
-* Secured via Firebase Authentication.
-* Role-based initialization for caregivers tracking specific elder profiles.
+### 1. Algorithmic Fairness Engine (Task Scheduling)
+* Dynamically assigns caregivers to upcoming medical appointments and daily tasks to eliminate manual coordination friction.
+* Utilizes a weighted distribution model to calculate pending workloads and previously completed shifts, ensuring equitable responsibility allocation and reducing scheduling conflicts.
 
-### 2. Caregiver Turn Management (Core Engine)
-* Dynamically calculates and identifies which caregiver is responsible for upcoming medical appointments.
-* Establishes clear ownership lines to eliminate coordination friction or missed care dates.
+### 2. Comprehensive Care Management
+* **Health Monitoring:** Real-time vital and daily health record logging with direct sync into reactive dashboard charts for historical analysis.
+* **Centralized Coordination:** Automated calendar sync specialized for medical appointments, check-ups, and diagnostic schedules.
 
-### 3. Health Monitoring Management
-* Real-time vital and daily health record logging.
-* Direct sync into reactive dashboard charts for visual historical analysis.
-
-### 4. Appointment & Care Scheduling
-* Centralized calendar coordination specialized for medical appointments, check-ups, and diagnostic schedules.
+### 3. Authentication & User Management
+* Secured via Firebase Authentication with role-based access for caregivers tracking specific elder profiles.
 
 ---
 
+## 🗄️ Database Architecture (Cloud Firestore)
+
+The backend utilizes a NoSQL database schema engineered across 7 core collections, utilizing strict family-unit data isolation protocols:
+
+* **`users`**: Manages authentication profiles and role definitions.
+* **`elders`**: Stores primary demographic and medical baseline data for care recipients.
+* **`family_groups`**: Enforces strict data isolation by securely linking designated caregivers to specific elders.
+* **`health_records`**: Logs daily vital signs and medical metrics, directly related to specific elder profiles.
+* **`appointments`**: Stores centralized scheduling details for medical check-ups.
+* **`tasks`**: Tracks daily care requirements (e.g., medication, hygiene) and live completion statuses.
+* **`workload_logs`**: Feeds the algorithmic fairness engine by tracking historical shift data and assigned weights per caregiver.
 ## 🛠️ Technology Stack & Infrastructure
 
 * Frontend Environment: Native HTML5, CSS3 (Mobile-responsive UI structures), Vanilla JavaScript (ES6+ Asynchronous Event Handling).
@@ -37,11 +44,14 @@ The system is engineered around two distinct user actors—Elders and Caregivers
 
 ## 🗂️ Project Status & Implementation Phase
 
-The repository contains the critical Core Functionality Phase, capturing structural development objectives:
-* Complete user authentication lifecycle.
-* Elder profile structural creation and relational viewing engines.
-* Daily health record persistence management.
-* Core Caregiver Turn Identification logic embedded directly into the scheduling flows.
+**Status: Completed & Active Maintenance**
+
+The core modules of ElderSmart are fully engineered, functional, and deployed. The system successfully executes real-time data synchronization across all primary collections and handles caregiver scheduling efficiently.
+
+Current development focuses on maintaining the existing infrastructure and iterating on new features, including:
+* Ongoing maintenance of the authentication, health monitoring, and appointment scheduling modules.
+* Refining and optimizing the algorithmic fairness engine for edge-case scheduling scenarios.
+* Prototyping and developing additional features for future iterations to further enhance care management.
 
 ---
 
